@@ -65,7 +65,7 @@ def review_my_skill(skill_id: uuid.UUID):
     """Le jeune valide, refuse ou renomme une compétence : lui seul décide."""
     skill = db.session.get(Skill, skill_id)
     if skill is None or skill.youth_id != g.user.id:
-        raise ApiError(404, "not_found", "Compétence introuvable.")
+        raise ApiError(404, "not_found", "Talent introuvable.")
 
     data = json_body()
     if "name" in data:
@@ -81,7 +81,7 @@ def review_my_skill(skill_id: uuid.UUID):
         db.session.commit()
     except IntegrityError as error:
         db.session.rollback()
-        raise ApiError(409, "skill_exists", "Tu as déjà une compétence avec ce nom.") from error
+        raise ApiError(409, "skill_exists", "Tu as déjà un talent avec ce nom.") from error
     return jsonify({"skill": skill.to_dict()})
 
 
