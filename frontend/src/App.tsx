@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthContext';
 import { HomeRedirect, PublicOnly, RequireRole } from './auth/guards';
+import { ThemeToggle } from './components/ThemeToggle';
 import { fr } from './content/fr';
 import { BackofficeLayout } from './layouts/BackofficeLayout';
 import { YouthLayout } from './layouts/YouthLayout';
@@ -13,6 +14,7 @@ import { SkillsPage } from './pages/youth/SkillsPage';
 export function App() {
   return (
     <AuthProvider>
+      <ThemeToggle />
       <BrowserRouter>
         <Routes>
           <Route index element={<HomeRedirect />} />

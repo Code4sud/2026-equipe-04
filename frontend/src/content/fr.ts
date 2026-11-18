@@ -12,6 +12,10 @@ export const fr = {
     save: 'Enregistrer',
     genericError: 'Quelque chose a coincé. Réessaie dans un instant.',
   },
+  theme: {
+    dark: 'Passer en thème sombre',
+    light: 'Passer en thème clair',
+  },
   auth: {
     loginTitle: 'Content de te revoir',
     registerTitle: 'Créer ton espace',
