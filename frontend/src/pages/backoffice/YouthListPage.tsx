@@ -41,7 +41,7 @@ export function YouthListPage() {
             <thead>
               <tr>
                 <th scope="col">{t.name}</th>
-                <th scope="col">{t.lastActivity}</th>
+                <th scope="col" className="optional">{t.lastActivity}</th>
                 <th scope="col" className="numeric">{t.validated}</th>
                 <th scope="col" className="numeric">{t.pending}</th>
                 <th scope="col">{t.sharing}</th>
@@ -53,11 +53,13 @@ export function YouthListPage() {
                   <th scope="row">
                     <Link to={`/psy/jeunes/${youth.id}`}>{youth.display_name}</Link>
                   </th>
-                  <td>{youth.last_activity_at ? formatDateTime(youth.last_activity_at) : t.never}</td>
+                  <td className="mono optional">
+                    {youth.last_activity_at ? formatDateTime(youth.last_activity_at) : t.never}
+                  </td>
                   <td className="numeric">{youth.validated_skills}</td>
                   <td className="numeric">{youth.pending_skills}</td>
                   <td>
-                    <span className={youth.share_transcripts ? 'chip chip--on' : 'chip'}>
+                    <span className={youth.share_transcripts ? 'status status--on' : 'status'}>
                       {youth.share_transcripts ? t.shared : t.notShared}
                     </span>
                   </td>
