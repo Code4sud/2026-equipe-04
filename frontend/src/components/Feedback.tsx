@@ -18,7 +18,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
     <div className="state state--error" role="alert">
       <p>{message}</p>
       {onRetry && (
-        <button type="button" className="button" onClick={onRetry}>
+        <button type="button" className="button button--small" onClick={onRetry}>
           {fr.common.retry}
         </button>
       )}

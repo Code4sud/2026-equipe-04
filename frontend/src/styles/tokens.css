@@ -1,41 +1,74 @@
 /*
  * Direction artistique : tout se règle ici.
  * Les composants n'utilisent que ces variables, jamais de valeur en dur.
+ *
+ * Règle du soleil : le jaune franc est réservé aux talents trouvés.
+ * Les actions restent orange : quand ça brille en jaune, ça parle du jeune.
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  /* Couleurs */
-  --color-bg: #f7f7f5;
+  /* Fonds */
+  --color-bg: #fff8ec;
   --color-surface: #ffffff;
-  --color-surface-muted: #efefec;
-  --color-border: #dcdcd6;
-  --color-text: #1c1c1a;
-  --color-text-muted: #62625c;
-  --color-accent: #24292f;
-  --color-on-accent: #ffffff;
-  --color-bubble-user: var(--color-accent);
-  --color-on-bubble-user: var(--color-on-accent);
+  --color-surface-muted: #fff0d9;
+  --color-border: #f2ddbe;
+
+  /* Texte */
+  --color-text: #3b2618;
+  --color-text-muted: #7a5e4a;
+
+  /* Actions */
+  --color-accent: #f5934a;
+  --color-accent-soft: #ffe1c6;
+  --color-accent-shadow: color-mix(in srgb, var(--color-accent) 60%, var(--color-text));
+  --color-on-accent: #3b2618;
+  /* Orange foncé pour le texte et les liens : l'orange vif n'est pas assez lisible sur crème. */
+  --color-accent-text: #a8520f;
+
+  /* Talents */
+  --color-talent: #ffd166;
+  --color-talent-soft: #fff1c4;
+  --color-talent-text: #8c6100;
+  --color-talent-star: #fff8e0;
+  --color-on-talent: #3b2618;
+  --color-peach: #ffb89a;
+
+  /* Discussion */
+  --color-bubble-user: var(--color-accent-soft);
+  --color-on-bubble-user: var(--color-text);
   --color-bubble-companion: var(--color-surface);
-  --color-positive-bg: #e4efe6;
-  --color-positive: #245c34;
-  --color-danger-bg: #f8e7e4;
-  --color-danger: #9b2c1f;
-  --color-focus: #2563a8;
+
+  /* États */
+  --color-positive: #3b7338;
+  --color-positive-mark: #4f8a4b;
+  --color-positive-bg: #e1f0da;
+  --color-on-positive: #fff8ec;
+  --color-danger: #b23a34;
+  --color-danger-bg: #fce2dc;
+  --color-focus: #a8520f;
 
   /* Typographie */
-  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-heading: var(--font-body);
-  --text-xs: 0.8125rem;
+  --font-heading: 'Baloo 2', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body: 'Figtree', 'Helvetica Neue', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-3xs: 0.625rem;
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-md: 1rem;
-  --text-lg: 1.1875rem;
-  --text-xl: 1.5rem;
+  --text-talent: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
   --weight-normal: 400;
-  --weight-medium: 550;
-  --weight-bold: 650;
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+  --leading-tight: 1.1;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
 
   /* Espacements */
   --space-1: 0.25rem;
@@ -45,38 +78,50 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
+  --space-8: 4.5rem;
 
   /* Formes */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1.125rem;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 26px;
+  --radius-bubble: 22px;
+  --radius-tail: 6px;
   --radius-full: 999px;
   --border-width: 1px;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+  --border-strong: 1.5px;
+  --shadow-card: 0 1px 0 rgb(122 72 24 / 0.06), 0 8px 20px -10px rgb(122 72 24 / 0.35);
 
   /* Mise en page */
   --tap-size: 2.75rem;
+  --avatar-size: 2.5rem;
   --width-content: 42rem;
   --width-wide: 72rem;
   --width-auth: 24rem;
+  --width-sidebar: 14rem;
   --duration: 150ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #161615;
-    --color-surface: #20201e;
-    --color-surface-muted: #2a2a27;
-    --color-border: #3a3a36;
-    --color-text: #f0f0ec;
-    --color-text-muted: #a7a79f;
-    --color-accent: #ecece6;
-    --color-on-accent: #1c1c1a;
-    --color-positive-bg: #1f3325;
-    --color-positive: #9bd2a9;
-    --color-danger-bg: #3d211d;
-    --color-danger: #f2aca1;
-    --color-focus: #7db4ee;
-    --shadow-card: none;
-  }
+/* Activé uniquement par le bouton de thème : le réglage du système est ignoré. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #221710;
+  --color-surface: #2e2118;
+  --color-surface-muted: #3a2a1e;
+  --color-border: #4f3a28;
+  --color-text: #fff1e0;
+  --color-text-muted: #d2b79c;
+  --color-accent: #ffa466;
+  --color-accent-soft: #4a2e1a;
+  --color-on-accent: #221710;
+  --color-accent-text: #ffa466;
+  --color-talent-soft: #463818;
+  --color-talent-text: #ffd98a;
+  --color-positive: #9ccb93;
+  --color-positive-mark: #9ccb93;
+  --color-positive-bg: #22361f;
+  --color-on-positive: #221710;
+  --color-danger: #f28a7e;
+  --color-danger-bg: #46221e;
+  --color-focus: #ffa466;
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 10px 24px -12px rgb(0 0 0 / 0.7);
 }
