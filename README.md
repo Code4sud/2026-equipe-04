@@ -10,6 +10,7 @@ _Deux ou trois phrases : le problème, la solution, pour qui._
 
 ```bash
 # Comment installer et démarrer, en 5 lignes maximum
+./run.sh # trust
 ```
 
 ## Publier sur le site du hackathon
