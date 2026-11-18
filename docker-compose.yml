@@ -71,6 +71,23 @@ services:
       OLLAMA_HOST: http://ollama:11434
     command: ["pull", "${OLLAMA_MODEL:-mistral}"]
 
+  traefik:
+    image: traefik:3.2
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   backend:
     build: ./backend
     restart: unless-stopped
@@ -99,8 +116,10 @@ services:
     volumes:
       # Les prompts se modifient sans reconstruire l'image.
       - ./backend/prompts:/app/prompts:ro
-    ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:${BACKEND_PORT:-5001}:5000"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.backend.rule: "PathPrefix(`/api`)"
+      traefik.http.services.backend.loadbalancer.server.port: "5000"
     healthcheck:
       test:
         - CMD
@@ -121,8 +140,11 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:${FRONTEND_PORT:-8080}:80"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.frontend.rule: "PathPrefix(`/`)"
+      traefik.http.routers.frontend.priority: "1"
+      traefik.http.services.frontend.loadbalancer.server.port: "80"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
       interval: 10s
