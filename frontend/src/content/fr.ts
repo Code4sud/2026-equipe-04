@@ -93,6 +93,12 @@ export const fr = {
       apprentissage: 'Apprentissage',
     } as Record<string, string>,
   },
+  me: {
+    title: 'Moi',
+    intro: 'Ici, c’est toi qui gardes la main.',
+    shareTitle: 'Partager mes discussions',
+    shareHint: 'Si tu actives ce choix, la psychologue peut lire tes discussions. Tu peux changer d’avis à tout moment.',
+  },
   backoffice: {
     title: 'Backoffice',
     listTitle: 'Jeunes accompagnés',

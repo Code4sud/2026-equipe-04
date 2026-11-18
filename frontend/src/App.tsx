@@ -10,6 +10,7 @@ import { WelcomePage } from './pages/WelcomePage';
 import { YouthDetailPage } from './pages/backoffice/YouthDetailPage';
 import { YouthListPage } from './pages/backoffice/YouthListPage';
 import { ChatPage } from './pages/youth/ChatPage';
+import { MePage } from './pages/youth/MePage';
 import { SkillsPage } from './pages/youth/SkillsPage';
 
 export function App() {
@@ -31,6 +32,7 @@ export function App() {
               <Route index element={<Navigate to="discussion" replace />} />
               <Route path="discussion" element={<ChatPage />} />
               <Route path="competences" element={<SkillsPage />} />
+              <Route path="moi" element={<MePage />} />
             </Route>
           </Route>
 
