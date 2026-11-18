@@ -6,6 +6,7 @@ import { fr } from './content/fr';
 import { BackofficeLayout } from './layouts/BackofficeLayout';
 import { YouthLayout } from './layouts/YouthLayout';
 import { AuthPage } from './pages/AuthPage';
+import { WelcomePage } from './pages/WelcomePage';
 import { YouthDetailPage } from './pages/backoffice/YouthDetailPage';
 import { YouthListPage } from './pages/backoffice/YouthListPage';
 import { ChatPage } from './pages/youth/ChatPage';
@@ -20,6 +21,7 @@ export function App() {
           <Route index element={<HomeRedirect />} />
 
           <Route element={<PublicOnly />}>
+            <Route path="bienvenue" element={<WelcomePage />} />
             <Route path="connexion" element={<AuthPage mode="login" />} />
             <Route path="inscription" element={<AuthPage mode="register" />} />
           </Route>

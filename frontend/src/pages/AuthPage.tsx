@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { errorMessage } from '../components/Feedback';
+import { TalentStar } from '../components/Icons';
 import { fr } from '../content/fr';
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
@@ -33,8 +34,11 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <main className="auth">
-      <form className="auth__card stack" onSubmit={submit}>
-        <p className="auth__brand">{fr.appName}</p>
+      <form className="auth__card" onSubmit={submit}>
+        <Link to="/bienvenue" className="brand">
+          <TalentStar />
+          {fr.appName}
+        </Link>
         <h1>{registering ? fr.auth.registerTitle : fr.auth.loginTitle}</h1>
         {registering && <p className="muted">{fr.auth.registerIntro}</p>}
 
@@ -96,7 +100,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
         <button type="submit" className="button button--primary" disabled={busy}>
           {registering ? fr.auth.register : fr.auth.login}
         </button>
-        <Link className="auth__switch" to={registering ? '/connexion' : '/inscription'}>
+        <Link className="text-link" to={registering ? '/connexion' : '/inscription'}>
           {registering ? fr.auth.toLogin : fr.auth.toRegister}
         </Link>
       </form>

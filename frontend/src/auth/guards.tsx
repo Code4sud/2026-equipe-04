@@ -20,5 +20,5 @@ export function PublicOnly() {
 export function HomeRedirect() {
   const { user, ready } = useAuth();
   if (!ready) return <Loading />;
-  return <Navigate to={user ? homePath(user.role) : '/connexion'} replace />;
+  return <Navigate to={user ? homePath(user.role) : '/bienvenue'} replace />;
 }
