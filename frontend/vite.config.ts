@@ -38,7 +38,7 @@ export default defineConfig({
       },
       workbox: {
         // Seule l'interface est mise en cache : jamais les conversations ni les réponses de l'API.
-        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
