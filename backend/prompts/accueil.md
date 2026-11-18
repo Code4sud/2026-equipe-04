@@ -1,0 +1,1 @@
+Salut ! Ici, pas de CV, pas de note et pas de mauvaise réponse. J'aimerais juste qu'on discute de ce que tu fais au quotidien. Raconte-moi un truc que tu as fait ces derniers temps et dont tu es plutôt content, même tout petit ?

@@ -1,0 +1,82 @@
+/*
+ * Direction artistique : tout se règle ici.
+ * Les composants n'utilisent que ces variables, jamais de valeur en dur.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Couleurs */
+  --color-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-surface-muted: #efefec;
+  --color-border: #dcdcd6;
+  --color-text: #1c1c1a;
+  --color-text-muted: #62625c;
+  --color-accent: #24292f;
+  --color-on-accent: #ffffff;
+  --color-bubble-user: var(--color-accent);
+  --color-on-bubble-user: var(--color-on-accent);
+  --color-bubble-companion: var(--color-surface);
+  --color-positive-bg: #e4efe6;
+  --color-positive: #245c34;
+  --color-danger-bg: #f8e7e4;
+  --color-danger: #9b2c1f;
+  --color-focus: #2563a8;
+
+  /* Typographie */
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: var(--font-body);
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.1875rem;
+  --text-xl: 1.5rem;
+  --weight-normal: 400;
+  --weight-medium: 550;
+  --weight-bold: 650;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  /* Espacements */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* Formes */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-full: 999px;
+  --border-width: 1px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+
+  /* Mise en page */
+  --tap-size: 2.75rem;
+  --width-content: 42rem;
+  --width-wide: 72rem;
+  --width-auth: 24rem;
+  --duration: 150ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #161615;
+    --color-surface: #20201e;
+    --color-surface-muted: #2a2a27;
+    --color-border: #3a3a36;
+    --color-text: #f0f0ec;
+    --color-text-muted: #a7a79f;
+    --color-accent: #ecece6;
+    --color-on-accent: #1c1c1a;
+    --color-positive-bg: #1f3325;
+    --color-positive: #9bd2a9;
+    --color-danger-bg: #3d211d;
+    --color-danger: #f2aca1;
+    --color-focus: #7db4ee;
+    --shadow-card: none;
+  }
+}

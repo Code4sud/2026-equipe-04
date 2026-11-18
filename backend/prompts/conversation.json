@@ -1,0 +1,34 @@
+{
+  "relances": {
+    "declencheurs": [
+      "jsp", "jsais pas", "j sais pas", "je sais pas", "je ne sais pas", "sais pas", "chais pas",
+      "chepa", "rien", "rien du tout", "bof", "aucune idee", "pas d idee", "pas grand chose",
+      "euh", "mouais", "ok", "je vois pas", "je ne vois pas"
+    ],
+    "reponses": [
+      "Pas de souci, on n'est pas pressés. Hier, tu as fait quoi de ta journée, même un truc banal ?",
+      "Ça arrive, rien de grave. Il y a un jeu, une série ou un sport sur lequel tu passes du temps ?",
+      "Pas besoin d'avoir une grande histoire. La dernière fois que quelqu'un t'a demandé un coup de main, c'était pour quoi ?",
+      "On peut y aller tranquillement. Qu'est-ce que tu fais quand tu t'ennuies ?",
+      "Aucun souci. Tu as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?"
+    ]
+  },
+  "identite": {
+    "declencheurs": [
+      "t es qui", "tu es qui", "qui es tu", "vrai gars", "vraie personne", "vrai humain", "humain",
+      "robot", "une ia", "un ia", "intelligence artificielle", "chatgpt", "chat gpt", "un bot"
+    ],
+    "reponse": "Je suis une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu'est-ce qui t'occupe en ce moment ?"
+  },
+  "tours": {
+    "revelation_tous_les": 3,
+    "mots_minimum_revelation": 8,
+    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu'elle vient d'écrire, sans rien ajouter ni supposer, puis pose une seule question courte sur sa façon de s'y prendre, par exemple « Comment tu t'y prends ? ». Ne parle ni de compétences, ni d'avenir, ni d'un autre sujet.",
+    "formules_revelation": [
+      "Quand tu dis « {citation} », je vois quelqu'un qui sait {savoir_faire}. Tu t'y reconnais ?",
+      "« {citation} » : pour moi, ça veut dire que tu sais {savoir_faire}. Ça te parle ?",
+      "Tu viens de dire « {citation} ». Ça montre que tu sais {savoir_faire}, non ?"
+    ]
+  },
+  "fin_de_consigne": "Écris uniquement ta réponse, sans parenthèses ni commentaire. Voici le dernier message de la personne :"
+}

@@ -1,7 +1,11 @@
 .env
 .env.*
+!.env.example
 node_modules/
 dist/
+dev-dist/
 __pycache__/
+.pytest_cache/
 .venv/
+*.tsbuildinfo
 .DS_Store

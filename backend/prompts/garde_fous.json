@@ -1,0 +1,61 @@
+{
+  "detresse": {
+    "termes": [
+      "suicid*", "me tuer", "me foutre en l'air", "mettre fin a mes jours",
+      "en finir avec la vie", "envie d'en finir", "veux en finir", "vais en finir",
+      "plus envie de vivre", "marre de vivre", "envie de mourir", "veux mourir",
+      "voudrais mourir", "aimerais mourir", "veux disparaitre", "me faire du mal", "me scarifi*",
+      "me mutil*", "me frappe", "me frappent", "me viole", "me violent"
+    ],
+    "reponse": "Merci de me l'avoir dit. Ce que tu vis est important et je le prends au sérieux. Je suis une IA et je ne peux pas t'aider comme une personne le ferait : tu peux appeler le 3114 maintenant, c'est gratuit, confidentiel et quelqu'un te répond 24h/24. Si tu es en danger immédiat, appelle le 112. Est-ce que tu es en sécurité en ce moment ?",
+    "consigne_modele": "ATTENTION : la personne a récemment exprimé une grande détresse ou un danger. Ne parle pas de compétences. Réponds avec douceur et sans jugement, demande-lui si elle est en sécurité, rappelle que tu es une IA et encourage-la à parler à quelqu'un : le 3114, gratuit, 24h/24, ou le 112 en cas de danger immédiat.",
+    "message": "Ce que tu vis compte. Tu peux parler à quelqu'un maintenant, gratuitement et sans jugement.",
+    "ressources": [
+      {"nom": "3114", "description": "Prévention du suicide, 24h/24 et 7j/7", "contact": "3114"},
+      {"nom": "112", "description": "Urgence, si tu es en danger immédiat", "contact": "112"},
+      {"nom": "119", "description": "Enfance en danger, pour les moins de 18 ans, 24h/24", "contact": "119"},
+      {"nom": "Fil Santé Jeunes", "description": "Écoute anonyme pour les 12-25 ans, de 9h à 23h", "contact": "0800235236"}
+    ]
+  },
+  "reponses_sujet_sensible": [
+    "Merci de me le confier, c'est à toi d'en parler comme tu veux. Si tu en as envie, raconte-moi plutôt ce que tu aimes faire quand tu as un moment pour toi.",
+    "Je t'entends, et je ne vais pas chercher à en savoir plus, ça t'appartient. Qu'est-ce qui t'occupe en ce moment dans tes journées ?",
+    "Merci de me l'avoir dit. On peut parler de ce que tu veux : il y a quelque chose que tu as fait récemment et qui t'a plu ?"
+  ],
+  "consigne_famille": "La personne évoque un proche : parle uniquement de ce qu'elle fait elle-même, sans nommer ce proche, sans le commenter, sans poser aucune question sur lui et sans rien déduire.",
+  "sujets_sensibles": {
+    "sante": {
+      "bloque_citation": true,
+      "termes": [
+        "sante", "malade", "maladie", "handicap*", "depress*", "anxi*", "cancer", "diabet*",
+        "psychiatr*", "psychotrop*", "therapie", "therapeute", "medicament", "hopital", "hopitaux",
+        "autis*", "tdah", "dyslex*", "dyspraxi*", "bipolaire", "schizophren*", "addiction",
+        "alcoolique"
+      ]
+    },
+    "origine": {
+      "bloque_citation": true,
+      "termes": [
+        "mes origines", "ses origines", "mon origine", "son origine", "origine etrangere",
+        "origine ethnique", "pays d'origine", "nationalite", "immigr*", "ethni*",
+        "couleur de peau", "racial*", "racis*", "sans papiers", "titre de sejour", "pays natal"
+      ]
+    },
+    "religion": {
+      "bloque_citation": true,
+      "termes": [
+        "religion", "religieu*", "priere", "musulman*", "chretien*", "catholique", "protestant*",
+        "juif", "juive", "juifs", "juives", "bouddhist*", "hindou*", "mosquee", "eglise",
+        "synagogue", "temple", "ramadan", "islam*", "coran", "bible", "torah", "ma foi", "sa foi"
+      ]
+    },
+    "famille": {
+      "bloque_citation": false,
+      "termes": [
+        "famille", "familial*", "mere", "maman", "pere", "papa", "parent", "parental*", "frere",
+        "soeur", "fratrie", "grand mere", "grand pere", "grands parents", "fils", "fille",
+        "conjoint", "conjointe", "mari", "orphelin*", "divorce"
+      ]
+    }
+  }
+}
