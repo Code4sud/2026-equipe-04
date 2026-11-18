@@ -17,13 +17,13 @@ L'application s'ouvre sur http://localhost:8080. Le script affiche les comptes d
 
 ## Architecture
 
-| Service | Rôle | Adresse sur la machine |
-| --- | --- | --- |
-| `frontend` | PWA React + TypeScript, servie par nginx | http://localhost:8080 |
-| `backend` | API Flask, migrations et données de démo au démarrage | http://localhost:5001/api |
-| `postgres` | Comptes, métadonnées des conversations, compétences | `localhost:5432` |
-| `seaweedfs` | Texte des conversations, via son API S3 (bucket `conversations`) | http://localhost:8333 |
-| `ollama` | Modèle `mistral`, téléchargé au premier démarrage | http://localhost:11435 |
+| Service     | Rôle                                                             | Adresse sur la machine    |
+| ----------- | ---------------------------------------------------------------- | ------------------------- |
+| `frontend`  | PWA React + TypeScript, servie par nginx                         | http://localhost:8080     |
+| `backend`   | API Flask, migrations et données de démo au démarrage            | http://localhost:5001/api |
+| `postgres`  | Comptes, métadonnées des conversations, compétences              | `localhost:5432`          |
+| `seaweedfs` | Texte des conversations, via son API S3 (bucket `conversations`) | http://localhost:8333     |
+| `ollama`    | Modèle `mistral`, téléchargé au premier démarrage                | http://localhost:11435    |
 
 Sur Mac, `./run.sh` utilise l'Ollama installé sur la machine s'il tourne, car Docker n'accède pas à la puce graphique. Sans lui, prévoyez au moins 8 Go de mémoire pour Docker, et des réponses nettement plus lentes.
 
@@ -48,16 +48,16 @@ cd frontend && npm ci && npm run dev
 
 Le frontend de développement tourne sur http://localhost:5173 et transmet `/api` au port 5001.
 
-| Pour changer | Fichier |
-| --- | --- |
-| Comportement du compagnon | `backend/prompts/compagnon.md` |
-| Message d'accueil | `backend/prompts/accueil.md` |
-| Relances, rythme et formules de révélation | `backend/prompts/conversation.json` |
-| Compétence révélée pendant la discussion | `backend/prompts/revelation.md` |
-| Repérage des compétences à valider | `backend/prompts/extraction.md` |
-| Détresse, sujets sensibles et réponses relues | `backend/prompts/garde_fous.json` |
-| Couleurs, typographie, espacements | `frontend/src/styles/tokens.css` |
-| Textes de l'interface | `frontend/src/content/fr.ts` |
+| Pour changer                                  | Fichier                             |
+| --------------------------------------------- | ----------------------------------- |
+| Comportement du compagnon                     | `backend/prompts/compagnon.md`      |
+| Message d'accueil                             | `backend/prompts/accueil.md`        |
+| Relances, rythme et formules de révélation    | `backend/prompts/conversation.json` |
+| Compétence révélée pendant la discussion      | `backend/prompts/revelation.md`     |
+| Repérage des compétences à valider            | `backend/prompts/extraction.md`     |
+| Détresse, sujets sensibles et réponses relues | `backend/prompts/garde_fous.json`   |
+| Couleurs, typographie, espacements            | `frontend/src/styles/tokens.css`    |
+| Textes de l'interface                         | `frontend/src/content/fr.ts`        |
 
 Les fichiers de `backend/prompts/` sont relus à chaque changement, sans redémarrage.
 
