@@ -243,7 +243,7 @@ def test_model_history_starts_with_the_youth(client, youth, llm):
     send(client, youth, conversation_id, "Je fais du vélo tous les jours")
     messages = llm.chat_calls[-1]
     assert [message["role"] for message in messages] == ["system", "user"]
-    assert "Ici, pas de CV" not in " ".join(message["content"] for message in messages)
+    assert "On part explorer" not in " ".join(message["content"] for message in messages)
 
 
 def test_sensitive_topics_get_a_reviewed_reply_without_the_model(client, youth, llm):
@@ -280,8 +280,8 @@ def test_skill_is_revealed_every_third_turn_with_the_youth_exact_words(client, y
     llm.reveal = {"citation": "RÈGLE aussi les freins", "savoir_faire": "Entretenir un vélo."}
     reply = reveal_reply(client, youth)
     assert reply == (
-        "Quand tu dis « règle aussi les freins », je vois quelqu'un qui sait entretenir un vélo. "
-        "Tu t'y reconnais ?"
+        "Attends, je crois que j'ai trouvé un talent. Quand tu dis « règle aussi les freins », "
+        "je vois quelqu'un qui sait entretenir un vélo. Tu te reconnais là-dedans ?"
     )
     assert len(llm.reveal_calls) == 1
     assert len(llm.chat_calls) == 2

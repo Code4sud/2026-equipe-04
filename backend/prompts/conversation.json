@@ -6,11 +6,11 @@
       "euh", "mouais", "ok", "je vois pas", "je ne vois pas"
     ],
     "reponses": [
-      "Pas de souci, on n'est pas pressés. Hier, tu as fait quoi de ta journée, même un truc banal ?",
-      "Ça arrive, rien de grave. Il y a un jeu, une série ou un sport sur lequel tu passes du temps ?",
-      "Pas besoin d'avoir une grande histoire. La dernière fois que quelqu'un t'a demandé un coup de main, c'était pour quoi ?",
-      "On peut y aller tranquillement. Qu'est-ce que tu fais quand tu t'ennuies ?",
-      "Aucun souci. Tu as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?"
+      "Tu peux passer si tu veux. Sinon, t'as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?",
+      "Ok, on part d'hier alors. T'as fait quoi entre ton réveil et midi ?",
+      "Pas de souci. Y a un jeu, une série ou un sport sur lequel tu passes du temps ?",
+      "Pas besoin d'une grande histoire. La dernière fois qu'on t'a demandé un coup de main, c'était pour quoi ?",
+      "On y va tranquille. Tu fais quoi quand tu t'ennuies ?"
     ]
   },
   "identite": {
@@ -25,9 +25,9 @@
     "mots_minimum_revelation": 8,
     "ecoute": "Pour cette réponse : reprends en quelques mots ce qu'elle vient d'écrire, sans rien ajouter ni supposer, puis pose une seule question courte sur sa façon de s'y prendre, par exemple « Comment tu t'y prends ? ». Ne parle ni de compétences, ni d'avenir, ni d'un autre sujet.",
     "formules_revelation": [
-      "Quand tu dis « {citation} », je vois quelqu'un qui sait {savoir_faire}. Tu t'y reconnais ?",
-      "« {citation} » : pour moi, ça veut dire que tu sais {savoir_faire}. Ça te parle ?",
-      "Tu viens de dire « {citation} ». Ça montre que tu sais {savoir_faire}, non ?"
+      "Attends, je crois que j'ai trouvé un talent. Quand tu dis « {citation} », je vois quelqu'un qui sait {savoir_faire}. Tu te reconnais là-dedans ?",
+      "Tiens, un talent sur la route : « {citation} », ça veut dire que tu sais {savoir_faire}. Tu te reconnais là-dedans ?",
+      "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C'est toi, ça ?"
     ]
   },
   "fin_de_consigne": "Écris uniquement ta réponse, sans parenthèses ni commentaire. Voici le dernier message de la personne :"
