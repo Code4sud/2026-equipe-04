@@ -2,6 +2,8 @@
  * Tous les textes de l'interface sont ici, pour retravailler le wording au même endroit.
  * Les textes du compagnon se trouvent dans backend/prompts/.
  */
+const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
+
 export const fr = {
   appName: 'Potentiel',
   common: {
@@ -40,9 +42,12 @@ export const fr = {
   },
   nav: {
     chat: 'Discussion',
-    skills: 'Mes compétences',
+    map: 'Ma carte',
+    me: 'Moi',
     youths: 'Jeunes',
     main: 'Navigation principale',
+    pending: (count: number) =>
+      `${count} ${plural(count, 'talent', 'talents')} à regarder`,
   },
   chat: {
     title: 'Discussion',
@@ -64,24 +69,32 @@ export const fr = {
     } as Record<string, string>,
     notSent: 'Ton message n’est pas parti. Il est resté dans la zone de texte.',
   },
-  skills: {
-    title: 'Mes compétences',
-    intro: 'Elles viennent de ce que tu as raconté. Tu gardes seulement celles où tu te reconnais.',
-    pendingTitle: 'À valider',
-    validatedTitle: 'Validées',
-    validatedHint: 'Visibles par la psychologue qui t’accompagne.',
-    rejectedTitle: 'Écartées',
-    youSaid: 'Tu as dit',
-    validate: 'C’est moi',
-    reject: 'Pas vraiment',
+  found: {
+    title: 'J’ai trouvé un talent !',
+    keep: 'C’est moi',
+    reject: 'Pas moi',
+    kept: 'C’est épinglé sur ta carte.',
+    rejected: 'Noté, je l’enlève de ta carte.',
+    more: (count: number) => `Encore ${count} à regarder sur ta carte`,
+  },
+  map: {
+    title: 'Ma carte',
+    summary: (pending: number, kept: number) =>
+      `${pending} ${plural(pending, 'talent', 'talents')} à regarder · ${kept} ${plural(kept, 'gardé', 'gardés')}`,
+    tabs: { pending: 'À regarder', validated: 'Gardés', rejected: 'Écartés' },
+    source: (date: string) => `Trouvé dans ton récit · ${date}`,
+    keptHint: 'La psychologue voit les talents que tu gardes.',
+    rephrase: 'Reformuler',
     withdraw: 'Retirer',
     restore: 'Finalement, c’est moi',
-    rename: 'Modifier le nom',
-    nameLabel: 'Nom de la compétence',
-    analysing: 'Je relis tes derniers messages…',
-    empty: 'Rien pour l’instant. Continue à discuter : les compétences repérées apparaîtront ici.',
-    shareTitle: 'Partager mes discussions',
-    shareHint: 'Si tu actives ce choix, la psychologue peut lire tes discussions. Tu peux changer d’avis à tout moment.',
+    kept: 'Gardé',
+    nameLabel: 'Comment tu l’appellerais ?',
+    analysing: 'Je relis ce que tu as raconté…',
+    empty: {
+      pending: 'Rien à regarder pour l’instant. Raconte un truc que t’as fait, même tout bête.',
+      validated: 'Aucun talent gardé pour l’instant. C’est toi qui décides.',
+      rejected: 'Aucun talent écarté.',
+    },
     categories: {
       savoir_faire: 'Savoir-faire',
       organisation: 'Organisation',

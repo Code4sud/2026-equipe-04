@@ -116,7 +116,7 @@ export function YouthDetailPage() {
                   <div className="card__head">
                     <h3>{skill.name}</h3>
                     <span className="chip">
-                      {fr.skills.categories[skill.category] ?? skill.category}
+                      {fr.map.categories[skill.category] ?? skill.category}
                     </span>
                   </div>
                   {skill.description && <p>{skill.description}</p>}

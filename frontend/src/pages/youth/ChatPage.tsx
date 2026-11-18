@@ -25,7 +25,7 @@ function localMessage(id: string, content: string): Message {
 }
 
 export function ChatPage() {
-  const { setPendingSkills } = useYouthContext();
+  const { setPendingTalents } = useYouthContext();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [safety, setSafety] = useState<SafetyInfo | null>(null);
@@ -116,7 +116,7 @@ export function ChatPage() {
           finished = true;
           setMessages((all) => [...all, event.data.assistant_message]);
           setReply(null);
-          setPendingSkills(event.data.pending_skills);
+          setPendingTalents(event.data.pending_skills);
           break;
         case 'error':
           finished = true;
