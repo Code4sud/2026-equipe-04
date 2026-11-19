@@ -1,0 +1,188 @@
+{
+  "id": "ton_style",
+  "version": 1,
+  "order": 10,
+  "kind": "questionnaire",
+  "tier": "custom",
+  "title": "Ton style",
+  "tagline": "20 duels « tu préfères » pour trouver ton style",
+  "icon": "backpack",
+  "duration_min": 3,
+  "xp": 60,
+  "requires": ["onboarding"],
+  "replayable": true,
+  "min_answers": 12,
+  "source_ids": ["mccrae_costa_1989"],
+  "source_note": "Un jeu maison pour s’amuser, pas un test scientifique : il compte moins que les autres sur ta fiche.",
+  "scoring_note": "Indicateur maison (poids 0,5) écrit pour répondre à la demande d’un jeu « type MBTI » sans reprendre ni le nom, ni les items, ni les 16 types, ni les codes en 4 lettres du MBTI, qui n’est ni étalonné ni validé pour classer des personnes en types. 20 choix forcés en 4 étapes de 5. Chaque étape vise le facteur du Big Five qui recouvre un indice du MBTI selon McCrae & Costa (1989) : batterie → Extraversion (E-I), lunette → Ouverture (S-N), boussole → Agréabilité (T-F), sac à dos → Conscienciosité (J-P). Chaque choix envoie 75 (pôle haut) ou 25 (pôle bas) au curseur visé ; le pôle haut est en première position dans 10 questions sur 20. Aucun type n’est attribué : le jeune voit seulement de quel côté il penche sur chaque curseur. Ni validation psychométrique ni norme : à utiliser pour ouvrir la discussion.",
+  "intro": "Vingt duels, zéro piège. À chaque fois, choisis ce qui te ressemble le plus, même si c’est serré. Ton style d’aventurier·ère tient en quatre outils : ta batterie, ta lunette, ta boussole et ton sac à dos.",
+  "outro": "Ton style est prêt ! Aucun style ne vaut mieux qu’un autre : celui-là, c’est le tien. Va voir sur ta fiche si ça te ressemble.",
+  "chapters": [
+    {"id": "batterie", "title": "Ta batterie", "intro": "Où est-ce que tu recharges ton énergie ?"},
+    {"id": "lunette", "title": "Ta lunette", "intro": "Tu regardes plutôt ce qui est là, ou ce qui pourrait être ?"},
+    {"id": "boussole", "title": "Ta boussole", "intro": "Quand il faut trancher, qu’est-ce qui te guide ?"},
+    {"id": "sac", "title": "Ton sac à dos", "intro": "Tu pars avec un plan, ou tu improvises en route ?"}
+  ],
+  "items": [
+    {
+      "id": "s01", "type": "choice", "chapter": "batterie", "prompt": "Un samedi de libre, tu préfères…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Sortir avec toute la bande", "emoji": "🎉", "signals": [{"trait": "extraversion", "value": 75}]},
+        {"id": "b", "label": "Rester tranquille de ton côté", "emoji": "🎧", "signals": [{"trait": "extraversion", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s02", "type": "choice", "chapter": "batterie", "prompt": "Après une longue journée, tu te recharges…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Au calme, seul·e", "emoji": "🛋️", "signals": [{"trait": "extraversion", "value": 25}]},
+        {"id": "b", "label": "En retrouvant du monde", "emoji": "🗣️", "signals": [{"trait": "extraversion", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s03", "type": "choice", "chapter": "batterie", "prompt": "Dans un groupe où tu ne connais personne, tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Vas parler aux gens", "emoji": "👋", "signals": [{"trait": "extraversion", "value": 75}]},
+        {"id": "b", "label": "Observes d’abord", "emoji": "👀", "signals": [{"trait": "extraversion", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s04", "type": "choice", "chapter": "batterie", "prompt": "Pour avancer sur un projet, tu préfères…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Bosser seul·e, concentré·e", "emoji": "🧩", "signals": [{"trait": "extraversion", "value": 25}]},
+        {"id": "b", "label": "Bosser en équipe, ça bouge", "emoji": "👥", "signals": [{"trait": "extraversion", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s05", "type": "choice", "chapter": "batterie", "prompt": "À une fête, on te trouve plutôt…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Au milieu, là où ça discute fort", "emoji": "🔊", "signals": [{"trait": "extraversion", "value": 75}]},
+        {"id": "b", "label": "Dans un coin, avec une ou deux personnes", "emoji": "🌙", "signals": [{"trait": "extraversion", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s06", "type": "choice", "chapter": "lunette", "prompt": "Pour apprendre un nouveau truc, tu préfères…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Essayer direct, les mains dedans", "emoji": "🔧", "signals": [{"trait": "openness", "value": 25}]},
+        {"id": "b", "label": "Comprendre d’abord l’idée derrière", "emoji": "💡", "signals": [{"trait": "openness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s07", "type": "choice", "chapter": "lunette", "prompt": "Une bonne histoire, c’est…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Un monde inventé, plein de surprises", "emoji": "🌌", "signals": [{"trait": "openness", "value": 75}]},
+        {"id": "b", "label": "Une histoire vraie, qui pourrait t’arriver", "emoji": "🏙️", "signals": [{"trait": "openness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s08", "type": "choice", "chapter": "lunette", "prompt": "Au snack, tu commandes…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Ton classique, tu sais que c’est bon", "emoji": "🍔", "signals": [{"trait": "openness", "value": 25}]},
+        {"id": "b", "label": "Un truc que tu n’as jamais goûté", "emoji": "🌮", "signals": [{"trait": "openness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s09", "type": "choice", "chapter": "lunette", "prompt": "Dans une discussion, tu aimes parler…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "De ce qui pourrait arriver un jour", "emoji": "🤔", "signals": [{"trait": "openness", "value": 75}]},
+        {"id": "b", "label": "De ce qui se passe vraiment, là", "emoji": "📌", "signals": [{"trait": "openness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s10", "type": "choice", "chapter": "lunette", "prompt": "Devant une nouvelle appli, tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Utilises juste ce dont tu as besoin", "emoji": "📖", "signals": [{"trait": "openness", "value": 25}]},
+        {"id": "b", "label": "Testes tous les boutons pour voir", "emoji": "🧪", "signals": [{"trait": "openness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s11", "type": "choice", "chapter": "boussole", "prompt": "On te montre un projet pas encore au point. Tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Boussole ↔ Agréabilité (indice T-F)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Dis franchement ce qui coince", "emoji": "🎯", "signals": [{"trait": "agreeableness", "value": 25}]},
+        {"id": "b", "label": "Commences par ce qui est réussi", "emoji": "🤝", "signals": [{"trait": "agreeableness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s12", "type": "choice", "chapter": "boussole", "prompt": "Dans un débat, ce qui compte pour toi, c’est…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Boussole ↔ Agréabilité (indice T-F)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Que tout le monde reparte content", "emoji": "🕊️", "signals": [{"trait": "agreeableness", "value": 75}]},
+        {"id": "b", "label": "Que les meilleurs arguments gagnent", "emoji": "🧠", "signals": [{"trait": "agreeableness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s13", "type": "choice", "chapter": "boussole", "prompt": "Pour choisir entre deux options, tu écoutes surtout…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Boussole ↔ Agréabilité (indice T-F)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "La logique et les faits", "emoji": "📊", "signals": [{"trait": "agreeableness", "value": 25}]},
+        {"id": "b", "label": "Ce que ressentent les personnes concernées", "emoji": "💬", "signals": [{"trait": "agreeableness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s14", "type": "choice", "chapter": "boussole", "prompt": "Ça chauffe dans le groupe. Tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Boussole ↔ Agréabilité (indice T-F)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Calmes le jeu", "emoji": "🧯", "signals": [{"trait": "agreeableness", "value": 75}]},
+        {"id": "b", "label": "Dis ce que tu penses, même si ça pique", "emoji": "📣", "signals": [{"trait": "agreeableness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s15", "type": "choice", "chapter": "boussole", "prompt": "On te demande un service qui ne t’arrange pas. Tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Boussole ↔ Agréabilité (indice T-F)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Dis non, tranquillement", "emoji": "✋", "signals": [{"trait": "agreeableness", "value": 25}]},
+        {"id": "b", "label": "Dis oui pour rendre service", "emoji": "🙌", "signals": [{"trait": "agreeableness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s16", "type": "choice", "chapter": "sac", "prompt": "Pour un week-end, tu préfères…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Tout prévoir à l’avance", "emoji": "🗺️", "signals": [{"trait": "conscientiousness", "value": 75}]},
+        {"id": "b", "label": "Improviser sur place", "emoji": "🎲", "signals": [{"trait": "conscientiousness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s17", "type": "choice", "chapter": "sac", "prompt": "Un truc à rendre dans une semaine, tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Le fais à la dernière minute, ça te booste", "emoji": "⏳", "signals": [{"trait": "conscientiousness", "value": 25}]},
+        {"id": "b", "label": "T’y mets tout de suite", "emoji": "✅", "signals": [{"trait": "conscientiousness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s18", "type": "choice", "chapter": "sac", "prompt": "Ton sac, c’est plutôt…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Chaque chose à sa place", "emoji": "🗂️", "signals": [{"trait": "conscientiousness", "value": 75}]},
+        {"id": "b", "label": "Un joyeux bazar où tu retrouves tout", "emoji": "🎒", "signals": [{"trait": "conscientiousness", "value": 25}]}
+      ]
+    },
+    {
+      "id": "s19", "type": "choice", "chapter": "sac", "prompt": "Ta journée idéale…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Se décide au fil de l’eau", "emoji": "🌊", "signals": [{"trait": "conscientiousness", "value": 25}]},
+        {"id": "b", "label": "Suit un programme", "emoji": "📅", "signals": [{"trait": "conscientiousness", "value": 75}]}
+      ]
+    },
+    {
+      "id": "s20", "type": "choice", "chapter": "sac", "prompt": "Quand tu as plein de choses à faire, tu…",
+      "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
+      "options": [
+        {"id": "a", "label": "Fais une liste et tu coches", "emoji": "📝", "signals": [{"trait": "conscientiousness", "value": 75}]},
+        {"id": "b", "label": "Gardes tout en tête et tu fonces", "emoji": "🚀", "signals": [{"trait": "conscientiousness", "value": 25}]}
+      ]
+    }
+  ]
+}
