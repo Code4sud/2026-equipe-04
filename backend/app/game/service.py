@@ -683,7 +683,8 @@ def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     before = progress(data_before)
     if run.status == GameRunStatus.COMPLETED:
         return _result(user, run, instrument, before)
-    archetype_before = archetype_for(cursors_of(data_before))
+    # Seul un archétype déjà révélé peut changer : la fin du quiz le révèle sans annoncer de changement.
+    archetype_before = archetype_for(cursors_of(data_before)) if _archetype_revealed(data_before) else None
 
     if instrument["kind"] == "performance":
         _score_performance(run, instrument, body.get("trials"))
@@ -732,7 +733,9 @@ def _result(
     data = load_youth(user.id)
     after = progress(data)
     cursors = cursors_of(data)
-    archetype = archetype_for(cursors)
+    # Secret jusqu'à la fin du quiz d'arrivée, comme sur la fiche : un mini-jeu terminé avant ne le
+    # montre pas, même s'il le fait changer.
+    archetype = archetype_for(cursors) if _archetype_revealed(data) else None
     earned_before = {b["id"] for b in before["badges"] if b["earned"]}
     changed = (
         archetype_before is not None and archetype is not None and archetype_before["id"] != archetype["id"]

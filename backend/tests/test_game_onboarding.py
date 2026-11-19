@@ -318,6 +318,44 @@ def test_ten_questions_seen_unlock_the_mini_games_before_the_end(client):
     assert client.post("/api/me/game/instruments/corsi/runs", headers=youth).status_code == 201
 
 
+def test_a_mini_game_before_the_end_of_the_quiz_keeps_the_archetype_secret(client, psychologist):
+    # Les 10 premières questions débloquent Miroir express, qui nourrit les curseurs de caractère.
+    # La psychologue voit l'archétype changer, mais le jeune ne le découvre qu'à la fin du quiz : le
+    # résultat du mini-jeu ne le montre pas et n'annonce aucun changement.
+    youth = register(client)
+    started = client.post("/api/me/game/instruments/onboarding/runs", headers=youth).get_json()
+    quiz_id, items = started["run"]["id"], started["instrument"]["items"]
+    youth_id = client.get("/api/auth/me", headers=youth).get_json()["user"]["id"]
+
+    def answer_all(run_id, chosen, value=None):
+        for item in chosen:
+            body = {"value": first_answer(item) if value is None else value}
+            response = client.put(f"/api/me/game/runs/{run_id}/answers/{item['id']}", json=body, headers=youth)
+            assert response.status_code == 200, response.get_json()
+
+    def psy_archetype():
+        overview = client.get(f"/api/backoffice/youths/{youth_id}/game", headers=psychologist)
+        return overview.get_json()["archetype"]["id"]
+
+    def sheet_archetype():
+        return client.get("/api/me/game/sheet", headers=youth).get_json()["identity"]["archetype"]
+
+    answer_all(quiz_id, items[:10])
+    seen_by_psy = psy_archetype()
+    mirror = client.post("/api/me/game/instruments/miroir/runs", headers=youth).get_json()
+    answer_all(mirror["run"]["id"], mirror["instrument"]["items"], value=1)
+    result = client.post(f"/api/me/game/runs/{mirror['run']['id']}/complete", headers=youth).get_json()
+    assert psy_archetype() != seen_by_psy
+    assert result["archetype"] is None and result["previous_archetype"] is None
+    assert sheet_archetype() is None
+
+    # La fin du quiz le révèle, sans annoncer de changement.
+    answer_all(quiz_id, items[10:])
+    revealed = client.post(f"/api/me/game/runs/{quiz_id}/complete", headers=youth).get_json()
+    assert revealed["archetype"]["id"] == psy_archetype() and revealed["previous_archetype"] is None
+    assert sheet_archetype() == revealed["archetype"]
+
+
 def test_skipping_is_allowed_down_to_the_minimum(client):
     youth = register(client)
     run_id, items = play(client, youth, answers=29)
