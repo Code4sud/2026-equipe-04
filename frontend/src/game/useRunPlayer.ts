@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiError } from '../api/client';
 import { errorMessage } from '../components/Feedback';
 import { gameApi, type AnswerBody } from './api';
+import { seededShuffle } from './seededShuffle';
 import type { AnswerValue, GameItem, RunPayload, RunResult, StoredAnswer } from './types';
 
 type Answers = Record<string, StoredAnswer>;
@@ -12,9 +13,25 @@ export interface RunStart {
   answered: number;
   /** Questions déjà vues, passées comprises. */
   seen: number;
+  /** Identifiants de ces questions vues : les autres sont celles de la séance qui commence. */
+  seenIds: ReadonlySet<string>;
 }
 
-const NOTHING_YET: RunStart = { answered: 0, seen: 0 };
+export interface RunPlayerOptions {
+  /**
+   * Questions dans un ordre tiré au hasard, propre à la partie : la graine est l'identifiant de
+   * la partie, donc une reprise, sur un autre appareil comme ailleurs, suit le même ordre.
+   */
+  shuffle?: boolean;
+}
+
+const NOTHING_YET: RunStart = { answered: 0, seen: 0, seenIds: new Set() };
+
+/** Questions dans l'ordre où la partie les pose. */
+function orderOf(payload: RunPayload, shuffle: boolean): GameItem[] {
+  const items = payload.instrument.items ?? [];
+  return shuffle ? seededShuffle(items, payload.run.id) : items;
+}
 
 /**
  * Un appui reçu juste après l'affichage d'une question vient de l'écran précédent
@@ -67,9 +84,9 @@ function nextPending(items: GameItem[], answers: Answers, from: number) {
  * Pilote une partie : reprise, réponse enregistrée à chaque question, retour, revue des questions
  * passées, pause et fin. L'écran avance sans attendre le réseau. Les envois d'une même question
  * partent l'un après l'autre ; la pause et la fin attendent qu'ils soient tous arrivés et renvoient
- * ceux qui ont échoué.
+ * ceux qui ont échoué. `items` donne les questions dans l'ordre de la partie (voir `shuffle`).
  */
-export function useRunPlayer(instrumentId: string) {
+export function useRunPlayer(instrumentId: string, { shuffle = false }: RunPlayerOptions = {}) {
   const [payload, setPayload] = useState<RunPayload | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
   const [index, setIndex] = useState(0);
@@ -98,19 +115,20 @@ export function useRunPlayer(instrumentId: string) {
     try {
       const started = await gameApi.startRun(instrumentId);
       const stored = Object.fromEntries(started.answers.map((a) => [a.item_id, a]));
-      const items = started.instrument.items ?? [];
+      const items = orderOf(started, shuffle);
       const first = items.findIndex((item) => !stored[item.id]);
       setAnswers(stored);
       setIndex(first === -1 ? items.length : first);
       setStartedWith({
         answered: started.answers.filter((a) => !a.skipped).length,
         seen: started.answers.length,
+        seenIds: new Set(started.answers.map((a) => a.item_id)),
       });
       setPayload(started);
     } catch (caught) {
       fail(caught);
     }
-  }, [instrumentId, fail]);
+  }, [instrumentId, shuffle, fail]);
 
   useEffect(() => {
     void load();
@@ -123,7 +141,10 @@ export function useRunPlayer(instrumentId: string) {
     return now - shownAt - (hiddenSince === null ? 0 : now - hiddenSince);
   }, []);
 
-  /** Remet le chrono à zéro : à chaque question affichée et en quittant un écran d'intro ou de chapitre. */
+  /**
+   * Remet le chrono à zéro : à chaque question affichée et en quittant un écran entre deux
+   * questions (accueil, chapitre, fin de série).
+   */
   const markShown = useCallback(() => {
     const now = performance.now();
     clock.current = { shownAt: now, hiddenSince: document.hidden ? now : null };
@@ -147,7 +168,7 @@ export function useRunPlayer(instrumentId: string) {
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
-  const items: GameItem[] = useMemo(() => payload?.instrument.items ?? [], [payload]);
+  const items: GameItem[] = useMemo(() => (payload ? orderOf(payload, shuffle) : []), [payload, shuffle]);
   const current = items[index] ?? null;
   const shownId = current?.id;
   const runId = payload?.run.id;
