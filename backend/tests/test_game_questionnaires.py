@@ -128,6 +128,20 @@ def test_mirror_keys_stay_balanced(catalog):
     assert all(a["trait"] != b["trait"] for a, b in zip(items, items[1:]))
 
 
+def test_mirror_stability_items_weigh_half_so_two_answers_stay_low(catalog):
+    items = items_of(catalog, "miroir")
+    weights = {item["id"]: item.get("weight", 1) for item in items}
+    stability = {item["id"] for item in items if item["trait"] == "emotional_stability"}
+    assert stability == {"ipip09", "ipip14"}
+    assert {weights[item_id] for item_id in stability} == {0.5}
+    assert {weight for item_id, weight in weights.items() if item_id not in stability} == {1}
+
+
+def test_mirror_source_says_why_the_published_french_adaptation_is_not_used(catalog):
+    note = catalog.sources["ipip_mini_ipip"]["note"]
+    assert "Laverdière" in note and "https://doi.org/10.1016/j.erap.2019.100512" in note
+
+
 def test_grand_tri_has_48_activities_alternating_the_six_types(catalog):
     instrument = catalog.instruments["grand_tri"]
     items = instrument["items"]
@@ -185,16 +199,17 @@ def test_ton_style_is_a_balanced_custom_game_on_four_cursors(catalog):
     assert high_first == 10
 
 
-@pytest.mark.parametrize("instrument_id", ("miroir",))
-def test_every_validated_item_keeps_its_original(catalog, instrument_id):
-    instrument = catalog.instruments[instrument_id]
-    assert instrument["tier"] == "validated"
-    for item in instrument["items"]:
-        source = item["source"]
-        assert source["source_id"] in instrument["source_ids"]
-        assert source["ref"] and source["original"].strip(), item["id"]
-        assert source["relation"] == "translated"
-        assert source["original"] != item["prompt"]
+def test_every_translated_item_keeps_its_original(catalog):
+    # Traduction maison d'un test validé : jamais présentée comme le test validé lui-même.
+    translated = [i for i in catalog.instruments.values() if i["tier"] == "translated"]
+    assert "miroir" in {instrument["id"] for instrument in translated}
+    for instrument in translated:
+        for item in instrument["items"]:
+            source = item["source"]
+            assert source["source_id"] in instrument["source_ids"]
+            assert source["ref"] and source["original"].strip(), item["id"]
+            assert source["relation"] == "translated"
+            assert source["original"] != item["prompt"]
 
 
 @pytest.mark.parametrize("source_id", MY_SOURCES)
@@ -261,7 +276,11 @@ def test_mirror_is_locked_until_the_quiz_then_scores_each_scale(
     assert first["source"]["original"] == "Am the life of the party."
     assert first["source"]["source"]["licence"].startswith("Domaine public")
     assert first["answer_label"] == "Tout à fait moi"
-    assert detail["instrument"]["tier_label"] == "Test validé"
+    assert detail["instrument"]["tier_label"] == "Test validé, traduction maison non validée"
+    # Deux items seulement : leur poids propre de 0,5 garde ce curseur en confiance faible.
+    stability = client.get(f"{base}/traits/emotional_stability", headers=psychologist).get_json()
+    assert [(row["weight"], row["tier"]) for row in stability["signals"]] == [(0.5, "translated")] * 2
+    assert stability["cursor"]["confidence"] == "low"
 
 
 def test_grand_tri_scores_each_type_as_work_inspired_by_holland(
