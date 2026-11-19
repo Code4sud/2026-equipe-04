@@ -52,6 +52,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   useEffect(() => () => window.clearTimeout(pickTimer.current), []);
 
+  // Chaque écran commence en haut, même si le précédent avait défilé (petits téléphones).
+  const screenKey = `${welcomed}:${introduced.size}:${index}:${Boolean(player.result)}`;
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screenKey]);
+
   useEffect(() => {
     if (player.errorCode === 'already_completed') onAlreadyDone();
   }, [player.errorCode, onAlreadyDone]);
