@@ -131,9 +131,13 @@ def test_every_option_scores_what_its_source_cites(quiz):
                 assert cited <= traits, where
 
 
-def test_holland_source_says_how_the_clan_is_chosen(catalog):
-    # Le clan suit le curseur RIASEC le plus haut, talents validés compris (service.clan_for).
-    assert "tous jeux et talents validés confondus" in catalog.sources["holland_riasec"]["note"]
+def test_riasec_cursors_never_choose_the_archetype(catalog):
+    # L'archétype vient des seuls curseurs de caractère (service.archetype_for) : la note de la
+    # source RIASEC le dit à la psychologue.
+    assert not set(catalog.archetype_traits()) & set(INTERESTS)
+    assert set(catalog.archetype_traits()) == set(BIG_FIVE)
+    note = catalog.sources["holland_riasec"]["note"]
+    assert "ne décident pas de l’archétype" in note and "curseurs de caractère" in note
 
 
 def test_the_art_exhibition_cites_an_ipip_item_about_art(quiz):
