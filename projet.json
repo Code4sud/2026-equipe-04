@@ -1,10 +1,10 @@
 {
-  "nom": "Nom du projet",
-  "pitch": "Une phrase qui dit ce que fait le projet.",
-  "description": "Premier paragraphe : le problème que vous résolvez.\n\nDeuxième paragraphe : comment ça marche, et ce que vous avez construit en trois jours.",
-  "ecoles": ["École 1", "École 2"],
-  "stack": ["HTML", "JavaScript"],
-  "demo": "",
+  "nom": "Flair",
+  "pitch": "Les jeunes en décrochage racontent leur quotidien à un compagnon IA, qui leur révèle les compétences qu'ils ont déjà, citations à l'appui.",
+  "description": "Des milliers de jeunes en décrochage scolaire ont des compétences bien réelles (réparer un scooter, gérer la fratrie, monter des vidéos, aider un voisin) qu'aucun CV ni bulletin ne montre, et qu'eux-mêmes ne voient pas. Face à une psychologue ou un conseiller, ils se ferment, minimisent ou disent « je sais rien faire ». Les professionnels du Centre des Possibles manquent de temps et de matière pour révéler ce potentiel caché et construire un projet avec eux. Flair veut changer ça : faire parler le jeune de sa vie, sans pression, et transformer ce qu'il raconte en compétences reconnues.\n\nLe jeune discute avec Truffe, un compagnon renard animé en 3D, toujours bienveillant, qui le fait raconter son quotidien et ne lui dit jamais qu'il n'a pas de talent. À chaque message, un moteur de détection analyse la conversation en trois passes et la rapproche d'un référentiel de 52 compétences ROME/ESCO : chaque talent trouvé apparaît sous forme de carte, avec la phrase exacte qui le prouve, et s'ajoute à sa fiche. Un quiz aux questions aléatoires, par séries de 10, lui attribue un badge d'archétype de personnalité et débloque des mini-jeux qui révèlent d'autres aptitudes. La psychologue dispose d'un backoffice avec l'historique de chaque jeune, ses curseurs, ses talents et leurs preuves, et les points « à discuter » quand le jeune modifie ses talents. Aucune déduction n'est faite sur la santé, l'origine, la famille ou la religion. En trois jours, nous avons construit une PWA React/TypeScript installable sur mobile, une API Flask avec Postgres et un stockage S3, la mascotte riggée avec 17 animations, et une IA 100 % locale (Mistral Nemo et embeddings bge-m3 via Ollama), sans aucune donnée envoyée à l'extérieur, le tout dockerisé et lancé en une commande.",
+  "ecoles": ["Aivancity", "Epitech"],
+  "stack": ["React", "Typescript", "Python", "Flask", "PostgreSQL", "Docker", "Ollama"],
+  "demo": "https://janitor-smugly-pointer.ngrok-free.dev/",
   "video": "",
   "captures": []
 }
