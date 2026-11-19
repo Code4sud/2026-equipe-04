@@ -208,13 +208,13 @@ export const bo = {
       title: 'Méthode',
       paragraphs: [
         'Chaque réponse produit un ou plusieurs signaux. Un signal situe le jeune entre 0 et 100 sur un curseur.',
+        'Un signal porte le niveau de preuve du questionnaire qui le produit, ou un niveau plus faible, jamais plus fort\u00a0: dans le quiz d’arrivée, l’intérêt geek et numérique est un indicateur maison, et son niveau est affiché avec lui.',
         'Un curseur est la moyenne pondérée de ses signaux. Le poids d’un signal est celui de la question, multiplié par celui de son niveau de preuve\u00a0:',
       ],
       tier: 'Niveau de preuve',
       meaning: 'Sens',
       weight: 'Poids',
       after: [
-        'Un signal peut avoir un niveau de preuve plus faible que celui de son questionnaire, jamais plus fort. Dans le quiz d’arrivée, par exemple, l’intérêt geek et numérique est un indicateur maison\u00a0: son niveau est indiqué à côté du signal.',
         'Curseur bipolaire\u00a0: 0 correspond au premier pôle et 100 au second, par exemple Réservé ↔ Sociable. «\u00a080\u202f% réservé\u00a0» correspond à une valeur de 20.',
         'Curseur unipolaire\u00a0: de 0 à 100. «\u00a070\u202f% intérêt geek et numérique\u00a0» correspond à une valeur de 70.',
         'La confiance dépend du poids total des réponses\u00a0: faible en dessous de 2, moyenne de 2 à moins de 5, bonne à partir de 5. Elle reflète la quantité de données, pas la validité du résultat.',
