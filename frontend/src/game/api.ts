@@ -5,8 +5,7 @@ import type {
   GameFact,
   GameRun,
   GameStatus,
-  GameSource,
-  InstrumentInfo,
+  PsyCatalog,
   PsyOverview,
   PsyRunDetail,
   PsyTraitDetail,
@@ -46,10 +45,7 @@ export const gameApi = {
       body: { verdict },
     }),
 
-  psyCatalog: (signal?: AbortSignal) =>
-    request<{ instruments: InstrumentInfo[]; sources: GameSource[] }>('/backoffice/game/catalog', {
-      signal,
-    }),
+  psyCatalog: (signal?: AbortSignal) => request<PsyCatalog>('/backoffice/game/catalog', { signal }),
   psyOverview: (youthId: string, signal?: AbortSignal) =>
     request<PsyOverview>(`/backoffice/youths/${youthId}/game`, { signal }),
   psyRun: (youthId: string, runId: string, signal?: AbortSignal) =>

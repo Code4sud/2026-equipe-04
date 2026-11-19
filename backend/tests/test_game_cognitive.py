@@ -506,9 +506,12 @@ def test_games_are_scored_by_the_server_and_visible_to_the_psychologist(client, 
         result = complete(client, youth, payload["run"]["id"], demo(games, instrument_id))
         assert result.status_code == 200, result.get_json()
         body = result.get_json()
-        assert body["metrics"]["percent"] is not None and body["xp_gained"] >= 80
+        # Le jeune reçoit ses réussites, jamais le pourcentage : il reste à la psychologue.
+        assert body["metrics"] and "percent" not in json.dumps(body["metrics"])
+        assert body["xp_gained"] >= 80
 
         detail = client.get(f"{base}/runs/{payload['run']['id']}", headers=psychologist).get_json()
+        assert detail["run"]["metrics"]["percent"] is not None
         assert detail["run_signals"][0]["trait"] == trait
         assert detail["instrument"]["sources"] and detail["instrument"]["scoring_note"]
         assert all(row["type"] == "trial" and row["status"] == "answered" for row in detail["answers"])

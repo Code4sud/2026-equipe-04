@@ -136,6 +136,9 @@ export default function SheetPage() {
   if (!sheet) return <Loading />;
 
   const quest = questFor(status);
+  const completed = status
+    ? new Set(status.instruments.filter((instrument) => instrument.completed_count > 0).map((item) => item.id))
+    : null;
   // Une image vaut d'être gardée dès qu'il y a un clan, un détail ou un talent.
   const hasContent =
     Boolean(sheet.identity.clan) ||
@@ -175,7 +178,7 @@ export default function SheetPage() {
               announce={announce}
             />
             <Talents talents={sheet.talents} />
-            <Attributes attributes={sheet.attributes} />
+            <Attributes attributes={sheet.attributes} completed={completed} />
             <Character groups={sheet.trait_groups} next={characterNext} onVerdict={changeVerdict} />
             <Badges badges={sheet.progress.badges} />
           </div>

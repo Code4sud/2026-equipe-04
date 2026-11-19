@@ -8,11 +8,16 @@ const numbers = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
 const seconds = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
 const shortDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' });
 const longDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+const clock = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 /** Même ordre que la force de la preuve. */
 export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custom', 'talent'];
 
-/** Copie de TIER_WEIGHTS (backend/app/game/scoring.py) : l'API ne les expose pas. */
+/**
+ * Copies de secours de TIER_WEIGHTS et CONFIDENCE_THRESHOLDS (backend/app/game/scoring.py).
+ * Le panneau lit les valeurs du serveur dans GET /backoffice/game/catalog (voir method.ts).
+ */
 export const TIER_WEIGHTS: Record<Tier, number> = {
   validated: 1,
   performance: 1,
@@ -21,10 +26,28 @@ export const TIER_WEIGHTS: Record<Tier, number> = {
   talent: 0.25,
 };
 
+export const CONFIDENCE_THRESHOLDS = { medium: 2, high: 5 };
+
 export const formatNumber = (value: number) => numbers.format(value);
 export const formatPercent = (value: number) => `${Math.round(value)}${THIN}%`;
 export const formatShortDate = (value: string) => shortDate.format(new Date(value));
 export const formatLongDate = (value: string) => longDate.format(new Date(value));
+
+/** « 19 nov. », avec l'année seulement si ce n'est pas celle en cours. */
+export function formatDay(value: string, now = new Date()): string {
+  const date = new Date(value);
+  const sameYear = date.getFullYear() === now.getFullYear();
+  return dayMonth
+    .formatToParts(date)
+    .filter((part) => part.type === 'day' || part.type === 'month' || (part.type === 'year' && !sameYear))
+    .map((part) => part.value)
+    .join(' ');
+}
+
+/** « 19 nov. 10:42 » : date courte et heure d'une modification. */
+export function formatMoment(value: string, now = new Date()): string {
+  return `${formatDay(value, now)} ${clock.format(new Date(value))}`;
+}
 
 export function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}${THIN}ms`;
@@ -46,8 +69,9 @@ export function tierLabel(tier: string, fallback?: string): string {
   return (bo.tiers as Record<string, string>)[tier] ?? fallback ?? tier;
 }
 
-export function tierWeight(tier: string): number {
-  return (TIER_WEIGHTS as Record<string, number>)[tier] ?? 0.5;
+/** Poids d'un niveau de preuve ; un niveau inconnu compte 0,5, comme côté serveur. */
+export function tierWeight(tier: string, weights: Record<Tier, number> = TIER_WEIGHTS): number {
+  return (weights as Record<string, number>)[tier] ?? 0.5;
 }
 
 /** Rang d'un niveau de preuve, du plus solide au plus faible ; les inconnus à la fin. */
@@ -83,6 +107,11 @@ export function describeSignal(cursor: CursorPoles, value: number): string {
 export function headlineText(cursor: PsyCursor): string | null {
   if (!cursor.headline) return null;
   return `${formatPercent(cursor.headline.percent)} ${lowerFirst(cursor.headline.label)}`;
+}
+
+/** Désaccord actuel : un « Pas moi » donné avant un changement de pôle n'en est plus un. */
+export function disagreesNow(cursor: PsyCursor): boolean {
+  return cursor.verdict === 'disagree' && !cursor.verdict_detail?.stale;
 }
 
 export interface ScaleScore {

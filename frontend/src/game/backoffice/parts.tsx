@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { CheckIcon, CrossIcon } from '../../components/Icons';
-import type { GameSource, Verdict } from '../types';
+import type { GameSource, PsyCursor, Verdict } from '../types';
 import { bo } from './backoffice.fr';
-import { tierLabel } from './format';
+import { describeValue, formatDay, tierLabel } from './format';
 
 /** Cellule vide, lisible par un lecteur d'écran. */
 export function Missing({ label = bo.missing }: { label?: string }) {
@@ -36,6 +36,41 @@ export function VerdictBadge({ verdict }: { verdict: Verdict | null | undefined 
     );
   }
   return <span className="bog-verdict bog-verdict--none">{bo.verdict.none}</span>;
+}
+
+/**
+ * Avis du jeune sur un curseur : ce qu'il voyait quand il a répondu, et quand. Un avis donné
+ * avant un changement de pôle reste affiché, au passé, pour qu'on puisse en parler avec lui.
+ */
+export function VerdictCell({ cursor }: { cursor: PsyCursor }) {
+  const detail = cursor.verdict_detail;
+  const verdict = detail?.verdict ?? cursor.verdict;
+  if (!verdict) return <VerdictBadge verdict={null} />;
+  const label = detail?.label_at_verdict ?? null;
+  const date = detail?.at ? formatDay(detail.at) : null;
+
+  if (detail?.stale) {
+    const value = detail.value_at_verdict === null ? null : describeValue(cursor, detail.value_at_verdict);
+    return (
+      <>
+        <span className="bog-verdict bog-verdict--stale">
+          {verdict === 'agree' ? <CheckIcon /> : <CrossIcon />}
+          {verdict === 'agree' ? bo.verdict.staleAgree : bo.verdict.staleDisagree}
+        </span>
+        <span className="bog-sub bog-verdict__detail">
+          {bo.verdict.stale(bo.verdict.judged(label, value), date)}
+        </span>
+      </>
+    );
+  }
+
+  const context = bo.verdict.on(label, date);
+  return (
+    <>
+      <VerdictBadge verdict={verdict} />
+      {context && <span className="bog-sub bog-verdict__detail">{context}</span>}
+    </>
+  );
 }
 
 export function Chevron() {

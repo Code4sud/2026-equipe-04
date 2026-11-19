@@ -26,15 +26,20 @@ import {
   tierWeight,
   trialDetail,
 } from './format';
+import { useMethod } from './method';
 import { Chevron, Flag, Missing, SourceDetails, TierChip } from './parts';
 import type { Detail, Details } from './useDetails';
 
 const t = bo.runs;
 const r = bo.run;
 
-/** `chapters` (titres des chapitres) n'est pas encore déclaré dans types.ts : on le lit s'il est là. */
-type InstrumentView = InstrumentInfo & { chapters?: { id: string; title: string }[] };
+/** `chapters` peut manquer si une ancienne version de l'API répond. */
+type InstrumentView = Omit<InstrumentInfo, 'chapters'> & Partial<Pick<InstrumentInfo, 'chapters'>>;
 type Cursors = Map<string, PsyCursor>;
+
+export function runAnchor(runId: string) {
+  return `bog-run-${runId}`;
+}
 
 function chapterTitle(instrument: InstrumentView | null, chapter: string): string {
   const found = instrument?.chapters?.find((item) => item.id === chapter);
@@ -111,6 +116,75 @@ function SignalList({ signals, cursors }: { signals: SignalRow[]; cursors: Curso
   );
 }
 
+/** Choix retenus : un identifiant, une liste pour plusieurs choix, aucun pour une réponse libre. */
+function chosenIds(value: unknown): Set<string> {
+  if (typeof value === 'string') return new Set([value]);
+  if (Array.isArray(value)) return new Set(value.filter((id): id is string => typeof id === 'string'));
+  return new Set();
+}
+
+interface OfferedItem {
+  key: string;
+  text: string;
+  chosen: boolean;
+  /** Position sur l'échelle, pour une question Likert. */
+  position?: number;
+}
+
+function OfferedList({ label, items, scale = false }: { label: string; items: OfferedItem[]; scale?: boolean }) {
+  return (
+    <ul className={scale ? 'plain-list bog-offered bog-offered--scale' : 'plain-list bog-offered'} aria-label={label}>
+      {items.map((item) => (
+        <li key={item.key} className="bog-offered__item">
+          <span className={item.chosen ? 'bog-offered__label is-chosen' : 'bog-offered__label'}>
+            {item.position !== undefined && <span className="bog-offered__position">{item.position}</span>}
+            {frenchSpacing(item.text)}
+            {item.chosen && <span className="visually-hidden"> {r.chosen}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Ce qui était proposé au jeune, tel qu'il l'a vu : les choix d'une question à choix, ou
+ * l'échelle d'une question Likert avec ses libellés. Sa réponse est mise en avant.
+ */
+function Offered({ row }: { row: PsyAnswerRow }) {
+  if (row.status === 'unanswered') return null;
+  const answered = row.status === 'answered';
+  if (row.options && row.options.length > 0) {
+    const chosen = answered ? chosenIds(row.value) : new Set<string>();
+    const items = row.options.map((option) => ({
+      key: option.id,
+      text: option.label,
+      chosen: chosen.has(option.id),
+    }));
+    return <OfferedList label={r.offered} items={items} />;
+  }
+
+  const scale = row.scale;
+  if (!scale) return null;
+  const value = answered && typeof row.value === 'number' ? row.value : null;
+  const labels = scale.labels ?? [];
+  if (labels.length !== scale.max - scale.min + 1) {
+    if (value === null) return null;
+    return (
+      <span className="bog-sub">
+        {r.scaleRange(formatNumber(value), formatNumber(scale.min), formatNumber(scale.max))}
+      </span>
+    );
+  }
+  const items = labels.map((text, index) => ({
+    key: String(index),
+    text,
+    chosen: value === scale.min + index,
+    position: scale.min + index,
+  }));
+  return <OfferedList label={r.scale} items={items} scale />;
+}
+
 function AnswerCell({ row }: { row: PsyAnswerRow }) {
   const value = row.value;
   const free = row.type === 'text' || (typeof value === 'object' && value !== null && 'text' in value);
@@ -124,9 +198,7 @@ function AnswerCell({ row }: { row: PsyAnswerRow }) {
   return (
     <>
       {content}
-      {row.status === 'answered' && row.type === 'likert' && typeof value === 'number' && (
-        <span className="bog-sub">{r.likertValue(value)}</span>
-      )}
+      <Offered row={row} />
       {row.hidden_by_youth && <Flag tone="youth">{r.hidden}</Flag>}
     </>
   );
@@ -341,6 +413,7 @@ function RunDetail({
   cursors: Cursors;
   onRetry: () => void;
 }) {
+  const { weights } = useMethod();
   if (detail.state === 'loading') return <Loading />;
   if (detail.state === 'error') return <ErrorState message={detail.message} onRetry={onRetry} />;
 
@@ -367,7 +440,7 @@ function RunDetail({
   };
   instrument?.sources.forEach(cite);
   data.answers.forEach((row) => cite(row.source?.source));
-  const anchor = (sourceId: string) => `bog-run-${run.id}-source-${sourceId}`;
+  const anchor = (sourceId: string) => `${runAnchor(run.id)}-source-${sourceId}`;
 
   return (
     <div className="bog-detail">
@@ -377,7 +450,7 @@ function RunDetail({
             <dt>{r.tier}</dt>
             <dd>
               <TierChip tier={instrument.tier} label={instrument.tier_label} />{' '}
-              {r.tierWeight(formatNumber(tierWeight(instrument.tier)))}
+              {r.tierWeight(formatNumber(tierWeight(instrument.tier, weights)))}
             </dd>
           </div>
         )}
@@ -444,7 +517,7 @@ function RunRow({
   const title = instrument?.title ?? run.instrument_id;
   const status = runStatus(run);
   const skipped = run.seen - run.answered;
-  const detailId = `bog-run-${run.id}-detail`;
+  const detailId = `${runAnchor(run.id)}-detail`;
 
   function toggle() {
     if (!open) void onLoad(run.id);
@@ -453,7 +526,7 @@ function RunRow({
 
   return (
     <>
-      <tr id={`bog-run-${run.id}`}>
+      <tr id={runAnchor(run.id)}>
         <th scope="row">
           <span className="bog-name">{title}</span>
           <span className="bog-run-kind">

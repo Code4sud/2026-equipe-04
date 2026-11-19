@@ -14,6 +14,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -257,6 +258,10 @@ class GameAnswer(db.Model):
     signals: Mapped[list] = mapped_column(JSON, default=list)
     response_ms: Mapped[int | None] = mapped_column(Integer)
     answered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Type et échelle de la question au moment de la réponse : une nouvelle version du contenu
+    # qui les change rend la réponse caduque (voir game/service.py, _reconcile).
+    item_type: Mapped[str | None] = mapped_column(String(20))
+    item_scale: Mapped[dict | None] = mapped_column(JSON)
 
     run: Mapped[GameRun] = relationship(back_populates="answers")
 
@@ -278,14 +283,18 @@ class GameFact(db.Model):
     value: Mapped[str] = mapped_column(String(160))
     # Réponse donnée dans le jeu, avant toute correction par le jeune.
     original_value: Mapped[str | None] = mapped_column(String(160))
+    # Question d'origine : un identifiant de question n'est unique que dans son instrument.
+    source_instrument_id: Mapped[str | None] = mapped_column(String(60))
     source_item_id: Mapped[str | None] = mapped_column(String(60))
     edited: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Dernière correction de la valeur par le jeune (jamais touchée par le jeu ni par « masquer »).
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class TraitFeedback(db.Model):
-    """Le jeune dit s'il se reconnaît dans un curseur."""
+    """Le jeune dit s'il se reconnaît dans un curseur, tel qu'il était quand il a répondu."""
 
     __tablename__ = "game_trait_feedback"
 
@@ -294,4 +303,26 @@ class TraitFeedback(db.Model):
     )
     trait_id: Mapped[str] = mapped_column(String(60), primary_key=True)
     verdict: Mapped[str] = mapped_column(String(10))
+    # Libellé montré au jeune et valeur du curseur au moment du verdict, calculés par le serveur.
+    label_at_verdict: Mapped[str | None] = mapped_column(String(80))
+    value_at_verdict: Mapped[float | None] = mapped_column(Float)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GameEvent(db.Model):
+    """Modification faite par le jeune (détail, verdict, réponse), pour la psychologue seulement.
+
+    `subject` désigne ce qui a changé (« fact:passion », « trait:extraversion »,
+    « answer:<partie>/<question> ») ; `before` et `after` gardent l'état avant et après.
+    """
+
+    __tablename__ = "game_events"
+    __table_args__ = (Index("ix_game_events_youth_created", "youth_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    youth_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(30))
+    subject: Mapped[str] = mapped_column(String(160))
+    before: Mapped[dict | None] = mapped_column(JSON)
+    after: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

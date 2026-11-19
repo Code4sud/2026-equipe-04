@@ -1,5 +1,6 @@
 /**
- * Le contenu nomme ses icônes par un mot (champ `icon` des jeux et des badges).
+ * Le contenu nomme ses icônes par un mot (champ `icon` des jeux et des badges, voir
+ * backend/app/game/content/instruments/*.json et sheet.json).
  * Un mot inconnu affiche un dé : ajouter ici les icônes des nouveaux jeux.
  */
 const EMOJI: Record<string, string> = {
@@ -9,6 +10,7 @@ const EMOJI: Record<string, string> = {
   brain: '🧠',
   cards: '🃏',
   chess: '♟️',
+  chest: '💎',
   clock: '⏱️',
   color: '🎨',
   colors: '🎨',
@@ -22,8 +24,11 @@ const EMOJI: Record<string, string> = {
   grid: '🔲',
   hammer: '🔨',
   hands: '🤝',
+  hourglass: '⏳',
   key: '🔑',
+  lantern: '🏮',
   lightbulb: '💡',
+  lock: '🔒',
   map: '🗺️',
   maze: '🌀',
   medal: '🏅',
@@ -37,6 +42,7 @@ const EMOJI: Record<string, string> = {
   pattern: '🔷',
   puzzle: '🧩',
   rocket: '🚀',
+  sail: '⛵',
   shapes: '🔷',
   sparkles: '✨',
   star: '⭐',
