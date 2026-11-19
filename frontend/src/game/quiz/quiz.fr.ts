@@ -39,6 +39,8 @@ export const quizFr = {
     answered: (answered: number, total: number) =>
       `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}`,
     reviewing: 'Questions passées',
+    /** Question d'une séance précédente, revue avec « Retour ». */
+    earlier: (skipped: boolean) => (skipped ? 'Tu l’avais passée' : 'Tu y as déjà répondu'),
     back: 'Retour',
     skip: 'Passer',
     next: 'Suivant',

@@ -27,7 +27,7 @@ export interface SeriesSpot {
   done: number;
   /**
    * Place de la question affichée dans cette série (0 pour la première). Null pour une question
-   * vue lors d'une séance précédente : on montre alors la série en cours, sans repère.
+   * vue lors d'une séance précédente : elle n'appartient à aucune série de la séance.
    */
   position: number | null;
 }

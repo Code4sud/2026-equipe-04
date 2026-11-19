@@ -326,7 +326,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     ? t.question.reviewing
     : spot.position !== null
       ? t.question.series(spot.position + 1, spot.size)
-      : null;
+      : t.question.earlier(Boolean(stored?.skipped));
 
   // Le hook choisit la question suivante, revue des questions passées comprise.
   function commit(value: AnswerValue, responseMs: number) {
@@ -375,8 +375,9 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         {laterButton(t.question.later)}
         <XpCounter value={xp} />
       </div>
-      {/* Pendant la revue des questions passées, il n'y a plus de série. */}
-      {!reviewing && <SeriesDots {...spot} />}
+      {/* Pas de série pendant la revue des questions passées, ni pour une question d'une séance
+          précédente, revue avec « Retour ». */}
+      {!reviewing && spot.position !== null && <SeriesDots {...spot} />}
       <p className="quiz-meta">
         <span id="quiz-step">{step}</span>
         <span className="quiz-meta__count">{t.question.answered(player.answeredCount, total)}</span>
@@ -403,7 +404,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
           value={picked ?? stored?.value}
           onAnswer={handleAnswer}
           autoFocus
-          describedBy={step ? 'quiz-step' : undefined}
+          describedBy="quiz-step"
         />
       </div>
       <div className="quiz-nav">
