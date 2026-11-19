@@ -1,7 +1,8 @@
 """Règles du jeu : parties, réponses, progression, fiche du jeune et vue psychologue.
 
 Le jeune accepte à l'inscription que ses données soient transmises au Centre des Possibles
-et à sa psychologue : tout ce qui est joué ici lui est visible, modifications comprises.
+et à sa psychologue : tout ce qui est joué ici lui est visible, modifications comprises
+(voir events.py).
 """
 from __future__ import annotations
 
@@ -28,6 +29,7 @@ from ..models import (
     utcnow,
 )
 from ..services import service
+from . import events
 from .catalog import Catalog
 from .discovery import reveal_with
 from .performance import SCORERS, finite_ms, youth_metrics
@@ -381,6 +383,15 @@ def save_answer(user: User, run_id: uuid.UUID, item_id: str, body: dict) -> dict
 
     answer = next((a for a in run.answers if a.item_id == item_id), None)
     first_time = answer is None or answer.skipped
+    # Une réponse déjà donnée qui change : la psychologue pourra en parler avec le jeune.
+    if not first_time and not skipped and answer.value != value:
+        events.log(
+            user.id,
+            events.ANSWER_CHANGED,
+            events.answer_subject(run.id, item_id),
+            {"label": answer.label, "value": answer.value},
+            {"label": label, "value": value},
+        )
     if answer is None:
         answer = GameAnswer(
             run=run,
@@ -673,6 +684,7 @@ def update_fact(user: User, key: str, body: dict) -> dict:
     fact = db.session.get(GameFact, (user.id, key))
     if fact is None:
         raise ApiError(404, "not_found", "Détail introuvable.")
+    value = None
     if "value" in body:
         try:
             value = clean_text(body["value"], MAX_TEXT_FACT)
@@ -680,13 +692,36 @@ def update_fact(user: User, key: str, body: dict) -> dict:
             raise ApiError(400, "invalid_field", str(error)) from error
         except InvalidAnswer as error:
             raise ApiError(400, "invalid_field", f"Écris entre 1 et {MAX_TEXT_FACT} caractères.") from error
+    hidden = body.get("hidden")
+    if "hidden" in body and not isinstance(hidden, bool):
+        raise ApiError(400, "invalid_field", "hidden doit être vrai ou faux.")
+
+    now = utcnow()
+    subject = events.fact_subject(fact.key)
+    changed = False
+    if value is not None and value != fact.value:
+        events.log(
+            user.id,
+            events.FACT_EDITED,
+            subject,
+            {"label": fact.label, "value": fact.value},
+            {"label": fact.label, "value": value},
+        )
         fact.value, fact.edited = value, True
-    if "hidden" in body:
-        if not isinstance(body["hidden"], bool):
-            raise ApiError(400, "invalid_field", "hidden doit être vrai ou faux.")
-        fact.hidden = body["hidden"]
-    fact.updated_at = utcnow()
-    db.session.commit()
+        changed = True
+    if isinstance(hidden, bool) and hidden != fact.hidden:
+        events.log(
+            user.id,
+            events.FACT_HIDDEN if hidden else events.FACT_SHOWN,
+            subject,
+            {"label": fact.label, "value": fact.value, "hidden": fact.hidden},
+            {"label": fact.label, "value": fact.value, "hidden": hidden},
+        )
+        fact.hidden = hidden
+        changed = True
+    if changed:
+        fact.updated_at = now
+        db.session.commit()
     return {"fact": fact_dict(fact)}
 
 
@@ -757,6 +792,54 @@ def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict:
     return {**view, "label": label, "headline": headline}
 
 
+def _uuid(text: str) -> uuid.UUID | None:
+    try:
+        return uuid.UUID(text)
+    except ValueError:
+        return None
+
+
+def _answer_subject(run: GameRun | None, item_id: str) -> tuple[str, dict]:
+    if run is None:
+        return item_id, {"instrument_id": None}
+    cat = catalog()
+    instrument = cat.instruments.get(run.instrument_id)
+    answer = next((a for a in run.answers if a.item_id == item_id), None)
+    item = cat.item(instrument, item_id) if instrument else None
+    prompt = answer.prompt if answer else item["prompt"] if item else item_id
+    title = instrument["title"] if instrument else run.instrument_id
+    return f"{title} · {prompt}", {"instrument_id": run.instrument_id}
+
+
+def psy_events(data: YouthData, youth_id: uuid.UUID) -> list[dict]:
+    """Modifications du jeune, de la plus récente à la plus ancienne, nommées en clair."""
+    runs = {run.id: run for run in data.runs}
+    rows = []
+    for event in events.recent(youth_id):
+        kind, ref = events.parse_subject(event.subject)
+        if kind == "fact":
+            state = event.after or event.before or {}
+            subject, target = state.get("label") or ref, {"type": "fact", "key": ref}
+        elif kind == "trait":
+            subject, target = _trait_label(ref), {"type": "trait", "trait_id": ref}
+        else:
+            run_id, _, item_id = ref.partition("/")
+            subject, extra = _answer_subject(runs.get(_uuid(run_id)), item_id)
+            target = {"type": "answer", "run_id": run_id, "item_id": item_id, **extra}
+        rows.append(
+            {
+                "id": event.id,
+                "kind": event.kind,
+                "subject": subject,
+                "ref": target,
+                "before": event.before,
+                "after": event.after,
+                "at": iso(event.created_at),
+            }
+        )
+    return rows
+
+
 def psy_overview(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
@@ -786,6 +869,7 @@ def psy_overview(user: User) -> dict:
         ],
         "facts": [fact_dict(f) for f in data.facts],
         "runs": runs,
+        "events": psy_events(data, user.id),
     }
 
 

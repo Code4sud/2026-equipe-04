@@ -6,15 +6,20 @@ import io
 import json
 import random
 import re
+import uuid
+from datetime import timedelta
 from pathlib import Path
 
 import pytest
 from test_game import answer, complete, finish_onboarding, start, youth_id
 
+from app.extensions import db
+from app.game import events
 from app.game import service as game
 from app.game.catalog import Catalog
 from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text
+from app.models import GameEvent, iso, utcnow
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
@@ -45,6 +50,12 @@ def psy_base(client, youth) -> str:
     return f"/api/backoffice/youths/{youth_id(client, youth)}/game"
 
 
+def overview(client, psychologist, youth) -> dict:
+    response = client.get(psy_base(client, youth), headers=psychologist)
+    assert response.status_code == 200, response.get_json()
+    return response.get_json()
+
+
 def run_rows(client, psychologist, youth, run_id) -> dict[str, dict]:
     detail = client.get(f"{psy_base(client, youth)}/runs/{run_id}", headers=psychologist).get_json()
     return {row["item_id"]: row for row in detail["answers"]}
@@ -60,6 +71,18 @@ def youth_traits(payload: dict) -> dict[str, dict]:
 
 def facts_of(client, youth) -> dict[str, dict]:
     return {fact["key"]: fact for fact in sheet(client, youth)["facts"]}
+
+
+def verdict(client, youth, trait_id, value):
+    return client.put(f"/api/me/game/traits/{trait_id}/feedback", json={"verdict": value}, headers=youth)
+
+
+def skip(client, youth, run_id, item_id):
+    response = client.put(
+        f"/api/me/game/runs/{run_id}/answers/{item_id}", json={"skipped": True}, headers=youth
+    )
+    assert response.status_code == 200, response.get_json()
+    return response
 
 
 def raw(client, method, url, headers, text):
@@ -254,3 +277,74 @@ def test_game_requests_are_capped_at_256_kb(app, client, youth):
     assert small.status_code == 200, small.get_json()
     assert answer(client, youth, run_id, "groupe", "a").status_code == 200
     assert app.config.get("MAX_CONTENT_LENGTH") is None
+
+
+# --- 10. Historique des modifications, pour la psychologue seulement ---
+
+
+def test_psychologist_sees_every_change_of_the_youth(client, youth, psychologist):
+    run_id = start(client, youth)["run"]["id"]
+    answer(client, youth, run_id, "couleur", "jaune")
+    answer(client, youth, run_id, "couleur", "jaune")  # Même réponse renvoyée : rien à signaler.
+    answer(client, youth, run_id, "groupe", "a")
+    answer(client, youth, run_id, "groupe", "c")
+    answer(client, youth, run_id, "passion", {"text": "Le skate"})
+    for change in ({"value": "Le roller"}, {"value": "Le roller"}):
+        client.patch("/api/me/game/facts/passion", json=change, headers=youth)
+    for hidden in (True, True, False):
+        client.patch("/api/me/game/facts/couleur_preferee", json={"hidden": hidden}, headers=youth)
+
+    found = overview(client, psychologist, youth)["events"]
+    assert [e["kind"] for e in found] == ["fact_shown", "fact_hidden", "fact_edited", "answer_changed"]
+    by_kind = {e["kind"]: e for e in found}
+    changed = by_kind["answer_changed"]
+    assert changed["subject"] == "Quiz d'arrivée (fictif) · Une soirée s'organise. Tu fais quoi ?"
+    assert changed["ref"] == {"type": "answer", "run_id": run_id, "item_id": "groupe", "instrument_id": "onboarding"}
+    assert changed["before"] == {"label": "J'invite tout le monde", "value": "a"}
+    assert changed["after"] == {"label": "Je préfère un truc au calme", "value": "c"}
+    edited = by_kind["fact_edited"]
+    assert edited["subject"] == "Passion" and edited["ref"] == {"type": "fact", "key": "passion"}
+    assert (edited["before"]["value"], edited["after"]["value"]) == ("Le skate", "Le roller")
+    assert by_kind["fact_hidden"]["subject"] == "Couleur préférée"
+    assert (by_kind["fact_hidden"]["after"]["hidden"], by_kind["fact_shown"]["after"]["hidden"]) == (True, False)
+    assert all(e["at"] and isinstance(e["id"], int) for e in found)
+
+
+def test_youth_never_receives_the_history(client, youth):
+    run_id = start(client, youth)["run"]["id"]
+    answer(client, youth, run_id, "groupe", "a")
+    payloads = [answer(client, youth, run_id, "groupe", "c").get_json()]
+    answer(client, youth, run_id, "couleur", "jaune")
+    payloads.append(client.patch("/api/me/game/facts/couleur_preferee", json={"value": "Vert"}, headers=youth).get_json())
+    payloads.append(verdict(client, youth, "extraversion", "agree").get_json())
+    payloads.append(skip(client, youth, run_id, "couleur").get_json())
+    answer(client, youth, run_id, "scooter", "a")
+    answer(client, youth, run_id, "agenda", 4)
+    payloads.append(complete(client, youth, run_id).get_json())
+    payloads += [sheet(client, youth), client.get("/api/me/game", headers=youth).get_json()]
+    text = json.dumps(payloads, ensure_ascii=False)
+    assert '"events"' not in text and "label_at_verdict" not in text and "verdict_detail" not in text
+    for kind in events.KINDS:
+        assert kind not in text
+
+
+def test_history_keeps_the_200_most_recent_changes(app, client, youth, psychologist):
+    target = uuid.UUID(youth_id(client, youth))
+    base = utcnow()
+    with app.app_context():
+        db.session.add_all(
+            GameEvent(
+                youth_id=target,
+                kind=events.FACT_HIDDEN,
+                subject=events.fact_subject("couleur_preferee"),
+                before={"hidden": False},
+                after={"hidden": True},
+                created_at=base + timedelta(seconds=index),
+            )
+            for index in range(205)
+        )
+        db.session.commit()
+    found = overview(client, psychologist, youth)["events"]
+    assert len(found) == 200
+    assert found[0]["at"] == iso(base + timedelta(seconds=204))
+    assert [e["at"] for e in found] == sorted((e["at"] for e in found), reverse=True)
