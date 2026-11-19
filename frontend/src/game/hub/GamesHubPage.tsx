@@ -236,7 +236,8 @@ export default function GamesHubPage() {
         <header className="page-head">
           <h1>{t.title}</h1>
           <p className="muted">{t.intro}</p>
-          {status.share_game_results === true && <p className="hub-shared">{t.shared}</p>}
+          {/* Consentement donné à l'inscription : on rappelle simplement qui voit quoi. */}
+          <p className="hub-shared">{t.shared}</p>
         </header>
 
         <section className="hub-level" aria-label={t.level(progress.level)}>

@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
-from test_game import answer, complete, finish_onboarding, share, start, youth_id
+from test_game import answer, complete, finish_onboarding, start, youth_id
 from test_game_content import normalize, sensitive_patterns
 
 from app.game.catalog import Catalog
@@ -217,7 +217,6 @@ def test_mirror_is_locked_until_the_quiz_then_scores_each_scale(
     response = client.post("/api/me/game/instruments/miroir/runs", headers=youth)
     assert response.status_code == 409
     finish_onboarding(client, youth)
-    share(client, youth)
 
     run_id, result = play(client, youth, "miroir", 5)
     # Les points par réponse arrivent pendant la partie, la fin de partie ajoute ceux du jeu.
@@ -242,7 +241,6 @@ def test_ton_style_feeds_big_five_cursors_with_half_weight(
     play_catalog, client, youth, psychologist
 ):
     finish_onboarding(client, youth)
-    share(client, youth)
     play(client, youth, "ton_style", lambda item: next(
         option["id"] for option in item["options"] if option["signals"][0]["value"] > 50
     ))
