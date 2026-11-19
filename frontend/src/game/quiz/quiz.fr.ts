@@ -24,13 +24,16 @@ export const quizFr = {
   resume: {
     kicker: 'Quiz d’arrivée',
     title: 'Te revoilà !',
-    /** `unseen` : questions encore jamais vues ; `size` : questions d'une série. */
-    text: (answered: number, total: number, unseen: number, size: number) =>
+    /**
+     * `unseen` : questions encore jamais vues ; `toReveal` : questions à faire avant la révélation,
+     * les jamais vues ou plus s'il manque des réponses ; `size` : questions d'une série.
+     */
+    text: (answered: number, total: number, unseen: number, toReveal: number, size: number) =>
       (answered > 0 ? `Tu as déjà ${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}. ` : '') +
       (unseen > size
         ? `Je te pose une nouvelle série de ${size} questions.`
-        : unseen > 1
-          ? `Plus que ${unseen} questions avant de découvrir ton archétype !`
+        : toReveal > 1
+          ? `Plus que ${toReveal} questions avant de découvrir ton archétype !`
           : 'Plus qu’une question avant de découvrir ton archétype !'),
     start: 'C’est reparti !',
   },
@@ -54,8 +57,9 @@ export const quizFr = {
   series: {
     title: 'Série terminée !',
     text: 'Bien joué ! Tu enchaînes ou tu fais une pause ? C’est toi qui vois.',
-    left: (unseen: number) =>
-      `Encore ${unseen} ${plural(unseen, 'question', 'questions')} avant de découvrir ton archétype`,
+    /** `toReveal` : questions à faire avant la révélation, les jamais vues ou plus s'il manque des réponses. */
+    left: (toReveal: number) =>
+      `Encore ${toReveal} ${plural(toReveal, 'question', 'questions')} avant de découvrir ton archétype`,
     /** `next` : questions de la série suivante ; `last` : ce sont les dernières du quiz. */
     more: (next: number, last: boolean) =>
       !last ? `${next} de plus !` : next > 1 ? `Les ${next} dernières !` : 'La dernière !',

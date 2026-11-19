@@ -120,6 +120,9 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const total = items.length;
   const resumed = startedWith.seen > 0;
   const missing = Math.max(0, (instrument.min_answers ?? 0) - player.answeredCount);
+  // Avant la révélation, il faut voir toutes les questions et avoir assez de réponses : après
+  // beaucoup de questions passées, il en faut plus que les jamais vues.
+  const toReveal = Math.max(unseen, missing);
   const pendingCount = items.filter((item) => isPending(item, answers)).length;
   const xp = startedWith.answered * XP_PER_ANSWER + player.xpGained;
   const laterButton = (label: string) => (
@@ -201,7 +204,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <p className="quiz-kicker">{t.resume.kicker}</p>
         <ScreenTitle>{frenchSpacing(t.resume.title)}</ScreenTitle>
         <p className="quiz-bubble">
-          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, SERIES_SIZE))}
+          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, toReveal, SERIES_SIZE))}
         </p>
         {pauseAlert}
         <div className="quiz-actions">
@@ -283,7 +286,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
           {/* L'archétype reste une surprise jusqu'à la révélation : le badge garde son « ? ». */}
           <ArchetypeBadge archetype={null} />
           <div className="quiz-mystery__text">
-            <p className="quiz-mystery__left">{t.series.left(unseen)}</p>
+            <p className="quiz-mystery__left">{t.series.left(toReveal)}</p>
             <p className="quiz-mystery__xp">{t.xp.label(xp)}</p>
           </div>
         </div>
