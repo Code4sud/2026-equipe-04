@@ -115,7 +115,7 @@ L'archétype est le badge d'identité du jeune : un nom, une devise, une descrip
 
 Chaque entrée de `archetypes.json` porte `id`, `trait` (`null` pour l'archétype équilibré), `pole` (`high`, `low` ou `balanced`), `name`, `motto`, `description` et `emoji`. Le catalogue refuse de démarrer si un pôle de personnalité n'a pas exactement un archétype, s'il n'y a pas exactement un archétype équilibré, si un archétype vise un curseur qui n'est pas un curseur bipolaire de personnalité, si un pôle est inconnu, si un identifiant est en double ou si un champ manque. `tests/test_game_content.py` relit tous ses textes avec le garde-fou du jeune.
 
-Le jeune reçoit `{id, name, motto, description, emoji, quality}`, où `quality` est le libellé jeune du pôle (« Sociable »), ou « Entre les deux » pour Le Caméléon. La fin de partie renvoie aussi `previous_archetype`, l'archétype d'avant quand la partie l'a fait changer, sinon `null` (comme quand on redemande le résultat d'une partie déjà terminée). Le quiz compte dès les réponses : sa fin révèle l'archétype sans annoncer de changement.
+Le jeune reçoit `{id, name, motto, description, emoji, quality}`, où `quality` est le libellé jeune du pôle (« Sociable »), ou « Entre les deux » pour Le Caméléon. La fin de partie renvoie aussi `previous_archetype`, l'archétype d'avant quand la partie l'a fait changer, sinon `null` (comme quand on redemande le résultat d'une partie déjà terminée). Le quiz compte dès les réponses : sa fin révèle l'archétype sans annoncer de changement. Avant cette fin, la fiche garde `identity.archetype` à `null`, comme elle l'annonce (« Ton archétype se révèle à la fin du quiz d'arrivée ») : les réponses d'un quiz en pause et les talents déjà gardés comptent pour les curseurs, et la psychologue voit l'archétype qu'ils donnent, mais le jeune le découvre à la fin du quiz.
 
 ### Verdicts
 
@@ -149,7 +149,7 @@ Une réponse renvoyée à l'identique, un détail réécrit sans changement ou u
 
 Jeune (`/api/me/game`) : `GET /`, `POST /instruments/<id>/runs`, `PUT /runs/<id>/answers/<item>`, `POST /runs/<id>/pause`, `POST /runs/<id>/complete`, `GET /sheet`, `PATCH /facts/<clé>`, `PUT /traits/<id>/feedback`.
 
-- `POST /runs/<id>/complete` renvoie `archetype` et `previous_archetype`, et `GET /sheet` donne `identity.archetype` (voir « Archétype ») : jamais le curseur, le pôle ni la valeur qui l'ont désigné.
+- `POST /runs/<id>/complete` renvoie `archetype` et `previous_archetype`, et `GET /sheet` donne `identity.archetype`, `null` jusqu'à la fin du quiz d'arrivée (voir « Archétype ») : jamais le curseur, le pôle ni la valeur qui l'ont désigné.
 - `POST /runs/<id>/complete` d'un jeu chronométré renvoie dans `metrics` les seules réussites du jeune : la projection `youth` de chaque correcteur (`SCORERS`), par défaut toutes les mesures sans aucun `percent`. Empan : `span`, `trials`, `correct`, `phases.<id>.span`... ; Stroop : `trials`, `best_streak`, `fastest_rt_ms` ; énigmes : `solved`, `best_streak`. La psychologue garde toutes les mesures.
 - Un `PUT` de réponse envoyé deux fois donne le même résultat qu'une fois (la dernière valeur gagne). Une partie se modifie sous verrou : rien n'arrive dans une partie déjà terminée (`409 run_closed`).
 - Les textes libres (réponses et détails corrigés) refusent les caractères de contrôle et les moitiés de paire UTF-16 (`400`). Un `response_ms` ou `rt_ms` qui n'est pas un nombre fini est ignoré. Le corps d'une requête du jeu est limité à 256 Ko (`413 payload_too_large`).

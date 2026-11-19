@@ -5,14 +5,17 @@ le curseur, le pôle et la valeur qui l'ont désigné.
 """
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 
 import pytest
 from test_game import answer, complete, cursor, finish_onboarding, fixture_catalog, start, youth_id  # noqa: F401
 
+from app.extensions import db
 from app.game import service as game
 from app.game.catalog import ARCHETYPE_POLES, BALANCED_POLE, Catalog, ContentError
 from app.game.service import BALANCED_LABEL, BALANCED_MARGIN
+from app.models import Conversation, Skill, SkillStatus
 
 GAME_FRONT = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game"
 YOUTH_FIELDS = {"id", "name", "motto", "description", "emoji", "quality"}
@@ -140,6 +143,43 @@ def test_a_balanced_profile_gets_the_balanced_archetype(client, youth, psycholog
 def test_no_archetype_before_any_personality_answer(client, youth, psychologist):
     assert client.get("/api/me/game/sheet", headers=youth).get_json()["identity"]["archetype"] is None
     assert overview(client, psychologist, youth)["archetype"] is None
+
+
+def sheet_archetype(client, youth) -> dict | None:
+    return client.get("/api/me/game/sheet", headers=youth).get_json()["identity"]["archetype"]
+
+
+def test_the_sheet_keeps_the_archetype_for_the_end_of_the_arrival_quiz(app, client, youth, psychologist):
+    # Un talent gardé avant le quiz et les réponses d'un quiz en pause comptent déjà pour les
+    # curseurs : la psychologue voit l'archétype qu'ils donnent, mais la fiche du jeune le garde
+    # secret, comme elle le promet, jusqu'à la révélation de la fin du quiz.
+    with app.app_context():
+        user_id = uuid.UUID(youth_id(client, youth))
+        conversation = Conversation(youth_id=user_id, transcript_key="k")
+        db.session.add(conversation)
+        db.session.flush()
+        db.session.add(
+            Skill(
+                youth_id=user_id, conversation_id=conversation.id, source_message_id="m1",
+                name="Animer un groupe", name_key="animer un groupe", category="communication",
+                source_quote="j'anime le club", status=SkillStatus.VALIDATED,
+            )
+        )
+        db.session.commit()
+    assert overview(client, psychologist, youth)["archetype"]["id"] == "etincelle"
+    assert sheet_archetype(client, youth) is None
+
+    run_id = start(client, youth)["run"]["id"]
+    assert answer(client, youth, run_id, "groupe", "a").status_code == 200
+    assert client.post(f"/api/me/game/runs/{run_id}/pause", headers=youth).status_code == 200
+    assert sheet_archetype(client, youth) is None
+
+    start(client, youth)
+    for item_id, value in [("scooter", "a"), ("couleur", "jaune")]:
+        assert answer(client, youth, run_id, item_id, value).status_code == 200
+    result = complete(client, youth, run_id).get_json()
+    assert result["archetype"]["id"] == "etincelle" and result["previous_archetype"] is None
+    assert sheet_archetype(client, youth) == result["archetype"]
 
 
 def test_the_method_page_lists_every_archetype_and_its_pole(client, psychologist):

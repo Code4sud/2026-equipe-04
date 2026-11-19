@@ -864,10 +864,20 @@ def _is_shown_to_youth(view: dict, group: dict) -> bool:
     return True
 
 
+def _archetype_revealed(data: YouthData) -> bool:
+    """La fin du quiz d'arrivée révèle l'archétype. Avant, les réponses d'un quiz en pause et les
+    talents déjà gardés comptent pour les curseurs, et la psychologue voit l'archétype qu'ils
+    donnent, mais la fiche du jeune le garde secret comme elle le promet."""
+    if ONBOARDING_ID not in catalog().instruments:
+        return True
+    return any(r.instrument_id == ONBOARDING_ID and r.status == GameRunStatus.COMPLETED for r in data.runs)
+
+
 def character_sheet(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
     cursors = cursors_of(data)
+    archetype = youth_archetype(archetype_for(cursors)) if _archetype_revealed(data) else None
     groups = []
     for group in cat.trait_groups:
         traits = [youth_trait(t, cursors[t], data.feedback) for t in group["trait_ids"]]
@@ -879,7 +889,7 @@ def character_sheet(user: User) -> dict:
         Skill.youth_id == user.id, Skill.status == SkillStatus.PENDING
     ).count()
     return {
-        "identity": {"display_name": user.display_name, "archetype": youth_archetype(archetype_for(cursors))},
+        "identity": {"display_name": user.display_name, "archetype": archetype},
         "progress": progress(data),
         "facts": [fact_dict(f) for f in data.facts],
         "attributes": _attributes(
