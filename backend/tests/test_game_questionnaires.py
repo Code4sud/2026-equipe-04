@@ -215,6 +215,17 @@ def test_ton_style_is_a_balanced_custom_game_on_four_cursors(catalog):
     assert high_first == 10
 
 
+# Duels de la version 1 réécrits depuis : une question qui change de sens change d'identifiant,
+# pour qu'une partie en cours ne garde pas une ancienne réponse sous la nouvelle question.
+TON_STYLE_RETIRED_IDS = {"s04", "s06", "s08", "s16", "s17", "s19", "s20"}
+
+
+def test_ton_style_never_reuses_the_id_of_a_rewritten_duel(catalog):
+    ids = {item["id"] for item in catalog.instruments["ton_style"]["items"]}
+    assert not ids & TON_STYLE_RETIRED_IDS
+    assert {f"{item_id}b" for item_id in TON_STYLE_RETIRED_IDS} <= ids
+
+
 TON_STYLE_CLAIM = (
     "Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI "
     "(énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de "
