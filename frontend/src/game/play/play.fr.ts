@@ -51,6 +51,10 @@ export const playFr = {
     levelTitle: (title: string) => `Te voilà ${title}.`,
     badges: (count: number) => (count > 1 ? 'Nouveaux badges' : 'Nouveau badge'),
     highlights: 'Ce qui ressort de tes jeux',
+    views: {
+      personality: 'Ton caractère',
+      interests: 'Ce qui t’attire le plus',
+    } as Record<string, string>,
     highlightsHint: 'Tout ce que tu as joué compte. Sur ta fiche, c’est toi qui dis si ça te ressemble.',
     tools: 'Tes quatre outils',
     toolsHint: 'Ce que disent tes jeux jusqu’ici. Sur ta fiche, tu dis « C’est moi » ou « Pas moi ».',

@@ -42,7 +42,8 @@ function StateChip({ state, game }: { state: CardState; game: InstrumentSummary 
     return (
       <span className="hub-chip hub-chip--locked">
         <span aria-hidden="true">🔒</span>
-        {t.card.locked}
+        <span aria-hidden="true">{t.card.locked}</span>
+        <span className="visually-hidden">{t.card.lockedLabel}</span>
       </span>
     );
   }

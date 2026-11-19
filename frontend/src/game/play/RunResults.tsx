@@ -4,12 +4,23 @@ import { gameApi } from '../api';
 import { gameEmoji } from '../hub/gameEmoji';
 import { NeoSlot } from '../hub/NeoSlot';
 import { XpBar } from '../hub/XpBar';
-import type { PublicInstrument, RunResult, YouthTrait } from '../types';
+import type { CharacterSheet, PublicInstrument, RunResult, YouthTrait } from '../types';
 import { playFr } from './play.fr';
 
 const t = playFr;
-const STYLE_GAME_ID = 'ton_style';
 const SHEET_PATH = '/jeune/fiche';
+
+type SheetGroups = CharacterSheet['trait_groups'];
+
+/**
+ * Ce que montre la fin de partie, selon le jeu. Les autres jeux affichent les points forts
+ * renvoyés par l’API (tous jeux confondus).
+ */
+const RESULT_VIEWS: Record<string, { kind: 'tools' } | { kind: 'group'; group: string; limit?: number }> = {
+  ton_style: { kind: 'tools' },
+  miroir: { kind: 'group', group: 'personality' },
+  grand_tri: { kind: 'group', group: 'interests', limit: 3 },
+};
 
 function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -38,6 +49,34 @@ function useCountUp(target: number, duration = 900) {
   return value;
 }
 
+/** Curseurs de la fiche, relus après la partie. `[]` si la fiche ne répond pas. */
+function useSheetGroups(enabled: boolean) {
+  const [groups, setGroups] = useState<SheetGroups | null>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const controller = new AbortController();
+    gameApi
+      .sheet(controller.signal)
+      .then((sheet) => setGroups(sheet.trait_groups))
+      .catch(() => {
+        if (!controller.signal.aborted) setGroups([]);
+      });
+    return () => controller.abort();
+  }, [enabled]);
+
+  return groups;
+}
+
+/** « Entre les deux » dit plus en nommant les deux bouts du curseur. */
+const BALANCED_LABEL = 'Entre les deux';
+
+function leaningLabel(trait: YouthTrait) {
+  return trait.label === BALANCED_LABEL && trait.low && trait.high
+    ? t.result.leaning(trait.low, trait.high)
+    : trait.label;
+}
+
 /** Curseur neutre : les deux bouts sont des qualités, aucun n’est un score bas. */
 function Leaning({ trait }: { trait: YouthTrait }) {
   if (trait.value === null || !trait.low || !trait.high) return null;
@@ -54,38 +93,47 @@ function Leaning({ trait }: { trait: YouthTrait }) {
   );
 }
 
-function Highlight({ trait }: { trait: YouthTrait }) {
+function Highlight({ trait, showGroup = true }: { trait: YouthTrait; showGroup?: boolean }) {
   const bipolar = trait.kind === 'bipolar';
   return (
     <li className={`play-highlight${bipolar ? '' : ' play-highlight--strength'}`}>
-      <span className="play-highlight__group">{t.groups[trait.group] ?? ''}</span>
+      {showGroup && <span className="play-highlight__group">{t.groups[trait.group] ?? ''}</span>}
       <strong className="play-highlight__label">
         {!bipolar && <span aria-hidden="true">★ </span>}
-        {trait.label}
+        {leaningLabel(trait)}
       </strong>
       {bipolar && <Leaning trait={trait} />}
     </li>
   );
 }
 
-function StyleTools() {
-  const [traits, setTraits] = useState<Record<string, YouthTrait> | null>(null);
+function TraitPanel({
+  id,
+  title,
+  hint,
+  traits,
+  showGroup,
+}: {
+  id: string;
+  title: string;
+  hint: string;
+  traits: YouthTrait[];
+  showGroup: boolean;
+}) {
+  return (
+    <section className="play-panel" aria-labelledby={id}>
+      <h2 id={id}>{title}</h2>
+      <ul className="play-highlights">
+        {traits.map((trait) => (
+          <Highlight key={trait.id} trait={trait} showGroup={showGroup} />
+        ))}
+      </ul>
+      <p className="play-panel__hint">{hint}</p>
+    </section>
+  );
+}
 
-  useEffect(() => {
-    const controller = new AbortController();
-    gameApi
-      .sheet(controller.signal)
-      .then((sheet) => {
-        const all = sheet.trait_groups.flatMap((group) => group.traits);
-        setTraits(Object.fromEntries(all.map((trait) => [trait.id, trait])));
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setTraits({});
-      });
-    return () => controller.abort();
-  }, []);
-
-  if (!traits) return null;
+function StyleTools({ traits }: { traits: Record<string, YouthTrait> }) {
   return (
     <section className="play-panel" aria-labelledby="play-tools-title">
       <h2 id="play-tools-title">{t.result.tools}</h2>
@@ -101,7 +149,7 @@ function StyleTools() {
                 <span className="play-tool__name">{tool.name}</span>
                 {trait && trait.value !== null ? (
                   <>
-                    <strong className="play-tool__label">{trait.label}</strong>
+                    <strong className="play-tool__label">{leaningLabel(trait)}</strong>
                     <Leaning trait={trait} />
                   </>
                 ) : (
@@ -117,6 +165,43 @@ function StyleTools() {
   );
 }
 
+/** Ce qui ressort, propre au jeu quand c’est possible, sinon les points forts tous jeux confondus. */
+function WhatStandsOut({ instrumentId, highlights }: { instrumentId: string; highlights: YouthTrait[] }) {
+  const view = RESULT_VIEWS[instrumentId];
+  const groups = useSheetGroups(view !== undefined);
+
+  if (view && groups === null) return null;
+  if (view?.kind === 'tools' && groups?.length) {
+    const traits = Object.fromEntries(groups.flatMap((group) => group.traits).map((trait) => [trait.id, trait]));
+    return <StyleTools traits={traits} />;
+  }
+  if (view?.kind === 'group') {
+    const group = groups?.find((entry) => entry.id === view.group);
+    const traits = (group?.traits ?? []).filter((trait) => trait.value !== null).slice(0, view.limit);
+    if (group && traits.length) {
+      return (
+        <TraitPanel
+          id="play-group-title"
+          title={t.result.views[view.group] ?? group.label}
+          hint={t.result.highlightsHint}
+          traits={traits}
+          showGroup={false}
+        />
+      );
+    }
+  }
+  if (!highlights.length) return null;
+  return (
+    <TraitPanel
+      id="play-highlights-title"
+      title={t.result.highlights}
+      hint={t.result.highlightsHint}
+      traits={highlights}
+      showGroup
+    />
+  );
+}
+
 interface Props {
   instrument: PublicInstrument;
   result: RunResult;
@@ -129,7 +214,6 @@ export function RunResults({ instrument, result, answerXp, exitTo }: Props) {
   const total = answerXp + result.xp_gained;
   const shown = useCountUp(total);
   const heading = useRef<HTMLHeadingElement>(null);
-  const isStyle = instrument.id === STYLE_GAME_ID;
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -187,21 +271,7 @@ export function RunResults({ instrument, result, answerXp, exitTo }: Props) {
         </section>
       )}
 
-      {isStyle ? (
-        <StyleTools />
-      ) : (
-        result.highlights.length > 0 && (
-          <section className="play-panel" aria-labelledby="play-highlights-title">
-            <h2 id="play-highlights-title">{t.result.highlights}</h2>
-            <ul className="play-highlights">
-              {result.highlights.map((trait) => (
-                <Highlight key={trait.id} trait={trait} />
-              ))}
-            </ul>
-            <p className="play-panel__hint">{t.result.highlightsHint}</p>
-          </section>
-        )
-      )}
+      <WhatStandsOut instrumentId={instrument.id} highlights={result.highlights} />
 
       <div className="play-actions">
         <Link to={exitTo} className="button button--primary">
