@@ -29,6 +29,7 @@ from ..models import (
 )
 from ..services import service
 from .catalog import Catalog
+from .discovery import reveal_with
 from .performance import SCORERS
 from .scoring import InvalidAnswer, aggregate, scale_scores, score_answer, signal
 
@@ -553,7 +554,7 @@ def youth_trait(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict |
     return {**view, "label": trait["youth"]["label"]}
 
 
-def _attributes(cursors: dict[str, dict]) -> list[dict]:
+def _attributes(cursors: dict[str, dict], completed: set[str]) -> list[dict]:
     attributes = []
     for attribute in catalog().sheet["attributes"]:
         total, weights = 0.0, 0.0
@@ -571,6 +572,10 @@ def _attributes(cursors: dict[str, dict]) -> list[dict]:
                 "description": attribute["description"],
                 "icon": attribute.get("icon", "star"),
                 "score": score,
+                # Jeu à proposer tant que l'attribut reste inconnu.
+                "reveal_with": None
+                if score is not None
+                else reveal_with(catalog(), {p["trait"] for p in attribute["traits"]}, completed),
             }
         )
     return attributes
@@ -606,7 +611,9 @@ def character_sheet(user: User) -> dict:
         "identity": {"display_name": user.display_name, "clan": clan_for(cursors)},
         "progress": progress(data),
         "facts": [fact_dict(f) for f in data.facts],
-        "attributes": _attributes(cursors),
+        "attributes": _attributes(
+            cursors, {r.instrument_id for r in data.runs if r.status == GameRunStatus.COMPLETED}
+        ),
         "trait_groups": groups,
         "talents": {
             "validated": [
