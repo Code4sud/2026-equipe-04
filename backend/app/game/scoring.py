@@ -10,10 +10,12 @@ from dataclasses import dataclass
 
 from .catalog import Catalog, likert_parts
 
-TIER_WEIGHTS = {
-    "validated": 1.0, "performance": 1.0, "translated": 0.75, "adapted": 0.5, "custom": 0.5, "talent": 0.25
-}
+TIER_WEIGHTS = {"validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25}
 MAX_TEXT_FACT = 120
+
+# Traduction maison d'un test validé, sans étude de la traduction : moins qu'un test validé,
+# plus qu'une question seulement inspirée de travaux publiés.
+TIER_WEIGHTS["translated"] = 0.75
 
 
 class InvalidAnswer(ValueError):
