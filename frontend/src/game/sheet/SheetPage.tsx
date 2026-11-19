@@ -55,9 +55,11 @@ function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | un
           <p className="sheet-quest__count">{t.quest.quizProgress(quiz.answered, quiz.total)}</p>
         )}
         <p>{text}</p>
+        {/* « Continuer » seul ne dit pas quoi : le lien du quiz renvoie au titre de la quête. */}
         <Link
           to={isQuiz ? '/jeune/quiz' : '/jeune/jeux'}
           className="button button--primary button--small sheet-quest__cta"
+          aria-describedby={isQuiz ? 'sheet-quest-title' : undefined}
         >
           {quest === 'quiz-start'
             ? t.quest.quizStart

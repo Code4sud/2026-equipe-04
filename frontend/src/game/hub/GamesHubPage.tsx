@@ -173,7 +173,12 @@ function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
         <p className="hub-quiz__hint">
           {started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} {t.quiz.hint}
         </p>
-        <Link to={QUIZ_PATH} className="button button--primary hub-quiz__cta">
+        {/* « Continuer » seul ne dit pas quoi : comme les cartes de jeu, le lien renvoie au titre. */}
+        <Link
+          to={QUIZ_PATH}
+          className="button button--primary hub-quiz__cta"
+          aria-describedby="hub-quiz-title"
+        >
           {started ? t.quiz.resume : t.quiz.start}
         </Link>
       </div>
