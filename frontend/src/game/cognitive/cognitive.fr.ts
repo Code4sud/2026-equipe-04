@@ -1,6 +1,6 @@
 /**
  * Textes des jeux cognitifs. Côté jeune : que du positif, jamais de score bas ni de comparaison.
- * backend/tests/test_game_cognitive.py relit ce fichier avec les garde-fous du contenu.
+ * backend/tests/test_game_content.py relit ce fichier avec les garde-fous du contenu.
  */
 const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
 const seconds = (ms: number) => (ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 2 });

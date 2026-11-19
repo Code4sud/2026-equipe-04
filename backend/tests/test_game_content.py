@@ -18,6 +18,9 @@ from app.services.guardrails import Guardrails, _compile, _searchable, fold
 from app.services.prompts import PromptLibrary
 
 GUARDRAILS = Path(__file__).resolve().parents[1] / "prompts" / "garde_fous.json"
+GAME_FRONT = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game"
+# Écrans de la psychologue : ils nomment ce que le jeune ne voit jamais (QI, MBTI, santé…).
+PSY_FRONT = GAME_FRONT / "backoffice"
 # Mots à ne jamais montrer au jeune, en plus des sujets du garde-fou du chat. Même syntaxe que
 # garde_fous.json : le « s » du pluriel passe toujours et « mot* » couvre la suite du mot.
 FORBIDDEN_FOR_YOUTH = [
@@ -111,6 +114,46 @@ def youth_texts(catalog: Catalog):
     yield from strings(catalog.sheet, "fiche")
 
 
+# Lexèmes d'un fichier TypeScript : commentaire, /expression régulière/ (un / après une parenthèse,
+# une virgule ou un opérateur ; ailleurs c'est une division) ou chaîne '…', "…", `…`. Seules les
+# chaînes comptent, mais sauter le reste évite de lire l'apostrophe d'un commentaire ou de /'/g
+# comme le début d'une chaîne.
+TS_TOKEN = re.compile(
+    r"""
+      //[^\n]* | /\*.*?\*/
+    | (?<=[(,=:?!&|\[{};])\s*/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*
+    | (?P<text>'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`)
+    """,
+    re.S | re.X,
+)
+TS_ESCAPE = re.compile(r"\\(u\{[0-9a-fA-F]+\}|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|.)", re.S)
+TS_CONTROL = {"n": "\n", "r": "\r", "t": "\t", "b": "\b", "f": "\f", "v": "\v", "0": "\0"}
+
+
+def _unescape(match: re.Match) -> str:
+    code = match[1]
+    return TS_CONTROL.get(code, code) if len(code) == 1 else chr(int(code.strip("ux{}"), 16))
+
+
+def string_literals(source: str) -> list[tuple[int, str]]:
+    """Chaînes d'un fichier TypeScript, échappements décodés, avec leur numéro de ligne."""
+    return [
+        (source.count("\n", 0, match.start()) + 1, TS_ESCAPE.sub(_unescape, match["text"][1:-1]))
+        for match in TS_TOKEN.finditer(source)
+        if match["text"]
+    ]
+
+
+def front_youth_texts() -> list[tuple[str, str]]:
+    """Textes des fichiers *.fr.ts du jeu, hors écrans de la psychologue."""
+    return [
+        (f"{path.relative_to(GAME_FRONT).as_posix()}:{line}", text)
+        for path in sorted(GAME_FRONT.rglob("*.fr.ts"))
+        if PSY_FRONT not in path.parents
+        for line, text in string_literals(path.read_text(encoding="utf-8"))
+    ]
+
+
 @pytest.fixture(scope="module")
 def catalog():
     return Catalog()
@@ -134,6 +177,40 @@ def test_lint_reads_every_field_sent_to_the_youth(catalog):
         "fiche.attributes[", "fiche.level_titles[", "fiche.badges[",
     ):
         assert any(field in path for path in paths), field
+
+
+def test_front_youth_texts_respect_guardrails():
+    texts = front_youth_texts()
+    files = {where.split(":")[0] for where, _ in texts}
+    assert len(files) >= 5 and len(texts) > 300, "textes du front introuvables"
+    problems = guardrail_problems(texts)
+    # Convention de l'interface : apostrophe typographique, hors expressions ${…} des gabarits.
+    problems += [
+        f"{where} [apostrophe droite] {text}"
+        for where, text in texts
+        if "'" in re.sub(r"\$\{[^}]*\}", "", text)
+    ]
+    assert not problems, "\n".join(problems)
+
+
+def test_string_literals_skip_comments_and_regular_expressions():
+    source = "\n".join([
+        "/** Textes de l'écran. */",
+        "// l'autre commentaire, 'pas une chaîne'",
+        "export const fr = {",
+        "  a: 'C’est \\u00e0 toi\\u00a0!',",
+        '  b: "Entre \\"guillemets\\"",',
+        "  c: (n: number) => `${n} ${plural(n, 'jeu', 'jeux')}`,",
+        "  d: (text: string) => text.replace(/'/g, '’'),",
+        "  e: (ms: number) => ms / 1000 / 60,",
+        "};",
+    ])
+    assert string_literals(source) == [
+        (4, "C’est à toi\u00a0!"),
+        (5, 'Entre "guillemets"'),
+        (6, "${n} ${plural(n, 'jeu', 'jeux')}"),
+        (7, "’"),
+    ]
 
 
 # Texte → sujets repérés : formes piégeuses du français, puis mots ordinaires à laisser passer.
