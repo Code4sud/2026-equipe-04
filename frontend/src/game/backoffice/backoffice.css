@@ -1139,6 +1139,7 @@
 
 /* Impression : toute la fiche, détails chargés dépliés, sans la navigation. */
 @media print {
+  #c4s-bandeau,
   .theme-toggle,
   .bo__side,
   .bo__main button,

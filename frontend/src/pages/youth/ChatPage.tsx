@@ -181,6 +181,20 @@ export function ChatPage() {
     if (list && followRef.current) list.scrollTop = list.scrollHeight;
   }, [messages, reply, safety, sendError, found?.id, talentNote]);
 
+  // Le fil rétrécit aussi sans nouveau message (bandeau du hackathon arrivé après lui, zone de
+  // saisie qui grandit, rotation) : il reste calé sur le dernier message tant qu'on le suivait.
+  const observeList = useCallback((list: HTMLDivElement) => {
+    listRef.current = list;
+    const observer = new ResizeObserver(() => {
+      if (followRef.current) list.scrollTop = list.scrollHeight;
+    });
+    observer.observe(list);
+    return () => {
+      observer.disconnect();
+      listRef.current = null;
+    };
+  }, []);
+
   // Néo n'est affiché qu'une fois la discussion chargée : il salue à ce moment-là.
   const conversationId = conversation?.id;
   const isNewConversation = messages.length === 1;
@@ -460,7 +474,7 @@ export function ChatPage() {
         </header>
       </div>
 
-      <div className="chat__messages" ref={listRef} onScroll={onScroll}>
+      <div className="chat__messages" ref={observeList} onScroll={onScroll}>
         <div className="chat__column" role="log" aria-live="polite" aria-relevant="additions">
           {messages.map((message) => (
             <article key={message.id} className={`bubble bubble--${message.role}`}>

@@ -10,6 +10,23 @@ body,
   height: 100%;
 }
 
+/* Un élément amené à l'écran (focus, ancre) ne se glisse pas sous le bandeau du hackathon. */
+html {
+  scroll-padding-top: var(--bandeau-h);
+}
+
+/* Avec le bandeau, la page suit son contenu : collé en haut, il le reste jusqu'en bas. */
+:root[data-bandeau] body {
+  height: auto;
+  min-height: 100%;
+}
+
+/* Bandeau du hackathon (orientation.code4sud.fr/bandeau.js) : son style vient du script.
+   Seul ajout : il passe sous la barre d'état d'une app installée, à la place de l'en-tête. */
+#c4s-bandeau {
+  padding-top: calc(8px + env(safe-area-inset-top)) !important;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

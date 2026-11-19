@@ -22,9 +22,9 @@
   flex-direction: column;
   width: 100%;
   max-width: var(--width-content);
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--bandeau-h));
   margin-inline: auto;
-  padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4)
+  padding: calc(var(--space-3) + var(--safe-top)) var(--space-4)
     calc(var(--space-5) + env(safe-area-inset-bottom));
 }
 
@@ -719,11 +719,11 @@ button.cog-lantern {
   opacity: 0.5;
 }
 
-/* Pause */
+/* Pause : tout l'écran sous le bandeau du hackathon */
 .cog-overlay {
   position: fixed;
   z-index: 20;
-  inset: 0;
+  inset: var(--bandeau-h) 0 0;
   display: grid;
   place-items: center;
   padding: var(--space-4);

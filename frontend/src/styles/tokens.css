@@ -117,6 +117,16 @@
   --width-auth: 24rem;
   --width-sidebar: 14rem;
   --duration: 150ms;
+
+  /* Bandeau du hackathon collé en haut de l'écran (src/bandeau.ts) : sa hauteur, 0 sans lui. */
+  --bandeau-h: 0px;
+  /* Écart de la barre d'état d'une app installée. */
+  --safe-top: env(safe-area-inset-top);
+}
+
+/* Le bandeau passe sous la barre d'état : l'app n'a plus à s'en écarter. */
+:root[data-bandeau] {
+  --safe-top: 0px;
 }
 
 /* Activé uniquement par le bouton de thème : le réglage du système est ignoré. */
