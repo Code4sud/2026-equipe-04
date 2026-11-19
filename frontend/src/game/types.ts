@@ -173,6 +173,8 @@ export interface SheetAttribute {
   icon: string;
   /** De 8 à 20, ou null tant qu'il n'y a pas assez de réponses. */
   score: number | null;
+  /** Jeu qui peut révéler l'attribut tant que score vaut null. */
+  reveal_with?: { id: string; title: string; kind: InstrumentKind } | null;
 }
 
 export interface SheetTalent {
