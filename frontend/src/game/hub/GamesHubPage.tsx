@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
+import { SERIES_SIZE } from '../quiz/quizLogic';
 import type { Badge, GameStatus, InstrumentSummary } from '../types';
 import { gameEmoji } from './gameEmoji';
 import { hubFr } from './hub.fr';
@@ -169,7 +170,9 @@ function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
             </div>
           </>
         )}
-        <p className="hub-quiz__hint">{t.quiz.hint}</p>
+        <p className="hub-quiz__hint">
+          {started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} {t.quiz.hint}
+        </p>
         <Link to={QUIZ_PATH} className="button button--primary hub-quiz__cta">
           {started ? t.quiz.resume : t.quiz.start}
         </Link>

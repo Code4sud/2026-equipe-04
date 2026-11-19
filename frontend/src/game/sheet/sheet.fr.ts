@@ -35,9 +35,14 @@ export const sheetFr = {
   quest: {
     kicker: 'Prochaine quête',
     quizTitle: 'Le quiz d’arrivée',
-    quizText: 'Il remplit ton identité et révèle ton archétype. Tu peux faire une pause quand tu veux.',
+    quizText: (total: number, size: number) =>
+      `Il remplit ton identité et révèle ton archétype : ${total} questions par séries de ${size}, avec une pause quand tu veux.`,
+    quizProgress: (answered: number, total: number) =>
+      `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}`,
+    quizResumeText: (size: number) =>
+      `Tu continues par séries de ${size} questions. Ton archétype se révèle à la fin.`,
     quizStart: 'Commencer le quiz',
-    quizResume: 'Reprendre le quiz',
+    quizResume: 'Continuer',
     gamesTitle: 'Les mini-jeux',
     gamesText: 'Chaque partie dévoile un attribut caché de ta fiche.',
     gamesCta: 'Voir les jeux',

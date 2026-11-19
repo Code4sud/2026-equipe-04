@@ -14,9 +14,13 @@ export const hubFr = {
   quiz: {
     title: 'Ton quiz d’arrivée t’attend',
     progress: (answered: number, total: number) =>
-      `${answered} sur ${total} ${plural(total, 'question', 'questions')}`,
+      `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}`,
+    /** Avant la première réponse. */
+    format: (total: number, size: number) => `${total} questions par séries de ${size}, à ton rythme.`,
+    /** Après des réponses : la suite se joue aussi par séries. */
+    next: (size: number) => `Tu continues par séries de ${size} questions, à ton rythme.`,
     hint: 'Termine-le pour débloquer tous les jeux.',
-    resume: 'Reprendre le quiz',
+    resume: 'Continuer',
     start: 'Faire le quiz',
     progressLabel: 'Avancée du quiz',
   },

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
 import { NeoAvatar } from '../neo/NeoAvatar';
-import type { CharacterSheet, GameFact, GameStatus, Verdict } from '../types';
+import { SERIES_SIZE } from '../quiz/quizLogic';
+import type { CharacterSheet, GameFact, GameStatus, InstrumentSummary, Verdict } from '../types';
 import { Attributes } from './Attributes';
 import { Badges } from './Badges';
 import { Character } from './Character';
@@ -19,20 +20,29 @@ const t = sheetFr;
 
 type Quest = 'quiz-start' | 'quiz-resume' | 'games';
 
+const quizOf = (status: GameStatus | null) => status?.instruments.find((instrument) => instrument.kind === 'quiz');
+
 /** Prochaine étape à proposer, d'après l'état des jeux. Sans réponse de l'API, rien. */
 function questFor(status: GameStatus | null): Quest | null {
   if (!status) return null;
-  const quiz = status.instruments.find((instrument) => instrument.kind === 'quiz');
+  const quiz = quizOf(status);
   if (quiz && quiz.completed_count === 0) {
-    return quiz.state === 'in_progress' ? 'quiz-resume' : 'quiz-start';
+    // Comme sur le hub : une partie ouverte sans aucune réponse n'est pas encore commencée.
+    return quiz.state === 'in_progress' && quiz.answered > 0 ? 'quiz-resume' : 'quiz-start';
   }
   const games = status.instruments.filter((instrument) => instrument.kind !== 'quiz');
   if (games.length && games.every((game) => game.completed_count === 0)) return 'games';
   return null;
 }
 
-function QuestCard({ quest }: { quest: Quest }) {
+function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | undefined }) {
   const isQuiz = quest !== 'games';
+  const text =
+    quest === 'quiz-resume'
+      ? t.quest.quizResumeText(SERIES_SIZE)
+      : quest === 'quiz-start'
+        ? t.quest.quizText(quiz?.total ?? 0, SERIES_SIZE)
+        : t.quest.gamesText;
   return (
     <section className="sheet-quest" aria-labelledby="sheet-quest-title">
       <NeoAvatar mood="happy" still className="neo-slot" />
@@ -41,7 +51,10 @@ function QuestCard({ quest }: { quest: Quest }) {
         <h3 id="sheet-quest-title" className="sheet-quest__title">
           {isQuiz ? t.quest.quizTitle : t.quest.gamesTitle}
         </h3>
-        <p>{isQuiz ? t.quest.quizText : t.quest.gamesText}</p>
+        {quest === 'quiz-resume' && quiz && (
+          <p className="sheet-quest__count">{t.quest.quizProgress(quiz.answered, quiz.total)}</p>
+        )}
+        <p>{text}</p>
         <Link
           to={isQuiz ? '/jeune/quiz' : '/jeune/jeux'}
           className="button button--primary button--small sheet-quest__cta"
@@ -169,7 +182,7 @@ export default function SheetPage() {
           <Corner className="sheet-corner--br" />
 
           <SheetHero sheet={sheet} />
-          {quest && <QuestCard quest={quest} />}
+          {quest && <QuestCard quest={quest} quiz={quizOf(status)} />}
 
           <div className="sheet-grid">
             <Identity
