@@ -19,9 +19,9 @@
       "year": 1989,
       "citation": "McCrae, R. R., & Costa, P. T., Jr. (1989). Reinterpreting the Myers-Briggs Type Indicator from the perspective of the five-factor model of personality. Journal of Personality, 57(1), 17–40. https://doi.org/10.1111/j.1467-6494.1989.tb00759.x",
       "url": "https://doi.org/10.1111/j.1467-6494.1989.tb00759.x",
-      "licence": "Article cité comme justification théorique : aucun item n’est repris.",
+      "licence": "Article cité comme justification théorique, sans rien en reproduire.",
       "validated": false,
-      "adaptation": "Aucun item du MBTI ni de l’article. Les 20 questions sont écrites par l’équipe ; seul le rattachement des quatre dimensions aux facteurs Extraversion, Ouverture, Agréabilité et Conscienciosité vient de l’article.",
+      "adaptation": "Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI (énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de l’OEJTS n’est reprise. Seul le rattachement des quatre dimensions aux facteurs Extraversion, Ouverture, Agréabilité et Conscienciosité vient de l’article.",
       "note": "L’article ne trouve aucun appui à l’idée que le MBTI mesure des préférences tranchées ou des types distincts, mais montre que ses quatre indices recouvrent quatre des cinq grands facteurs. Le jeu ne donne donc ni type ni code. L’échelle OEJTS (openpsychometrics.org) n’est pas reprise : sa licence CC BY-NC-SA 4.0 n’est pas compatible avec un dépôt public sous licence MIT."
     }
   ]

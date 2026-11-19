@@ -199,6 +199,18 @@ def test_ton_style_is_a_balanced_custom_game_on_four_cursors(catalog):
     assert high_first == 10
 
 
+TON_STYLE_CLAIM = (
+    "Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI "
+    "(énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de "
+    "l’OEJTS n’est reprise."
+)
+
+
+def test_ton_style_says_exactly_what_it_takes_from_the_mbti(catalog):
+    assert TON_STYLE_CLAIM in catalog.instruments["ton_style"]["scoring_note"]
+    assert TON_STYLE_CLAIM in catalog.sources["mccrae_costa_1989"]["adaptation"]
+
+
 def test_every_translated_item_keeps_its_original(catalog):
     # Traduction maison d'un test validé : jamais présentée comme le test validé lui-même.
     translated = [i for i in catalog.instruments.values() if i["tier"] == "translated"]
