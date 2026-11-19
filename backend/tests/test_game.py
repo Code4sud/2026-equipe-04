@@ -240,6 +240,21 @@ def test_run_payload_tells_the_player_the_threshold(client, youth):
     assert start(client, youth, "fixture_questionnaire")["instrument"]["unlocks_after"] is None
 
 
+def test_a_first_mini_game_before_the_end_of_the_quiz_earns_its_badge(client, youth):
+    # « Dans le jeu » : terminer un premier mini-jeu. Le quiz n'en est pas un (il ne le donne pas
+    # seul, voir plus haut), et les mini-jeux se jouent dès ses premières questions.
+    run_id = start(client, youth)["run"]["id"]
+    for item_id in ("agenda", "groupe"):
+        assert skip(client, youth, run_id, item_id).status_code == 200
+    game_id = start(client, youth, "fixture_questionnaire")["run"]["id"]
+    for item_id in ("e1", "e2", "c1"):
+        assert answer(client, youth, game_id, item_id, 4).status_code == 200
+    result = complete(client, youth, game_id).get_json()
+    assert [badge["id"] for badge in result["new_badges"]] == ["joueur"]
+    badges = client.get("/api/me/game", headers=youth).get_json()["progress"]["badges"]
+    assert {badge["id"]: badge["earned"] for badge in badges}["joueur"] is True
+
+
 def test_psychologist_sees_cursors_as_percentages(client, youth, psychologist):
     run_id, _ = finish_onboarding(client, youth)
     target = youth_id(client, youth)

@@ -21,7 +21,7 @@
   ],
   "badges": [
     { "id": "premiers_pas", "label": "Premiers pas", "description": "Finir le quiz d’arrivée", "icon": "paw", "rule": { "type": "completed", "instrument": "onboarding" } },
-    { "id": "joueur", "label": "Dans le jeu", "description": "Terminer un premier mini-jeu", "icon": "dice", "rule": { "type": "completed_count", "count": 2 } },
+    { "id": "joueur", "label": "Dans le jeu", "description": "Terminer un premier mini-jeu", "icon": "dice", "rule": { "type": "completed_count", "except_kind": "quiz", "count": 1 } },
     { "id": "esprit_vif", "label": "Esprit vif", "description": "Terminer un jeu chronométré", "icon": "hourglass", "rule": { "type": "completed_count", "kind": "performance", "count": 1 } },
     { "id": "collection", "label": "Grand tour", "description": "Terminer cinq jeux", "icon": "map", "rule": { "type": "completed_count", "count": 5 } },
     { "id": "talent_1", "label": "Premier talent", "description": "Garder un talent sur ta carte", "icon": "star", "rule": { "type": "talents", "count": 1 } },

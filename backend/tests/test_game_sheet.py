@@ -88,6 +88,8 @@ def test_every_badge_can_be_earned():
         assert rule["type"] in BADGE_RULES, badge["id"]
         if rule["type"] == "completed_count" and "kind" in rule:
             assert rule["kind"] in KINDS, badge["id"]
+        if rule["type"] == "completed_count" and "except_kind" in rule:
+            assert rule["except_kind"] in KINDS and "kind" not in rule, badge["id"]
         if rule["type"] != "completed":
             assert rule["count"] >= 1, badge["id"]
 

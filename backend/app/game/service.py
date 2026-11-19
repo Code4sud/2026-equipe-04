@@ -283,7 +283,11 @@ def _badge_earned(rule: dict, context: dict) -> bool:
         return rule["instrument"] in context["completed"]
     if kind == "completed_count":
         pool = context["completed_kinds"]
-        count = pool[rule["kind"]] if "kind" in rule else sum(pool.values())
+        if "kind" in rule:
+            count = pool[rule["kind"]]
+        else:
+            # `except_kind` laisse un type de côté : un mini-jeu, c'est tout sauf le quiz d'arrivée.
+            count = sum(n for k, n in pool.items() if k != rule.get("except_kind"))
         return count >= rule["count"]
     if kind in {"talents", "facts", "level"}:
         return context[kind] >= rule["count"]
