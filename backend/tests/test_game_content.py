@@ -5,6 +5,7 @@ de prompts/garde_fous.json), avec en plus le vocabulaire interdit côté jeune.
 """
 from __future__ import annotations
 
+import copy
 import json
 import re
 from pathlib import Path
@@ -76,28 +77,38 @@ def guardrail_problems(texts) -> list[str]:
     return problems + [f"{where} [tiret cadratin] {text}" for where, text in texts if "—" in text]
 
 
+def strings(value, where: str):
+    """Chaque texte d'une valeur JSON avec son chemin : un champ ajouté plus tard est relu d'office."""
+    if isinstance(value, str):
+        yield where, value
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            yield from strings(child, f"{where}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            name = child.get("id", index) if isinstance(child, dict) else index
+            yield from strings(child, f"{where}[{name}]")
+
+
+def youth_fields(entry: dict) -> dict:
+    """Champs youth… d'un curseur ou d'un groupe de curseurs : le reste est pour la psychologue."""
+    return {key: value for key, value in entry.items() if key.startswith("youth")}
+
+
 def youth_texts(catalog: Catalog):
+    """Tout le contenu que reçoit le jeune : parties, libellés de ses détails, curseurs, clans, fiche."""
     for instrument in catalog.instruments.values():
-        public = catalog.public_instrument(instrument)
-        for field in ("title", "tagline", "intro", "outro", "source_note"):
-            if public.get(field):
-                yield instrument["id"], public[field]
-        for chapter in public.get("chapters", []):
-            yield instrument["id"], chapter.get("title", "")
-            yield instrument["id"], chapter.get("intro", "")
-        for item in public.get("items", []):
-            yield f"{instrument['id']}/{item['id']}", item["prompt"]
-            yield f"{instrument['id']}/{item['id']}", item.get("hint", "")
-            for option in item.get("options", []):
-                yield f"{instrument['id']}/{item['id']}", option["label"]
-    for clan in catalog.clans:
-        yield clan["id"], f"{clan['name']} {clan['motto']} {clan['description']}"
+        name = instrument["id"]
+        yield from strings(catalog.public_instrument(instrument), name)
+        for item in instrument.get("items", []):
+            if "fact_label" in item:
+                yield f"{name}.items[{item['id']}].fact_label", item["fact_label"]
+    for group in catalog.trait_groups:
+        yield from strings(youth_fields(group), f"groupe {group['id']}")
     for trait in catalog.traits.values():
-        yield trait["id"], " ".join(str(v) for v in trait["youth"].values())
-    for attribute in catalog.sheet["attributes"]:
-        yield attribute["id"], f"{attribute['label']} {attribute['description']}"
-    for badge in catalog.sheet["badges"]:
-        yield badge["id"], f"{badge['label']} {badge['description']}"
+        yield from strings(youth_fields(trait), f"curseur {trait['id']}")
+    yield from strings(catalog.clans, "clans")
+    yield from strings(catalog.sheet, "fiche")
 
 
 @pytest.fixture(scope="module")
@@ -108,6 +119,21 @@ def catalog():
 def test_youth_facing_text_respects_guardrails(catalog):
     problems = guardrail_problems(youth_texts(catalog))
     assert not problems, "\n".join(problems)
+
+
+def test_lint_reads_every_field_sent_to_the_youth(catalog):
+    stroop = copy.deepcopy(catalog.instruments["stroop"])
+    stroop["performance"]["tips"] = [{"text": "Demande à tes parents"}]
+    assert guardrail_problems(strings(catalog.public_instrument(stroop), "stroop")) == [
+        "stroop.performance.tips[0].text [famille : parents] Demande à tes parents"
+    ]
+    paths = [where for where, _ in youth_texts(catalog)]
+    for field in (
+        ".prompt", ".hint", ".placeholder", ".options[", ".scale.labels[", ".chapters[", ".outro",
+        ".source_note", ".performance.", ".fact_label", ".youth.", ".youth_label", "clans[",
+        "fiche.attributes[", "fiche.level_titles[", "fiche.badges[",
+    ):
+        assert any(field in path for path in paths), field
 
 
 # Texte → sujets repérés : formes piégeuses du français, puis mots ordinaires à laisser passer.
