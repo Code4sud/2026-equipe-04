@@ -1,6 +1,6 @@
 {
   "id": "onboarding",
-  "version": 1,
+  "version": 2,
   "order": 0,
   "kind": "quiz",
   "tier": "adapted",
@@ -13,7 +13,7 @@
   "min_answers": 30,
   "source_ids": ["goldberg_big_five_markers", "holland_riasec"],
   "source_note": "Situations inventées pour Potentiel, inspirées de travaux publiés en psychologie sur la personnalité et les centres d’intérêt.",
-  "scoring_note": "Quiz maison, niveau de preuve « adapted » (poids 0,5). 38 situations du quotidien inspirées des marqueurs IPIP de Goldberg (1992) et de la typologie RIASEC de Holland (1997), plus 12 questions de fiche (couleur, passion…) sans aucune cotation. Chaque option donne une valeur de 0 à 100 au curseur visé ; certaines alimentent aussi un second curseur avec un poids de 0,5. Les dilemmes RIASEC opposent deux types : l'option choisie monte l'un et baisse l'autre. Les signaux « Intérêt geek et numérique » relèvent d'un indicateur maison, sans source publiée. Format non validé : une tendance à discuter avec le jeune, jamais une mesure.",
+  "scoring_note": "Quiz maison, niveau de preuve « Inspiré de travaux publiés, non validé » (poids 0,5). 38 situations du quotidien inspirées des marqueurs IPIP de Goldberg (1992) et de la typologie RIASEC de Holland (1997), plus 12 questions de fiche (couleur, passion…) sans aucune cotation. Chaque option donne une valeur de 0 à 100 au curseur visé ; certaines alimentent aussi un second curseur avec un poids de 0,5. Les dilemmes RIASEC opposent deux types : l’option choisie monte l’un et baisse l’autre. Les signaux « Intérêt geek et numérique » relèvent d’un indicateur maison sans source publiée : ils portent leur propre niveau, « Indicateur maison », avec un poids de 0,5. Format non validé : une tendance à discuter avec le jeune, jamais une mesure.",
   "intro": "Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton clan.",
   "outro": "Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton clan ?",
   "chapters": [
@@ -132,8 +132,8 @@
       "prompt": "Un·e pote t’écrit : « Je lance ma chaîne vidéo, tu m’aides ? »",
       "source": { "source_id": "holland_riasec", "ref": "Types A et E", "original": "Artistic / Enterprising", "relation": "inspired" },
       "options": [
-        { "id": "a", "label": "Je m’occupe du montage et des visuels", "emoji": "🎬", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "riasec_e", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5 }] },
-        { "id": "b", "label": "Je m’occupe de la faire connaître partout", "emoji": "📢", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_a", "value": 35 }, { "trait": "interest_digital", "value": 60, "weight": 0.5 }] },
+        { "id": "a", "label": "Je m’occupe du montage et des visuels", "emoji": "🎬", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "riasec_e", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
+        { "id": "b", "label": "Je m’occupe de la faire connaître partout", "emoji": "📢", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_a", "value": 35 }, { "trait": "interest_digital", "value": 60, "weight": 0.5, "tier": "custom" }] },
         { "id": "c", "label": "Un peu des deux, je suis partant·e pour tout", "emoji": "🙌", "signals": [{ "trait": "riasec_a", "value": 60 }, { "trait": "riasec_e", "value": 60 }] }
       ]
     },
@@ -178,7 +178,7 @@
       "options": [
         { "id": "a", "label": "Je mets les mains dedans et je bricole jusqu’à ce que ça roule", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 90 }, { "trait": "riasec_i", "value": 35 }] },
         { "id": "b", "label": "Je mène l’enquête pour trouver d’où vient le bruit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 90 }, { "trait": "riasec_r", "value": 35 }] },
-        { "id": "c", "label": "On regarde un tuto ensemble et on répare", "emoji": "📱", "signals": [{ "trait": "riasec_r", "value": 60 }, { "trait": "riasec_i", "value": 60 }, { "trait": "interest_digital", "value": 65, "weight": 0.5 }] }
+        { "id": "c", "label": "On regarde un tuto ensemble et on répare", "emoji": "📱", "signals": [{ "trait": "riasec_r", "value": 60 }, { "trait": "riasec_i", "value": 60 }, { "trait": "interest_digital", "value": 65, "weight": 0.5, "tier": "custom" }] }
       ]
     },
     {
@@ -426,9 +426,9 @@
       "prompt": "Ton téléphone rame et sa mémoire est pleine.",
       "source": { "source_id": "holland_riasec", "ref": "Types I et C", "original": "Investigative / Conventional", "relation": "inspired" },
       "options": [
-        { "id": "a", "label": "Je fouille les réglages pour comprendre ce qui le ralentit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_c", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5 }] },
+        { "id": "a", "label": "Je fouille les réglages pour comprendre ce qui le ralentit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_c", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
         { "id": "b", "label": "Je fais le grand tri : photos, applis, dossiers, tout est rangé", "emoji": "🗃️", "signals": [{ "trait": "riasec_c", "value": 85 }, { "trait": "riasec_i", "value": 35 }] },
-        { "id": "c", "label": "J’efface deux ou trois trucs vite fait, et ça repart", "emoji": "✂️", "signals": [{ "trait": "interest_digital", "value": 35, "weight": 0.5 }] }
+        { "id": "c", "label": "J’efface deux ou trois trucs vite fait, et ça repart", "emoji": "✂️", "signals": [{ "trait": "interest_digital", "value": 35, "weight": 0.5, "tier": "custom" }] }
       ]
     },
     {
@@ -458,12 +458,12 @@
     {
       "id": "soir_pluie", "type": "choice", "chapter": "soir",
       "prompt": "Il pleut des cordes et ta soirée est libre. Tu fais quoi ?",
-      "source": { "source_id": "holland_riasec", "ref": "Types A, R et I", "original": "Artistic / Realistic / Investigative", "relation": "inspired" },
+      "source": { "source_id": "holland_riasec", "ref": "Types A, R et I ; intérêt numérique : indicateur maison", "original": "Artistic / Realistic / Investigative", "relation": "inspired" },
       "options": [
-        { "id": "a", "label": "Une partie en ligne avec des potes", "emoji": "🎮", "signals": [{ "trait": "interest_digital", "value": 90 }] },
-        { "id": "b", "label": "Je dessine, j’écris ou je compose", "emoji": "🎨", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "interest_digital", "value": 35 }] },
-        { "id": "c", "label": "Je bricole un truc qui traînait", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "interest_digital", "value": 25 }] },
-        { "id": "d", "label": "Je regarde des vidéos pour apprendre un truc", "emoji": "🧠", "signals": [{ "trait": "riasec_i", "value": 75 }, { "trait": "interest_digital", "value": 60 }] }
+        { "id": "a", "label": "Une partie en ligne avec des potes", "emoji": "🎮", "signals": [{ "trait": "interest_digital", "value": 90, "weight": 0.5, "tier": "custom" }] },
+        { "id": "b", "label": "Je dessine, j’écris ou je compose", "emoji": "🎨", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "interest_digital", "value": 35, "weight": 0.5, "tier": "custom" }] },
+        { "id": "c", "label": "Je bricole un truc qui traînait", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "interest_digital", "value": 25, "weight": 0.5, "tier": "custom" }] },
+        { "id": "d", "label": "Je regarde des vidéos pour apprendre un truc", "emoji": "🧠", "signals": [{ "trait": "riasec_i", "value": 75 }, { "trait": "interest_digital", "value": 60, "weight": 0.5, "tier": "custom" }] }
       ]
     },
 

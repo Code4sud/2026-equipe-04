@@ -97,3 +97,47 @@ def test_catalog_rejects_an_unknown_signal_tier(tmp_path, item):
 def test_catalog_accepts_a_known_signal_tier(tmp_path):
     item = {"id": "q", "type": "likert", "prompt": "?", "trait": "openness", "tier": "translated"}
     assert "essai" in Catalog(overlays=[overlay(tmp_path, item)]).instruments
+
+
+# --- Quiz d'arrivée : l'indicateur maison garde son propre niveau ---
+
+
+def quiz_signals(catalog):
+    quiz = catalog.instruments["onboarding"]
+    return [
+        signal
+        for item in quiz["items"]
+        for option in item.get("options", [])
+        for signal in option.get("signals", [])
+    ]
+
+
+def test_quiz_digital_signals_are_marked_as_in_house(catalog):
+    signals = quiz_signals(catalog)
+    digital = [s for s in signals if s["trait"] == "interest_digital"]
+    assert len(digital) >= 8
+    assert all(s.get("tier") == "custom" and s.get("weight") == 0.5 for s in digital), digital
+    # Les autres signaux gardent le niveau du quiz.
+    assert all("tier" not in s for s in signals if s["trait"] != "interest_digital")
+
+
+def test_psychologist_sees_the_in_house_label_on_quiz_digital_signals(client, youth, psychologist):
+    run_id = client.post("/api/me/game/instruments/onboarding/runs", headers=youth).get_json()["run"]["id"]
+    response = client.put(
+        f"/api/me/game/runs/{run_id}/answers/reveil_chaine", json={"value": "a"}, headers=youth
+    )
+    assert response.status_code == 200, response.get_json()
+    target = client.get("/api/auth/me", headers=youth).get_json()["user"]["id"]
+    base = f"/api/backoffice/youths/{target}/game"
+
+    digital = client.get(f"{base}/traits/interest_digital", headers=psychologist).get_json()
+    assert [(row["tier"], row["tier_label"], row["weight"]) for row in digital["signals"]] == [
+        ("custom", "Indicateur maison", 0.5)
+    ]
+    assert digital["cursor"]["by_tier"]["custom"]["label"] == "Indicateur maison"
+    artistic = client.get(f"{base}/traits/riasec_a", headers=psychologist).get_json()
+    assert [(row["tier"], row["tier_label"]) for row in artistic["signals"]] == [
+        ("adapted", "Inspiré de travaux publiés, non validé")
+    ]
+    run = client.get(f"{base}/runs/{run_id}", headers=psychologist).get_json()
+    assert run["instrument"]["tier_label"] == "Inspiré de travaux publiés, non validé"
