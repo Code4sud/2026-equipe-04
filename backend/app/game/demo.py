@@ -4,6 +4,7 @@ from __future__ import annotations
 import random
 import uuid
 
+from ..errors import ApiError
 from ..extensions import db
 from ..models import User
 from .catalog import likert_parts
@@ -59,7 +60,12 @@ def seed_youth_game(user: User, persona: dict) -> None:
         # Un jeu dont le prérequis manque au contenu (quiz pas encore livré) reste verrouillé.
         if any(required not in completed for required in instrument.get("requires", [])):
             continue
-        payload, _ = game.start_run(user, instrument["id"])
+        try:
+            payload, _ = game.start_run(user, instrument["id"])
+        except ApiError as error:
+            if error.code == "locked":
+                continue
+            raise
         run_uuid = uuid.UUID(payload["run"]["id"])
         body = {}
         if instrument["kind"] == "performance":

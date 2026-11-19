@@ -1,0 +1,303 @@
+{
+  "id": "logic",
+  "version": 1,
+  "order": 43,
+  "kind": "performance",
+  "tier": "performance",
+  "title": "Les énigmes du terrier",
+  "tagline": "Trouve la règle cachée dans des suites et des grilles.",
+  "icon": "puzzle",
+  "duration_min": 4,
+  "xp": 80,
+  "requires": ["onboarding"],
+  "replayable": true,
+  "source_ids": ["icar_2014"],
+  "intro": "Chaque énigme cache une règle. Trouve ce qui vient ensuite, ou la case qui complète la grille. Pas de chrono : prends ton temps, et tu peux passer une énigme.",
+  "outro": "Énigmes bouclées ! Ton esprit logique a bien tourné.",
+  "source_note": "Énigmes inventées pour Potentiel, dans le style des tests de raisonnement publiés.",
+  "scoring_note": "10 énigmes originales (5 suites de lettres ou de nombres, 5 matrices 3×3 de formes), 6 choix chacune, sans limite de temps, possibilité de passer, avec une consigne générale identique pour tous (suites : « Regarde ce qui change d’un élément à l’autre » ; matrices : « Compare les lignes, puis les colonnes »). Format inspiré de l’ICAR (Condon & Revelle, 2014) : aucun item ICAR n’est reproduit. 2 énigmes d’entraînement corrigées à l’écran, gardées mais non comptées. La clé de correction reste sur le serveur. Curseur = énigmes résolues / 10 × 100. Niveaux de difficulté (1 à 3) estimés par l’équipe, non mesurés. Pas d’étalonnage, pas un diagnostic.",
+  "performance": {
+    "scorer": "logic",
+    "variant": "logic",
+    "trait": "reasoning",
+    "weight": 4,
+    "practice": [
+      {
+        "id": "p1",
+        "kind": "series",
+        "prompt": "Quel nombre vient ensuite ?",
+        "sequence": ["2", "4", "6", "8"],
+        "options": [
+          { "id": "a", "label": "9" },
+          { "id": "b", "label": "10" },
+          { "id": "c", "label": "12" },
+          { "id": "d", "label": "11" },
+          { "id": "e", "label": "16" },
+          { "id": "f", "label": "14" }
+        ],
+        "answer": "b",
+        "hint": "Chaque nombre fait +2 : après 8, c’est 10."
+      },
+      {
+        "id": "p2",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "shape": "circle", "count": 1, "fill": "full" },
+          { "shape": "circle", "count": 2, "fill": "full" },
+          { "shape": "circle", "count": 3, "fill": "full" },
+          { "shape": "square", "count": 1, "fill": "full" },
+          { "shape": "square", "count": 2, "fill": "full" },
+          { "shape": "square", "count": 3, "fill": "full" },
+          { "shape": "triangle", "count": 1, "fill": "full" },
+          { "shape": "triangle", "count": 2, "fill": "full" },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "shape": "triangle", "count": 2, "fill": "full" } },
+          { "id": "b", "cell": { "shape": "square", "count": 3, "fill": "full" } },
+          { "id": "c", "cell": { "shape": "triangle", "count": 3, "fill": "full" } },
+          { "id": "d", "cell": { "shape": "circle", "count": 3, "fill": "full" } },
+          { "id": "e", "cell": { "shape": "triangle", "count": 1, "fill": "full" } },
+          { "id": "f", "cell": { "shape": "diamond", "count": 3, "fill": "full" } }
+        ],
+        "answer": "c",
+        "hint": "Chaque ligne garde sa forme, et chaque case en ajoute une : il faut 3 triangles."
+      }
+    ],
+    "puzzles": [
+      {
+        "id": "s1",
+        "kind": "series",
+        "prompt": "Quel nombre vient ensuite ?",
+        "sequence": ["3", "7", "11", "15"],
+        "options": [
+          { "id": "a", "label": "17" },
+          { "id": "b", "label": "21" },
+          { "id": "c", "label": "18" },
+          { "id": "d", "label": "19" },
+          { "id": "e", "label": "23" },
+          { "id": "f", "label": "20" }
+        ]
+      },
+      {
+        "id": "m1",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "shape": "circle", "count": 1, "fill": "empty" },
+          { "shape": "square", "count": 1, "fill": "empty" },
+          { "shape": "triangle", "count": 1, "fill": "empty" },
+          { "shape": "circle", "count": 1, "fill": "striped" },
+          { "shape": "square", "count": 1, "fill": "striped" },
+          { "shape": "triangle", "count": 1, "fill": "striped" },
+          { "shape": "circle", "count": 1, "fill": "full" },
+          { "shape": "square", "count": 1, "fill": "full" },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "shape": "triangle", "count": 1, "fill": "striped" } },
+          { "id": "b", "cell": { "shape": "square", "count": 1, "fill": "full" } },
+          { "id": "c", "cell": { "shape": "triangle", "count": 1, "fill": "empty" } },
+          { "id": "d", "cell": { "shape": "circle", "count": 1, "fill": "full" } },
+          { "id": "e", "cell": { "shape": "triangle", "count": 1, "fill": "full" } },
+          { "id": "f", "cell": { "shape": "star", "count": 1, "fill": "full" } }
+        ]
+      },
+      {
+        "id": "s2",
+        "kind": "series",
+        "prompt": "Quelle lettre vient ensuite ?",
+        "sequence": ["B", "E", "H", "K"],
+        "options": [
+          { "id": "a", "label": "M" },
+          { "id": "b", "label": "O" },
+          { "id": "c", "label": "N" },
+          { "id": "d", "label": "L" },
+          { "id": "e", "label": "P" },
+          { "id": "f", "label": "Q" }
+        ]
+      },
+      {
+        "id": "m2",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 0 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 90 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 180 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 90 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 180 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 270 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 180 },
+          { "shape": "arrow", "count": 1, "fill": "full", "rotate": 270 },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 90 } },
+          { "id": "b", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 0 } },
+          { "id": "c", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 180 } },
+          { "id": "d", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 270 } },
+          { "id": "e", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 45 } },
+          { "id": "f", "cell": { "shape": "arrow", "count": 1, "fill": "full", "rotate": 315 } }
+        ]
+      },
+      {
+        "id": "s3",
+        "kind": "series",
+        "prompt": "Quel nombre vient ensuite ?",
+        "sequence": ["2", "6", "12", "20", "30"],
+        "options": [
+          { "id": "a", "label": "40" },
+          { "id": "b", "label": "36" },
+          { "id": "c", "label": "44" },
+          { "id": "d", "label": "38" },
+          { "id": "e", "label": "42" },
+          { "id": "f", "label": "48" }
+        ]
+      },
+      {
+        "id": "m3",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "shape": "circle", "count": 1, "fill": "empty" },
+          { "shape": "square", "count": 1, "fill": "striped" },
+          { "shape": "diamond", "count": 1, "fill": "full" },
+          { "shape": "square", "count": 1, "fill": "full" },
+          { "shape": "diamond", "count": 1, "fill": "empty" },
+          { "shape": "circle", "count": 1, "fill": "striped" },
+          { "shape": "diamond", "count": 1, "fill": "striped" },
+          { "shape": "circle", "count": 1, "fill": "full" },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "shape": "square", "count": 1, "fill": "full" } },
+          { "id": "b", "cell": { "shape": "circle", "count": 1, "fill": "empty" } },
+          { "id": "c", "cell": { "shape": "square", "count": 1, "fill": "striped" } },
+          { "id": "d", "cell": { "shape": "square", "count": 1, "fill": "empty" } },
+          { "id": "e", "cell": { "shape": "diamond", "count": 1, "fill": "empty" } },
+          { "id": "f", "cell": { "shape": "triangle", "count": 1, "fill": "empty" } }
+        ]
+      },
+      {
+        "id": "s4",
+        "kind": "series",
+        "prompt": "Quel nombre vient ensuite ?",
+        "sequence": ["5", "10", "8", "16", "14", "28"],
+        "options": [
+          { "id": "a", "label": "30" },
+          { "id": "b", "label": "24" },
+          { "id": "c", "label": "56" },
+          { "id": "d", "label": "27" },
+          { "id": "e", "label": "32" },
+          { "id": "f", "label": "26" }
+        ]
+      },
+      {
+        "id": "m4",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "shape": "circle", "count": 1, "fill": "full" },
+          { "shape": "circle", "count": 2, "fill": "full" },
+          { "shape": "circle", "count": 3, "fill": "full" },
+          { "shape": "square", "count": 2, "fill": "full" },
+          { "shape": "square", "count": 1, "fill": "full" },
+          { "shape": "square", "count": 3, "fill": "full" },
+          { "shape": "diamond", "count": 1, "fill": "full" },
+          { "shape": "diamond", "count": 3, "fill": "full" },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "shape": "diamond", "count": 4, "fill": "full" } },
+          { "id": "b", "cell": { "shape": "diamond", "count": 3, "fill": "full" } },
+          { "id": "c", "cell": { "shape": "square", "count": 4, "fill": "full" } },
+          { "id": "d", "cell": { "shape": "diamond", "count": 5, "fill": "full" } },
+          { "id": "e", "cell": { "shape": "diamond", "count": 2, "fill": "full" } },
+          { "id": "f", "cell": { "shape": "circle", "count": 4, "fill": "full" } }
+        ]
+      },
+      {
+        "id": "s5",
+        "kind": "series",
+        "prompt": "Quelle lettre vient ensuite ?",
+        "sequence": ["A", "Z", "C", "X", "E", "V"],
+        "options": [
+          { "id": "a", "label": "F" },
+          { "id": "b", "label": "T" },
+          { "id": "c", "label": "G" },
+          { "id": "d", "label": "U" },
+          { "id": "e", "label": "H" },
+          { "id": "f", "label": "W" }
+        ]
+      },
+      {
+        "id": "m5",
+        "kind": "matrix",
+        "prompt": "Quelle case complète la grille ?",
+        "grid": [
+          { "lines": ["h", "v"] },
+          { "lines": ["v", "d1"] },
+          { "lines": ["h", "d1"] },
+          { "lines": ["h", "d2"] },
+          { "lines": ["d2", "v"] },
+          { "lines": ["h", "v"] },
+          { "lines": ["v", "d1", "d2"] },
+          { "lines": ["d1", "h"] },
+          null
+        ],
+        "options": [
+          { "id": "a", "cell": { "lines": ["h", "v", "d1", "d2"] } },
+          { "id": "b", "cell": { "lines": ["d1"] } },
+          { "id": "c", "cell": { "lines": ["h", "v", "d2"] } },
+          { "id": "d", "cell": { "lines": ["h", "v"] } },
+          { "id": "e", "cell": { "lines": ["v", "d2"] } },
+          { "id": "f", "cell": { "lines": ["h", "d1", "d2"] } }
+        ]
+      }
+    ]
+  },
+  "answer_key": {
+    "s1": {
+      "answer": "d", "level": 1, "rule": "+4 à chaque pas",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « suite de lettres et de nombres », énigme originale" }
+    },
+    "m1": {
+      "answer": "e", "level": 1, "rule": "la forme change avec la colonne, le remplissage avec la ligne (vide, rayé, plein)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « matrice 3×3 », énigme originale" }
+    },
+    "s2": {
+      "answer": "c", "level": 1, "rule": "on avance de 3 lettres (B, E, H, K, N)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « suite de lettres et de nombres », énigme originale" }
+    },
+    "m2": {
+      "answer": "b", "level": 2, "rule": "la flèche tourne d’un quart de tour à droite d’une case à l’autre, chaque ligne démarre un quart de tour plus loin",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « matrice 3×3 », énigme originale" }
+    },
+    "s3": {
+      "answer": "e", "level": 2, "rule": "les écarts grandissent de 2 (+4, +6, +8, +10, puis +12)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « suite de lettres et de nombres », énigme originale" }
+    },
+    "m3": {
+      "answer": "d", "level": 2, "rule": "chaque ligne et chaque colonne contient une fois chaque forme (rond, carré, losange) et chaque remplissage (vide, rayé, plein)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « matrice 3×3 », énigme originale" }
+    },
+    "s4": {
+      "answer": "f", "level": 2, "rule": "on alterne ×2 et −2",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « suite de lettres et de nombres », énigme originale" }
+    },
+    "m4": {
+      "answer": "a", "level": 3, "rule": "dans chaque ligne, la 3e case additionne les formes des deux premières",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « matrice 3×3 », énigme originale" }
+    },
+    "s5": {
+      "answer": "c", "level": 3, "rule": "deux suites mêlées : A, C, E, G (+2) et Z, X, V (−2)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « suite de lettres et de nombres », énigme originale" }
+    },
+    "m5": {
+      "answer": "c", "level": 3, "rule": "un trait présent dans les deux premières cases disparaît, les autres restent (ou exclusif)",
+      "source": { "source_id": "icar_2014", "relation": "inspired", "ref": "Format « matrice 3×3 », énigme originale" }
+    }
+  }
+}
