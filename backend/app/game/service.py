@@ -30,7 +30,7 @@ from ..models import (
 from ..services import service
 from .catalog import Catalog
 from .discovery import reveal_with
-from .performance import SCORERS, finite_ms
+from .performance import SCORERS, finite_ms, youth_metrics
 from .scoring import (
     MAX_TEXT_FACT,
     InvalidAnswer,
@@ -484,7 +484,8 @@ def _result(user: User, run: GameRun, instrument: dict, before: dict) -> dict:
         "new_badges": [b for b in after["badges"] if b["earned"] and b["id"] not in earned_before],
         "clan": clan_for(cursors),
         "highlights": _highlights(cursors, data.feedback),
-        "metrics": run.metrics if instrument["kind"] == "performance" else None,
+        # Ses réussites seulement : les pourcentages et les mesures fines restent à la psychologue.
+        "metrics": youth_metrics(instrument, run.metrics) if instrument["kind"] == "performance" else None,
     }
 
 

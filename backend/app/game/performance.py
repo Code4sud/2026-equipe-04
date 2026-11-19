@@ -3,7 +3,9 @@
 Le navigateur envoie chaque essai, et le serveur recalcule lui-même ce qui est juste :
 un champ `correct` venu du navigateur est toujours ignoré.
 Les essais d'entraînement (`practice`) restent visibles pour la psychologue mais ne comptent pas.
-Pour ajouter un jeu : écrire `score` et `demo`, puis l'inscrire dans SCORERS.
+Pour ajouter un jeu : écrire `score` et `demo`, puis l'inscrire dans SCORERS. Le jeune ne reçoit
+que la projection `youth` des mesures (par défaut : sans aucun pourcentage) ; la psychologue
+voit tout.
 """
 from __future__ import annotations
 
@@ -28,10 +30,37 @@ class PerformanceResult:
     rows: list[dict] = field(default_factory=list)
 
 
+def drop_percents(metrics: dict) -> dict:
+    """Projection par défaut pour le jeune : les mesures sans pourcentage, global ou par phase."""
+    youth = {key: value for key, value in metrics.items() if key != "percent"}
+    if isinstance(metrics.get("phases"), dict):
+        youth["phases"] = {
+            phase_id: {k: v for k, v in entry.items() if k != "percent"}
+            if isinstance(entry, dict)
+            else entry
+            for phase_id, entry in metrics["phases"].items()
+        }
+    return youth
+
+
 @dataclass(frozen=True)
 class Scorer:
     score: Callable[[dict, list[dict]], PerformanceResult]
     demo: Callable[[dict, random.Random, float], list[dict]]
+    # Ce que le jeune reçoit en fin de partie (frontend/src/game/cognitive/results.ts).
+    youth: Callable[[dict], dict] = drop_percents
+
+
+def youth_metrics(instrument: dict, metrics: dict | None) -> dict:
+    """Mesures montrées au jeune : ses réussites, jamais un pourcentage ni un score bas."""
+    scorer = SCORERS.get(instrument.get("performance", {}).get("scorer"))
+    if scorer is None or not metrics:
+        return {}
+    return drop_percents(scorer.youth(metrics))
+
+
+def keep_only(*keys: str) -> Callable[[dict], dict]:
+    return lambda metrics: {key: metrics[key] for key in keys if key in metrics}
 
 
 def clamp_percent(value: float) -> float:
@@ -629,7 +658,13 @@ def demo_logic(instrument: dict, rng: random.Random, skill: float) -> list[dict]
 
 
 SCORERS: dict[str, Scorer] = {
+    # Empan : record, séries réussies et record par phase, sans les pourcentages.
     "span": Scorer(score_span, demo_span),
-    "stroop": Scorer(score_stroop, demo_stroop),
-    "logic": Scorer(score_logic, demo_logic),
+    # Stroop : meilleure série et réponse la plus rapide ; précision et interférence restent
+    # à la psychologue.
+    "stroop": Scorer(
+        score_stroop, demo_stroop, keep_only("trials", "best_streak", "fastest_rt_ms", "practice_trials")
+    ),
+    # Énigmes : nombre d'énigmes résolues et meilleure série, sans le total ni le détail par type.
+    "logic": Scorer(score_logic, demo_logic, keep_only("solved", "best_streak", "practice_trials")),
 }

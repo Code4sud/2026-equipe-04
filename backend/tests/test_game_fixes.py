@@ -4,15 +4,20 @@ from __future__ import annotations
 
 import io
 import json
+import random
+import re
 from pathlib import Path
 
 import pytest
-from test_game import answer, finish_onboarding, start, youth_id
+from test_game import answer, complete, finish_onboarding, start, youth_id
 
 from app.game.catalog import Catalog
+from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
+FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
+COGNITIVE = ("corsi", "digit_span", "stroop", "logic")
 
 
 @pytest.fixture(autouse=True)
@@ -20,6 +25,17 @@ def catalog(app):
     content = Catalog(overlays=[FIXTURES])
     keep = {"onboarding", "fixture_questionnaire", "fixture_span"}
     content.instruments = {k: v for k, v in content.instruments.items() if k in keep}
+    app.extensions["game_catalog"] = content
+    return content
+
+
+@pytest.fixture
+def real_games(app):
+    """Vrais jeux cognitifs, avec le quiz d'arrivée fictif des tests."""
+    content = Catalog(overlays=[FIXTURES])
+    content.instruments = {
+        k: v for k, v in content.instruments.items() if k in {"onboarding", *COGNITIVE}
+    }
     app.extensions["game_catalog"] = content
     return content
 
@@ -44,6 +60,53 @@ def facts_of(client, youth) -> dict[str, dict]:
 def raw(client, method, url, headers, text):
     """Envoie un JSON tel quel (NaN, 1e400, \\u0000...), que json.dumps ne produirait pas."""
     return client.open(url, method=method, data=text, headers={**headers, "Content-Type": "application/json"})
+
+
+# --- 6. Le jeune ne reçoit que ses réussites ---
+
+
+def metric_paths(data: dict, prefix: tuple[str, ...] = ()) -> set[tuple[str, ...]]:
+    paths = set()
+    for key, value in data.items():
+        paths.add((*prefix, key))
+        if isinstance(value, dict):
+            paths |= metric_paths(value, (*prefix, key))
+    return paths
+
+
+def front_metric_paths() -> set[tuple[str, ...]]:
+    """Clés lues par l'écran de fin des jeux (count(metrics, 'phases', 'forward', 'span'))."""
+    text = FRONT_RESULTS.read_text(encoding="utf-8")
+    return {tuple(re.findall(r"'([^']+)'", args)) for args in re.findall(r"count\(metrics, ([^)]*)\)", text)}
+
+
+def test_default_youth_projection_drops_every_percent():
+    metrics = {"span": 5, "percent": 40.0, "phases": {"forward": {"span": 5, "percent": 40.0}}}
+    assert drop_percents(metrics) == {"span": 5, "phases": {"forward": {"span": 5}}}
+    assert metrics["percent"] == 40.0  # Les mesures de la psychologue restent intactes.
+
+
+def test_youth_result_keeps_what_the_screen_reads_and_nothing_for_the_psychologist_only(
+    client, youth, psychologist, real_games
+):
+    wanted = front_metric_paths()
+    assert ("phases", "forward", "span") in wanted and ("best_streak",) in wanted
+    finish_onboarding(client, youth)
+    available: set[tuple[str, ...]] = set()
+    for instrument_id in COGNITIVE:
+        instrument = real_games.instruments[instrument_id]
+        trials = SCORERS[instrument["performance"]["scorer"]].demo(instrument, random.Random(instrument_id), 0.8)
+        run_id = start(client, youth, instrument_id)["run"]["id"]
+        response = complete(client, youth, run_id, trials=trials)
+        assert response.status_code == 200, response.get_json()
+        metrics = response.get_json()["metrics"]
+        text = json.dumps(metrics)
+        for hidden in ("percent", "accuracy", "precision", "resistance", "interference", "by_kind", "total"):
+            assert hidden not in text, (instrument_id, hidden)
+        available |= metric_paths(metrics)
+        detail = client.get(f"{psy_base(client, youth)}/runs/{run_id}", headers=psychologist).get_json()
+        assert "percent" in detail["run"]["metrics"]
+    assert wanted <= available
 
 
 # --- 7. Entrées invalides ---
