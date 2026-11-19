@@ -4,6 +4,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
   type KeyboardEvent,
 } from 'react';
@@ -38,6 +39,19 @@ const LAUGH_COOLDOWN_MS = 120_000;
 const RECENT_REVEAL_MS = 20_000;
 const IMPRESSIVE_STORY_WORDS = 12;
 
+// Sur grand écran, Néo quitte la pastille de l'en-tête et se tient en grand à côté du fil.
+const WIDE_QUERY = '(min-width: 64rem)';
+
+function subscribeWide(onChange: () => void) {
+  const media = window.matchMedia(WIDE_QUERY);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+
+function useWideScreen() {
+  return useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE_QUERY).matches);
+}
+
 function localMessage(id: string, content: string): Message {
   return { id, role: 'user', content, created_at: new Date().toISOString(), flags: [] };
 }
@@ -62,6 +76,7 @@ function FoundTalent({ talent, onClose }: { talent: Skill; onClose: () => void }
 
 export function ChatPage() {
   const { talents, reload: reloadTalents } = useTalents({ analyseOnOpen: false });
+  const wide = useWideScreen();
   // Talent que Néo vient d'épingler : sa carte reste affichée jusqu'au « Super ».
   const [found, setFound] = useState<Skill | null>(null);
   const seenTalentsRef = useRef<Set<string> | null>(null);
@@ -324,10 +339,15 @@ export function ChatPage() {
   if (!conversation) return <Loading />;
 
   return (
-    <section className="chat" aria-label={fr.chat.title}>
+    <section className={wide ? 'chat chat--stage' : 'chat'} aria-label={fr.chat.title}>
+      {wide && (
+        <div className="chat__stage">
+          <Mascot ref={mascotRef} mood={mascotMood} framing="full" className="mascot--stage" />
+        </div>
+      )}
       <div className="chat-head__wrap">
         <header className="chat-head">
-          <Mascot ref={mascotRef} mood={mascotMood} framing="portrait" className="mascot--chat" />
+          {!wide && <Mascot ref={mascotRef} mood={mascotMood} framing="portrait" className="mascot--chat" />}
           <div>
             <h1>{fr.chat.title}</h1>
             <p className="chat-head__status">

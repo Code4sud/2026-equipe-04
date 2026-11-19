@@ -95,6 +95,8 @@
   --tap-size: 2.75rem;
   --mascot-chat-width: 4.75rem;
   --mascot-chat-height: 5.5rem;
+  --mascot-stage-width: clamp(16rem, 24vw, 24rem);
+  --mascot-stage-height: 34rem;
   --width-content: 42rem;
   --width-wide: 72rem;
   --width-auth: 24rem;
