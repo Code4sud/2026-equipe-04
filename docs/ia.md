@@ -120,6 +120,18 @@ Sur le Mac de démo, Docker Desktop réserve environ 8 Go alors que les conteneu
 moins de 1 Go, et le Mac swappait pendant les mesures. Descendre la mémoire de Docker à 4 Go
 (Docker Desktop, Settings, Resources) laisse plus de place au modèle.
 
+`gemma4:12b` passe par le moteur MLX d'Ollama, qui garde en mémoire un cache par consigne
+(garde-fou, Truffe, lecteur) : c'est ce qui rend le garde-fou si rapide (0,4 s), mais la
+mémoire du modèle monte de 7,7 Go à environ 16 Go au fil des messages, puis se stabilise.
+Si le Mac rame, la version GGUF du même modèle reste à environ 8 Go, au prix de réponses
+deux fois plus lentes (1,6 s pour le garde-fou, 3 s pour Truffe) :
+
+```bash
+ollama pull gemma4:12b-it-qat
+```
+
+puis `OLLAMA_MODEL=gemma4:12b-it-qat` dans `.env` et `./run.sh`.
+
 ## Mesurer
 
 ```bash
