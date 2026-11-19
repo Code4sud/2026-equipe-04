@@ -85,7 +85,8 @@ function Archetypes({ archetypes }: { archetypes: PsyArchetypeInfo[] | undefined
                       {archetype.name}
                     </span>
                   </th>
-                  <td>{archetype.trait_label ?? a.balancedCursor}</td>
+                  {/* Espace insécable avant la flèche : jamais « ↔ » seul en début de ligne. */}
+                  <td>{archetype.trait_label?.replace(' ↔ ', '\u00a0↔ ') ?? a.balancedCursor}</td>
                   <td>{archetype.pole_label}</td>
                   <td>{archetype.quality}</td>
                 </tr>

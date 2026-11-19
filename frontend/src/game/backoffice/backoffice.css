@@ -318,6 +318,16 @@
   }
 }
 
+/* Page Méthode : les noms d'archétype tiennent sur une ligne et, sur mobile, le tableau défile
+   dans son cadre au lieu d'écraser ses colonnes contre le bord. */
+.bog-archetypes {
+  min-width: 34rem;
+}
+
+.bog-archetypes .bog-archetype {
+  white-space: nowrap;
+}
+
 .bog-section > .bog-facts-block {
   margin-top: var(--space-5);
 }
