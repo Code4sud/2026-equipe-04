@@ -23,6 +23,10 @@
     "Merci de me l'avoir dit. On peut parler de ce que tu veux : il y a quelque chose que tu as fait récemment et qui t'a plu ?"
   ],
   "consigne_famille": "La personne évoque un proche : parle uniquement de ce qu'elle fait elle-même, sans nommer ce proche, sans le commenter, sans poser aucune question sur lui et sans rien déduire.",
+  "talents_refuses": {
+    "note": "Mots refusés dans un talent (nom, description ou citation) mais pas dans la discussion : « je veux devenir infirmière » reste une conversation normale.",
+    "termes": ["medecin*", "medica*", "docteur*", "pharmac*", "ordonnance*", "kine*", "infirmi*", "soin medical", "soins medicaux"]
+  },
   "sujets_sensibles": {
     "sante": {
       "bloque_citation": true,

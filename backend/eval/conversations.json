@@ -1,0 +1,158 @@
+{
+  "note": "Conversations réalistes (messages du jeune seulement). 'attendus' : entrées du référentiel qu'un bon repérage doit trouver (rappel). 'acceptables' : trouvailles justes mais non exigées (précision). 'interdits' : ce qui ne doit jamais sortir. Une conversation sans attendus doit donner zéro talent.",
+  "conversations": [
+    {
+      "id": "capture-mecanique",
+      "messages": ["j'ai aidé mon père à réparer la voiture", "j'apprends pas mal de choses en mécanique à chaque fois", "je regarde sur YouTube"],
+      "attendus": ["mecanique", "entraide", "apprendre_experience", "apprendre_seul"],
+      "acceptables": ["bricolage", "observer", "curiosite", "diagnostic", "comprendre"]
+    },
+    {
+      "id": "petits-freres",
+      "messages": ["le mercredi je garde mes petits frères", "je les récupère à l'école et je fais les devoirs avec eux", "après je prépare le goûter"],
+      "attendus": ["garde_enfants", "transmettre"],
+      "acceptables": ["cuisine", "fiabilite", "responsabilite", "organisation_temps", "entraide"]
+    },
+    {
+      "id": "vinted",
+      "messages": ["je revends des fringues sur Vinted", "je fais des photos propres et je négocie les prix", "j'ai mis 300 euros de côté comme ça"],
+      "attendus": ["vente", "negociation", "budget"],
+      "acceptables": ["video_image", "initiative", "rigueur", "reseaux_sociaux"]
+    },
+    {
+      "id": "foot-coach",
+      "messages": ["je joue au foot depuis 6 ans", "maintenant j'entraîne les U9 le samedi matin", "je leur explique les exercices et je calme les disputes"],
+      "attendus": ["sport", "transmettre", "mediation"],
+      "acceptables": ["animation", "fiabilite", "responsabilite", "garde_enfants", "travail_equipe", "perseverance"]
+    },
+    {
+      "id": "pc-gamer",
+      "messages": ["j'ai monté mon PC tout seul avec des tutos", "quand ça plantait j'ai testé chaque pièce jusqu'à trouver la panne"],
+      "attendus": ["informatique", "apprendre_seul", "diagnostic", "autonomie"],
+      "acceptables": ["perseverance", "bricolage", "comprendre", "apprendre_experience", "debrouillardise"]
+    },
+    {
+      "id": "cuisine-soir",
+      "messages": ["le soir c'est souvent moi qui fais à manger pour tout le monde", "je trouve des recettes sur TikTok et je les adapte avec ce qu'il y a dans le frigo"],
+      "attendus": ["cuisine", "apprendre_seul", "debrouillardise"],
+      "acceptables": ["creativite", "responsabilite", "fiabilite", "adaptation", "entraide"]
+    },
+    {
+      "id": "rap-prod",
+      "messages": ["je fais des prods sur FL Studio depuis deux ans", "j'écris aussi mes textes et je poste sur SoundCloud"],
+      "attendus": ["musique", "ecriture"],
+      "acceptables": ["creativite", "reseaux_sociaux", "perseverance", "apprendre_seul"]
+    },
+    {
+      "id": "livreur",
+      "messages": ["je fais des livraisons Uber Eats à vélo le week-end", "je connais tous les raccourcis et je suis jamais en retard"],
+      "attendus": ["livraison", "fiabilite"],
+      "acceptables": ["organisation_temps", "autonomie", "sport"]
+    },
+    {
+      "id": "voisine",
+      "messages": ["je fais les courses pour la voisine du 3e", "elle a du mal avec les papiers alors je l'aide à remplir les formulaires"],
+      "attendus": ["aide_personnes", "entraide"],
+      "acceptables": ["ecoute", "fiabilite", "responsabilite", "entretien_logement"]
+    },
+    {
+      "id": "tournoi-quartier",
+      "messages": ["avec des potes on a organisé un tournoi de foot dans le quartier", "j'ai fait les équipes, le planning des matchs et les affiches sur Canva"],
+      "attendus": ["evenement", "organisation_temps", "dessin"],
+      "acceptables": ["travail_equipe", "initiative", "sport", "animation", "creativite", "responsabilite"]
+    },
+    {
+      "id": "chantier",
+      "messages": ["cet été j'ai bossé sur un chantier avec mon oncle", "j'ai appris à poser du placo en le regardant faire", "c'était dur mais j'ai tenu jusqu'au bout"],
+      "attendus": ["batiment", "observer", "perseverance"],
+      "acceptables": ["apprendre_experience", "travail_equipe", "manutention", "bricolage", "entraide"]
+    },
+    {
+      "id": "ecoute-potes",
+      "messages": ["mes potes viennent souvent me voir quand ça va pas", "je les écoute et j'essaie de leur remonter le moral"],
+      "attendus": ["ecoute"],
+      "acceptables": ["entraide", "mediation"]
+    },
+    {
+      "id": "traduction",
+      "messages": ["je traduis souvent pour les gens au guichet de la mairie", "je parle anglais et espagnol"],
+      "attendus": ["langues"],
+      "acceptables": ["aide_personnes", "entraide", "accueil"]
+    },
+    {
+      "id": "tiktok",
+      "messages": ["j'ai une chaîne TikTok avec 4000 abonnés", "je filme et je monte mes vidéos sur CapCut", "je réponds aux commentaires tous les soirs"],
+      "attendus": ["reseaux_sociaux", "video_image"],
+      "acceptables": ["creativite", "fiabilite", "apprendre_seul", "perseverance"]
+    },
+    {
+      "id": "jardin",
+      "messages": ["je tonds la pelouse des voisins pour 10 euros", "au printemps j'ai planté des tomates dans le potager"],
+      "attendus": ["jardinage"],
+      "acceptables": ["vente", "initiative", "entraide", "budget", "aide_personnes"]
+    },
+    {
+      "id": "coiffure",
+      "messages": ["je fais les tresses de toutes mes copines", "j'ai appris en regardant des vidéos et maintenant on me demande tout le temps"],
+      "attendus": ["coiffure_beaute", "apprendre_seul"],
+      "acceptables": ["observer", "entraide", "creativite", "apprendre_experience"]
+    },
+    {
+      "id": "reseau-wifi",
+      "messages": ["chez moi c'est moi qui règle tous les problèmes de wifi et de télé", "je cherche sur des forums jusqu'à trouver la solution"],
+      "attendus": ["informatique", "debrouillardise", "apprendre_seul"],
+      "acceptables": ["diagnostic", "perseverance", "responsabilite", "entraide"]
+    },
+    {
+      "id": "demenagement",
+      "messages": ["j'ai aidé un pote à déménager samedi", "on était quatre et on s'est réparti les cartons pièce par pièce"],
+      "attendus": ["manutention", "entraide", "travail_equipe"],
+      "acceptables": ["organisation_temps", "rigueur"]
+    },
+    {
+      "id": "envies-seulement",
+      "messages": ["j'aimerais bien devenir mécanicien plus tard", "j'aime bien les voitures", "je sais pas trop ce que je sais faire"],
+      "attendus": [],
+      "acceptables": [],
+      "interdits": ["mecanique"]
+    },
+    {
+      "id": "rien",
+      "messages": ["bof", "je sais pas, je reste chez moi la plupart du temps", "rien de spécial franchement"],
+      "attendus": [],
+      "acceptables": []
+    },
+    {
+      "id": "sensible-sante",
+      "messages": ["je gère seul mes rendez-vous à l'hôpital pour ma maladie", "je prends mes médicaments tous les jours sans oublier"],
+      "attendus": [],
+      "acceptables": [],
+      "sensible": true
+    },
+    {
+      "id": "infirmiere",
+      "messages": ["je veux devenir infirmière", "j'ai fait un stage chez un kiné et j'ai aidé à l'accueil des patients"],
+      "attendus": [],
+      "acceptables": ["accueil", "entraide"],
+      "note": "aucun talent ne doit parler de soin ou de kiné ; « accueil » sans mot médical serait acceptable mais la citation contient « kiné », donc refusée"
+    },
+    {
+      "id": "boxe",
+      "messages": ["je fais de la boxe trois fois par semaine depuis deux ans", "au début je prenais cher mais j'ai jamais lâché", "maintenant j'aide les nouveaux à s'échauffer"],
+      "attendus": ["sport", "perseverance", "transmettre"],
+      "acceptables": ["fiabilite", "accueil", "entraide", "animation", "apprendre_experience"]
+    },
+    {
+      "id": "budget-scooter",
+      "messages": ["j'ai économisé pendant un an pour m'acheter un scooter", "maintenant je fais l'entretien moi-même, la vidange et les plaquettes"],
+      "attendus": ["budget", "mecanique"],
+      "acceptables": ["perseverance", "autonomie", "apprendre_experience", "fiabilite"]
+    },
+    {
+      "id": "dessin-manga",
+      "messages": ["je dessine des mangas depuis que j'ai 12 ans", "j'ai fait le logo de l'asso du quartier"],
+      "attendus": ["dessin"],
+      "acceptables": ["creativite", "perseverance", "entraide", "responsabilite"]
+    }
+  ]
+}

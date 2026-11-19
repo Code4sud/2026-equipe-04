@@ -16,6 +16,7 @@ from ..errors import LLMError
 from ..extensions import db
 from ..models import Conversation, ConversationStatus, User, utcnow
 from .guardrails import find_quote, matches_any, name_key, words
+from .referentiel import CATEGORIES
 from .transcripts import new_message, new_transcript, transcript_key
 
 logger = logging.getLogger(__name__)
@@ -64,8 +65,9 @@ REVEAL_SCHEMA = {
     "properties": {
         "citation": {"type": "string"},
         "savoir_faire": {"type": "string"},
+        "categorie": {"type": "string", "enum": list(CATEGORIES)},
     },
-    "required": ["citation", "savoir_faire"],
+    "required": ["citation", "savoir_faire", "categorie"],
 }
 
 
@@ -76,6 +78,7 @@ class RevealedTalent:
     name: str
     quote: str
     message_id: str
+    category: str = ""
 
 
 @dataclass(frozen=True)
@@ -428,11 +431,17 @@ class ChatService:
             return None
         if not _INFINITIVE.match(" ".join(words(skill))):
             return None
-        if self.guardrails.review_skill(skill, "", match.quote) is None:
+        if self.guardrails.review_talent(skill, "", match.quote) is None:
             return None
         if name_key(match.quote) in plan.companion_text:
             return None
-        talent = RevealedTalent(skill[0].upper() + skill[1:], match.quote, match.message_id)
+        category = answer.get("categorie")
+        talent = RevealedTalent(
+            skill[0].upper() + skill[1:],
+            match.quote,
+            match.message_id,
+            category if category in CATEGORIES else "",
+        )
         skill = skill[0].lower() + skill[1:]
         return plan.reveal_formula.format(citation=match.quote, savoir_faire=skill), talent
 

@@ -157,6 +157,27 @@ class Guardrails:
         replies = config["reponses_sujet_sensible"]
         return replies[turn % len(replies)]
 
+    def is_sensitive(self, text: str) -> bool:
+        """Le message touche à la santé, l'origine ou la religion : jamais analysé."""
+        self._load()
+        return bool(self._quote_terms and self._quote_terms.search(_searchable(text)))
+
+    def refused_for_talents(self, text: str) -> bool:
+        """Le texte parle de soins ou de médecine : aucun talent ne doit en sortir."""
+        config = self._load()
+        refused = _compile(config.get("talents_refuses", {}).get("termes", []))
+        return bool(refused and refused.search(_searchable(text)))
+
+    def review_talent(self, name: str, description: str, quote: str) -> str | None:
+        """Comme review_skill, avec en plus les mots refusés pour les talents seulement.
+
+        « Je veux devenir infirmière » reste une discussion normale, mais aucun talent ne doit
+        parler de soins, de médecin ou de médicaments.
+        """
+        if self.refused_for_talents(f"{name} {description} {quote}"):
+            return None
+        return self.review_skill(name, description, quote)
+
     def family_instruction(self, text: str) -> str | None:
         config = self._load()
         if self._family_terms and self._family_terms.search(_searchable(text)):

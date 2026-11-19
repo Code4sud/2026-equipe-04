@@ -69,7 +69,9 @@ umask "$previous_umask"
 model=$(setting OLLAMA_MODEL)
 if [ "$native_ollama" = true ]; then
   echo "Ollama détecté sur ce Mac : il sera utilisé à la place du conteneur."
-  ollama list | awk 'NR > 1 { print $1 }' | grep -Eq "^${model}(:latest)?$" || ollama pull "$model"
+  for wanted in "$model" "${OLLAMA_EMBED_MODEL:-bge-m3}"; do
+    ollama list | awk 'NR > 1 { print $1 }' | grep -Eq "^${wanted}(:latest)?$" || ollama pull "$wanted"
+  done
   export OLLAMA_URL=http://host.docker.internal:11434
   export COMPOSE_PROFILES=
 fi

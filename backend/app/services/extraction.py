@@ -1,8 +1,9 @@
-"""Repérage des compétences dans le récit du jeune, en arrière-plan.
+"""Repérage des compétences dans le récit du jeune, en arrière-plan, après chaque message.
 
-Le modèle propose ; le code vérifie. Une compétence n'est enregistrée que si sa citation
-existe vraiment dans les messages du jeune et si elle respecte les garde-fous. Elle reste
-« à valider » tant que le jeune ne l'a pas acceptée.
+Le repérage lui-même (indices, référentiel ROME/ESCO, embeddings, vérification) est dans
+talent_detector.py. Ici : choix des messages à lire, doublons et enregistrement. Une
+compétence n'est enregistrée que si sa citation existe vraiment dans les messages du jeune et
+si elle respecte les garde-fous. Néo l'épingle directement ; le jeune peut la retirer.
 """
 from __future__ import annotations
 
@@ -18,54 +19,25 @@ from ..errors import LLMError, StorageError
 from ..extensions import db
 from ..models import EXTRACTION_LEASE, Conversation, Skill, SkillAction, SkillStatus, utcnow
 from .chat import FLAG_CRISIS
-from .guardrails import find_quote, name_key
+from .guardrails import name_key
+from .referentiel import CATEGORIES
+from .talent_detector import Finding, TalentDetector
 
 logger = logging.getLogger(__name__)
 
-CATEGORIES = (
-    "savoir_faire",
-    "organisation",
-    "relationnel",
-    "communication",
-    "resolution_problemes",
-    "autonomie",
-    "creativite",
-    "apprentissage",
-)
-MAX_SKILLS_PER_RUN = 3
+MAX_SKILLS_PER_RUN = 4
 MAX_MESSAGES_PER_RUN = 12
-MIN_MESSAGE_CHARS = 20
-
-RESPONSE_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "competences": {
-            "type": "array",
-            "maxItems": MAX_SKILLS_PER_RUN,
-            "items": {
-                "type": "object",
-                "properties": {
-                    "nom": {"type": "string"},
-                    "categorie": {"type": "string", "enum": list(CATEGORIES)},
-                    "description": {"type": "string"},
-                    "citation": {"type": "string"},
-                    "message": {"type": "string"},
-                },
-                "required": ["nom", "categorie", "description", "citation", "message"],
-            },
-        }
-    },
-    "required": ["competences"],
-}
+MIN_MESSAGE_CHARS = 12
 
 
 class ExtractionService:
-    def __init__(self, app: Flask, llm, store, prompts, guardrails):
+    def __init__(self, app: Flask, llm, store, prompts, guardrails, detector: TalentDetector):
         self.app = app
         self.llm = llm
         self.store = store
         self.prompts = prompts
         self.guardrails = guardrails
+        self.detector = detector
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="extraction")
 
     def maybe_schedule(self, conversation: Conversation) -> bool:
@@ -134,35 +106,30 @@ class ExtractionService:
             if message["role"] == "user"
             and FLAG_CRISIS not in message.get("flags", [])
             and len(message["content"]) >= MIN_MESSAGE_CHARS
+            # Santé, origine, religion : Néo a répondu hors sujet, rien à en tirer.
+            and not self.guardrails.is_sensitive(message["content"])
         ][-MAX_MESSAGES_PER_RUN:]
         if not candidates:
             return len(all_messages)
 
         existing = db.session.execute(
-            select(Skill.name, Skill.name_key, Skill.source_quote).where(
+            select(Skill.name, Skill.name_key, Skill.source_quote, Skill.category).where(
                 Skill.youth_id == conversation.youth_id
             )
         ).all()
         known_keys = {row.name_key for row in existing}
-        known_quotes = {name_key(row.source_quote) for row in existing}
+        # Une même phrase peut montrer deux talents de domaines différents
+        # (« j'ai aidé à réparer la voiture » : mécanique et entraide), pas deux fois le même.
+        known_quotes = {(name_key(row.source_quote), row.category) for row in existing}
 
-        answer = self.llm.generate_json(
-            self.prompts.extraction,
-            self._user_prompt(candidates, [row.name for row in existing]),
-            RESPONSE_SCHEMA,
-        )
-        proposals = answer.get("competences", []) if isinstance(answer, dict) else []
-        aliases = {f"m{index}": m["id"] for index, m in enumerate(candidates, start=1)}
-
+        findings = self.detector.detect(candidates, [row.name for row in existing])
         accepted = 0
-        for proposal in proposals:
+        for finding in findings:
             if accepted >= MAX_SKILLS_PER_RUN:
                 break
-            skill = self._build_skill(conversation, proposal, candidates, aliases)
-            if skill is None or skill.name_key in known_keys:
-                continue
-            quote_key = name_key(skill.source_quote)
-            if quote_key in known_quotes:
+            skill = self._build_skill(conversation, finding)
+            quote_key = (name_key(skill.source_quote), skill.category)
+            if skill.name_key in known_keys or quote_key in known_quotes:
                 continue
             try:
                 with db.session.begin_nested():
@@ -176,30 +143,17 @@ class ExtractionService:
         db.session.commit()
         return len(all_messages)
 
-    def _build_skill(self, conversation, proposal, candidates, aliases) -> Skill | None:
-        if not isinstance(proposal, dict):
-            return None
-        name = str(proposal.get("nom", "")).strip()[:80]
-        description = str(proposal.get("description", "")).strip()[:300]
-        citation = str(proposal.get("citation", "")).strip()
-        category = proposal.get("categorie")
-        if len(name) < 3 or not name_key(name):
-            return None
-        match = find_quote(citation, candidates, aliases.get(str(proposal.get("message", ""))))
-        if match is None:
-            return None
-        description = self.guardrails.review_skill(name, description, match.quote)
-        if description is None:
-            return None
+    @staticmethod
+    def _build_skill(conversation, finding: Finding) -> Skill:
         return Skill(
             youth_id=conversation.youth_id,
             conversation_id=conversation.id,
-            source_message_id=match.message_id,
-            name=name,
-            name_key=name_key(name),
-            category=category if category in CATEGORIES else "savoir_faire",
-            description=description,
-            source_quote=match.quote,
+            source_message_id=finding.message_id,
+            name=finding.name[:80],
+            name_key=name_key(finding.name),
+            category=finding.category if finding.category in CATEGORIES else "savoir_faire",
+            description=finding.description[:300],
+            source_quote=finding.quote,
             # Néo épingle directement ce qu'il trouve : le jeune peut le retirer ensuite.
             status=SkillStatus.VALIDATED,
         )
@@ -218,7 +172,7 @@ class ExtractionService:
             source_message_id=talent.message_id,
             name=talent.name[:80],
             name_key=key,
-            category="savoir_faire",
+            category=self._revealed_category(talent),
             description="",
             source_quote=talent.quote,
             status=SkillStatus.VALIDATED,
@@ -233,12 +187,13 @@ class ExtractionService:
             return None
         return skill
 
-    @staticmethod
-    def _user_prompt(candidates: list[dict], known_names: list[str]) -> str:
-        lines = [f"[m{index}] {m['content']}" for index, m in enumerate(candidates, start=1)]
-        known = ", ".join(known_names) if known_names else "aucune"
-        return (
-            "Messages écrits par le jeune :\n"
-            + "\n".join(lines)
-            + f"\n\nCompétences déjà repérées, à ne pas répéter : {known}"
-        )
+    def _revealed_category(self, talent) -> str:
+        """Catégorie donnée par la révélation, sinon celle du référentiel le plus proche."""
+        if getattr(talent, "category", "") in CATEGORIES:
+            return talent.category
+        referentiel = self.detector.referentiel
+        entry = referentiel.by_name(talent.name)
+        if entry is None:
+            hits = referentiel.lexical(f"{talent.name} {talent.quote}")
+            entry = hits[0][0] if hits else None
+        return entry.category if entry else "apprentissage"

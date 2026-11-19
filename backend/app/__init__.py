@@ -11,7 +11,10 @@ from .errors import error_response, register_error_handlers
 from .extensions import db, jwt, migrate
 from .game.catalog import Catalog
 from .services.chat import ChatService
+from .services.embeddings import OllamaEmbedder, ReferentielIndex
 from .services.extraction import ExtractionService
+from .services.referentiel import Referentiel
+from .services.talent_detector import TalentDetector
 from .services.guardrails import Guardrails
 from .services.llm import OllamaClient
 from .services.prompts import PromptLibrary
@@ -63,13 +66,24 @@ def _register_services(app: Flask, overrides: dict) -> None:
         config["S3_BUCKET"],
         config["S3_REGION"],
     )
+    referentiel = Referentiel(prompts)
+    # Un faux modèle de test sans faux embeddings : pas d'appel réseau, repérage sans rapprochement.
+    if "embedder" in overrides:
+        embedder = overrides["embedder"]
+    elif "llm" in overrides or not config["OLLAMA_EMBED_MODEL"]:
+        embedder = None
+    else:
+        embedder = OllamaEmbedder(config["OLLAMA_URL"], config["OLLAMA_EMBED_MODEL"], config["OLLAMA_TIMEOUT"])
+    index = ReferentielIndex(embedder, referentiel) if embedder else None
+    detector = TalentDetector(llm, prompts, guardrails, referentiel, index)
     app.extensions.update(
         prompts=prompts,
         guardrails=guardrails,
         llm=llm,
         transcripts=transcripts,
         chat=ChatService(llm, transcripts, prompts, guardrails),
-        extraction=ExtractionService(app, llm, transcripts, prompts, guardrails),
+        referentiel=referentiel,
+        extraction=ExtractionService(app, llm, transcripts, prompts, guardrails, detector),
         game_catalog=overrides.get("game_catalog") or Catalog(),
     )
 

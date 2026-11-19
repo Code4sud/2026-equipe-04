@@ -44,6 +44,10 @@ class PromptLibrary:
         return self.text("extraction.md")
 
     @property
+    def verification(self) -> str:
+        return self.text("verification.md")
+
+    @property
     def question(self) -> str:
         return self.text("question.md")
 
