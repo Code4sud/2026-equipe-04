@@ -107,10 +107,10 @@ L'archétype est le badge d'identité du jeune : un nom, une devise, une descrip
 | Curseur | Pôle `low` | Pôle `high` |
 |---|---|---|
 | `extraversion` (Réservé·e ↔ Sociable) | 🏮 La Lanterne | ✨ L'Étincelle |
-| `agreeableness` (Franc·he ↔ Conciliant·e) | 🧭 La Boussole | 🌉 Le Pont |
+| `agreeableness` (Franc·he ↔ Conciliant·e) | 🧭 La Boussole | 🤝 Le Pont |
 | `conscientiousness` (Spontané·e ↔ Organisé·e) | 🍃 Le Vent | 🧱 La Charpente |
 | `emotional_stability` (Intense ↔ Posé·e) | 🔥 La Flamme | ⛰️ Le Roc |
-| `openness` (Concret·e ↔ Curieux·se) | 🌳 La Racine | 🌅 L'Horizon |
+| `openness` (Concret·e ↔ Curieux·se) | 🌳 La Racine | 🔭 L'Horizon |
 | Aucun curseur à plus de 8 points de 50 | 🦎 Le Caméléon (`pole: "balanced"`, `trait: null`) | |
 
 Chaque entrée de `archetypes.json` porte `id`, `trait` (`null` pour l'archétype équilibré), `pole` (`high`, `low` ou `balanced`), `name`, `motto`, `description` et `emoji`. Le catalogue refuse de démarrer si un pôle de personnalité n'a pas exactement un archétype, s'il n'y a pas exactement un archétype équilibré, si un archétype vise un curseur qui n'est pas un curseur bipolaire de personnalité, si un pôle est inconnu, si un identifiant est en double ou si un champ manque. `tests/test_game_content.py` relit tous ses textes avec le garde-fou du jeune.

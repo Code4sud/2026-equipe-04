@@ -49,7 +49,7 @@ function OptionContent({ option }: { option: ItemOption }) {
       ) : (
         option.emoji && (
           <span className="question__emoji" aria-hidden="true">
-            {/* Le renard de l'app, c'est Néo : son portrait plutôt que l'emoji. */}
+            {/* Le renard de l'app, c'est Truffe : son portrait plutôt que l'emoji. */}
             {option.emoji === FOX ? <img className="question__neo" src={NEO_STILLS.happy} alt="" /> : option.emoji}
           </span>
         )
