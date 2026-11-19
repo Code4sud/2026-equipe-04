@@ -114,6 +114,8 @@ export interface InstrumentSummary {
   locked: boolean;
   replayable: boolean;
   answered: number;
+  /** Questions vues dans la partie en cours, passées comprises (`answered` ne compte que les réponses). */
+  seen: number;
   total: number;
   completed_count: number;
   last_completed_at: string | null;

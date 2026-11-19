@@ -759,6 +759,8 @@ def game_status(user: User) -> dict:
                 "locked": _is_locked(instrument, set(completed)),
                 "replayable": instrument.get("replayable", True),
                 "answered": sum(1 for a in run.answers if not a.skipped) if run else 0,
+                # Questions vues, passées comprises : une partie où tout a été passé est commencée.
+                "seen": len(run.answers) if run else 0,
                 "total": _item_count(instrument),
                 "completed_count": count,
                 "last_completed_at": iso(latest_completion.get(instrument["id"])),

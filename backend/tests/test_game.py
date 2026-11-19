@@ -82,6 +82,22 @@ def test_new_youth_must_do_onboarding_and_can_pause(client, youth):
     assert client.get("/api/me/game", headers=youth).get_json()["must_onboard"] is True
 
 
+def test_status_counts_skipped_questions_as_seen_not_answered(client, youth):
+    def quiz():
+        instruments = client.get("/api/me/game", headers=youth).get_json()["instruments"]
+        return next(item for item in instruments if item["id"] == "onboarding")
+
+    assert (quiz()["state"], quiz()["answered"], quiz()["seen"]) == ("new", 0, 0)
+    run_id = start(client, youth)["run"]["id"]
+    assert (quiz()["state"], quiz()["answered"], quiz()["seen"]) == ("in_progress", 0, 0)
+    skipped = client.put(f"/api/me/game/runs/{run_id}/answers/agenda", json={"skipped": True}, headers=youth)
+    assert skipped.status_code == 200
+    # Tout passé : rien de répondu, mais le quiz est bien commencé.
+    assert (quiz()["answered"], quiz()["seen"]) == (0, 1)
+    assert answer(client, youth, run_id, "groupe", "a").status_code == 200
+    assert (quiz()["answered"], quiz()["seen"]) == (1, 2)
+
+
 def test_public_instrument_hides_scoring_keys(client, youth):
     instrument = start(client, youth)["instrument"]
     text = str(instrument)

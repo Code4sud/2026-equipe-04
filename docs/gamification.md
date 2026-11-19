@@ -16,7 +16,7 @@
 - **Séances.** Chaque ouverture du quiz commence une séance : le compte des séries repart de zéro, et l'écran de reprise annonce les réponses déjà données et une nouvelle série de 10 questions jamais vues. Quand toutes les questions ont été vues, la fin ne change pas : revue des questions passées s'il manque des réponses (`min_answers`), puis « Tu as fait le tour ! » et la révélation.
 - **Pause.** « Continuer plus tard » reste sur chaque question. Tant que le quiz n'est ni terminé ni en pause, `OnboardingGate` renvoie au quiz (`must_onboard`) : la première séance d'un nouveau jeune est donc sa première série, puis le choix. Ouvrir le quiz lève la pause.
 - **Temps de réponse.** `response_ms` ne compte ni l'accueil, ni la reprise, ni la fin de série (`markShown` en quittant ces écrans). Sur la fin de série, un appui reçu juste après l'affichage, fin d'un double appui sur la dernière réponse, est ignoré.
-- **Hub et fiche.** Tant que le quiz n'est pas terminé, ils y invitent ; dès la première réponse, avec le nombre de réponses déjà données (« 10 réponses sur 50 ») et « Continuer ».
+- **Hub et fiche.** Tant que le quiz n'est pas terminé, ils y invitent ; dès la première question vue, même passée (`seen` dans `GET /api/me/game`, `answered` ne compte que les réponses), avec le nombre de réponses déjà données (« 10 réponses sur 50 ») et « Continuer », comme l'écran de reprise du quiz.
 
 ## Garde-fous
 

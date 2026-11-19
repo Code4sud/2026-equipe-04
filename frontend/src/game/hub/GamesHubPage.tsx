@@ -147,7 +147,8 @@ function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending:
 }
 
 function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
-  const started = quiz.state === 'in_progress' && quiz.answered > 0;
+  // Commencé dès la première question vue, même passée : le quiz s'ouvre alors sur la reprise.
+  const started = quiz.state === 'in_progress' && quiz.seen > 0;
   return (
     <section className="hub-quiz" aria-labelledby="hub-quiz-title">
       <span className="hub-quiz__icon" aria-hidden="true">

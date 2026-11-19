@@ -27,8 +27,8 @@ function questFor(status: GameStatus | null): Quest | null {
   if (!status) return null;
   const quiz = quizOf(status);
   if (quiz && quiz.completed_count === 0) {
-    // Comme sur le hub : une partie ouverte sans aucune réponse n'est pas encore commencée.
-    return quiz.state === 'in_progress' && quiz.answered > 0 ? 'quiz-resume' : 'quiz-start';
+    // Comme sur le hub : commencé dès la première question vue, même passée.
+    return quiz.state === 'in_progress' && quiz.seen > 0 ? 'quiz-resume' : 'quiz-start';
   }
   const games = status.instruments.filter((instrument) => instrument.kind !== 'quiz');
   if (games.length && games.every((game) => game.completed_count === 0)) return 'games';
