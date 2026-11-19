@@ -25,7 +25,6 @@ export function TrailArt() {
         strokeLinecap="round"
       />
       <Star x={34} y={170} size={24} />
-      <Star x={118} y={162} size={30} />
       <Star x={214} y={122} size={26} />
     </svg>
   );

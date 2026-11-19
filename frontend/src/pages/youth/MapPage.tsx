@@ -18,8 +18,8 @@ function useSourceMessages(talents: Skill[] | null) {
 
   useEffect(() => {
     const counts = new Map<string, number>();
-    for (const talent of talents ?? []) {
-      counts.set(talent.conversation_id, (counts.get(talent.conversation_id) ?? 0) + 1);
+    for (const { conversation_id: id } of talents ?? []) {
+      if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
     }
     for (const [conversationId, count] of counts) {
       const key = `${conversationId}:${count}`;
@@ -113,15 +113,22 @@ function TalentCard({
         </div>
       )}
       {talent.description && <p className="talent-card__description">{talent.description}</p>}
-      <div className="extract">
+      {talent.origin === 'youth' ? (
         <span className="extract__source">
           <PinIcon />
-          {t.source(formatDay(talent.created_at))}
+          {t.addedByYou(formatDay(talent.created_at))}
         </span>
-        <span>
-          <Highlight text={source ?? talent.quote} quote={talent.quote} />
-        </span>
-      </div>
+      ) : (
+        <div className="extract">
+          <span className="extract__source">
+            <PinIcon />
+            {t.source(formatDay(talent.created_at))}
+          </span>
+          <span>
+            <Highlight text={source ?? talent.quote} quote={talent.quote} />
+          </span>
+        </div>
+      )}
       <div className="actions">
         {talent.status === 'pending' && (
           <button
@@ -169,10 +176,31 @@ function TalentCard({
 }
 
 export function MapPage() {
-  const { talents, extracting, error, retry, update } = useTalents({ analyseOnOpen: true });
+  const { talents, extracting, error, retry, update, add } = useTalents({ analyseOnOpen: true });
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newStory, setNewStory] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function submitNew(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setActionError(null);
+    try {
+      await add(newName, newStory);
+      setAdding(false);
+      setNewName('');
+      setNewStory('');
+      setChosenTab('validated');
+    } catch (caught) {
+      setActionError(errorMessage(caught));
+    } finally {
+      setSaving(false);
+    }
+  }
   const sources = useSourceMessages(talents);
   const [chosenTab, setChosenTab] = useState<SkillStatus | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   async function change(id: string, changes: TalentChanges) {
     setActionError(null);
@@ -211,6 +239,38 @@ export function MapPage() {
           <p className="muted">{t.summary(pending.length, validated.length)}</p>
         </header>
 
+        {adding ? (
+          <form className="card stack-sm add-talent" onSubmit={submitNew}>
+            <label className="field">
+              <span>{t.addName}</span>
+              <input
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+                minLength={3}
+                maxLength={80}
+                required
+                autoFocus
+              />
+            </label>
+            <label className="field">
+              <span>{t.addStory}</span>
+              <input value={newStory} onChange={(event) => setNewStory(event.target.value)} maxLength={300} />
+            </label>
+            <div className="actions">
+              <button type="submit" className="button button--small button--keep" disabled={saving}>
+                {t.addSave}
+              </button>
+              <button type="button" className="link-button" onClick={() => setAdding(false)}>
+                {fr.common.cancel}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button type="button" className="button button--small add-talent__open" onClick={() => setAdding(true)}>
+            + {t.addOpen}
+          </button>
+        )}
+
         <TalentRoute talents={talents} />
 
         <div className="tabs" role="group" aria-label={t.title}>
@@ -236,9 +296,7 @@ export function MapPage() {
             {t.analysing}
           </p>
         )}
-        {activeTab === 'validated' && validated.length > 0 && (
-          <p className="muted">{t.keptHint}</p>
-        )}
+        <p className="muted">{t.keptHint}</p>
         {visible.length === 0 && !extracting && <p className="empty">{t.empty[activeTab]}</p>}
 
         <ul className="stack-sm plain-list">
@@ -246,7 +304,7 @@ export function MapPage() {
             <TalentCard
               key={talent.id}
               talent={talent}
-              source={sources[talent.source_message_id]}
+              source={talent.source_message_id ? sources[talent.source_message_id] : undefined}
               onChange={safeChange}
             />
           ))}

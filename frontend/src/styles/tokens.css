@@ -93,7 +93,8 @@
 
   /* Mise en page */
   --tap-size: 2.75rem;
-  --avatar-size: 2.5rem;
+  --mascot-chat-width: 4.75rem;
+  --mascot-chat-height: 5.5rem;
   --width-content: 42rem;
   --width-wide: 72rem;
   --width-auth: 24rem;

@@ -73,6 +73,19 @@ class SkillStatus(str, enum.Enum):
     REJECTED = "rejected"
 
 
+class SkillOrigin(str, enum.Enum):
+    AI = "ai"
+    YOUTH = "youth"
+
+
+class SkillAction(str, enum.Enum):
+    PROPOSED = "proposed"
+    ADDED = "added"
+    VALIDATED = "validated"
+    REJECTED = "rejected"
+    RENAMED = "renamed"
+
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -103,9 +116,10 @@ class YouthProfile(db.Model):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
-    # Le jeune choisit explicitement de montrer ses conversations à la psychologue.
+    # Accord donné à l'inscription : discussions et talents vont au Centre des Possibles.
     share_transcripts: Mapped[bool] = mapped_column(Boolean, default=False)
     share_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User] = relationship(back_populates="youth_profile")
 
@@ -166,31 +180,84 @@ class Skill(db.Model):
     youth_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
-    conversation_id: Mapped[uuid.UUID] = mapped_column(
+    # Vides pour un talent ajouté par le jeune lui-même.
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("conversations.id", ondelete="CASCADE"), index=True
     )
-    source_message_id: Mapped[str] = mapped_column(String(36))
+    source_message_id: Mapped[str | None] = mapped_column(String(36))
+    origin: Mapped[SkillOrigin] = mapped_column(_enum(SkillOrigin), default=SkillOrigin.AI)
     name: Mapped[str] = mapped_column(String(80))
     # Forme normalisée du nom : évite de reproposer une compétence déjà vue ou refusée.
     name_key: Mapped[str] = mapped_column(String(80))
     category: Mapped[str] = mapped_column(String(40))
     description: Mapped[str] = mapped_column(Text, default="")
     # Extrait mot pour mot d'un message du jeune, vérifié avant enregistrement.
-    source_quote: Mapped[str] = mapped_column(Text)
+    source_quote: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[SkillStatus] = mapped_column(_enum(SkillStatus), default=SkillStatus.PENDING)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    def to_dict(self) -> dict:
-        return {
+    events: Mapped[list["SkillEvent"]] = relationship(
+        back_populates="skill", cascade="all, delete-orphan", order_by="SkillEvent.created_at"
+    )
+
+    def record(self, action: SkillAction, previous_name: str | None = None) -> None:
+        """Garde la trace d'un changement, pour que la psychologue puisse en parler."""
+        by_ai = action == SkillAction.PROPOSED
+        self.events.append(
+            SkillEvent(
+                youth_id=self.youth_id,
+                action=action,
+                actor=SkillOrigin.AI if by_ai else SkillOrigin.YOUTH,
+                previous_name=previous_name,
+                name=self.name,
+            )
+        )
+
+    def to_dict(self, with_history: bool = False) -> dict:
+        data = {
             "id": str(self.id),
             "name": self.name,
             "category": self.category,
             "description": self.description,
             "quote": self.source_quote,
             "status": self.status.value,
-            "conversation_id": str(self.conversation_id),
+            "origin": self.origin.value,
+            "conversation_id": str(self.conversation_id) if self.conversation_id else None,
             "source_message_id": self.source_message_id,
             "created_at": iso(self.created_at),
             "reviewed_at": iso(self.reviewed_at),
+        }
+        if with_history:
+            data["history"] = [event.to_dict() for event in self.events]
+        return data
+
+
+class SkillEvent(db.Model):
+    """Historique d'un talent : proposé par Néo, ajouté, gardé, retiré ou renommé par le jeune."""
+
+    __tablename__ = "skill_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    skill_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("skills.id", ondelete="CASCADE"), index=True
+    )
+    youth_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    action: Mapped[SkillAction] = mapped_column(_enum(SkillAction))
+    actor: Mapped[SkillOrigin] = mapped_column(_enum(SkillOrigin))
+    name: Mapped[str] = mapped_column(String(80))
+    previous_name: Mapped[str | None] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    skill: Mapped[Skill] = relationship(back_populates="events")
+
+    def to_dict(self) -> dict:
+        return {
+            "action": self.action.value,
+            "actor": self.actor.value,
+            "name": self.name,
+            "previous_name": self.previous_name,
+            "at": iso(self.created_at),
         }

@@ -74,6 +74,15 @@ if [ "$native_ollama" = true ]; then
   export COMPOSE_PROFILES=
 fi
 
+# Néo : reprend les dernières animations de mascotte/neo.glb.
+if [ mascotte/neo.glb -nt frontend/src/mascot/neo.glb ]; then
+  if [ -d frontend/node_modules ]; then
+    (cd frontend && npm run --silent mascot)
+  else
+    echo "mascotte/neo.glb a changé : lancez « npm ci && npm run mascot » dans frontend."
+  fi
+fi
+
 docker compose up -d --build
 
 port=$(setting FRONTEND_PORT)
@@ -85,7 +94,7 @@ for _ in $(seq 1 90); do
     printf '  Psychologue : %s / %s\n' "$(setting SEED_PSY_EMAIL)" "$(setting SEED_PSY_PASSWORD)"
     printf '  Jeune       : %s / %s\n\n' "$(setting SEED_YOUTH_EMAIL)" "$(setting SEED_YOUTH_PASSWORD)"
     if [ "${COMPOSE_PROFILES-ollama}" = "ollama" ]; then
-      echo "Le modèle peut encore se télécharger (environ 4 Go) : docker compose logs -f ollama-pull"
+      echo "Le modèle peut encore se télécharger (environ 7 Go) : docker compose logs -f ollama-pull"
     fi
     exit 0
   fi

@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..errors import LLMError, StorageError
 from ..extensions import db
-from ..models import EXTRACTION_LEASE, Conversation, Skill, utcnow
+from ..models import EXTRACTION_LEASE, Conversation, Skill, SkillAction, utcnow
 from .chat import FLAG_CRISIS
 from .guardrails import find_quote, name_key
 
@@ -166,6 +166,7 @@ class ExtractionService:
                 continue
             try:
                 with db.session.begin_nested():
+                    skill.record(SkillAction.PROPOSED)
                     db.session.add(skill)
             except IntegrityError:
                 continue

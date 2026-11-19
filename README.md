@@ -23,9 +23,9 @@ L'application s'ouvre sur http://localhost:8080. Le script affiche les comptes d
 | `backend`   | API Flask, migrations et données de démo au démarrage            | http://localhost:5001/api |
 | `postgres`  | Comptes, métadonnées des conversations, compétences              | `localhost:5432`          |
 | `seaweedfs` | Texte des conversations, via son API S3 (bucket `conversations`) | http://localhost:8333     |
-| `ollama`    | Modèle `mistral`, téléchargé au premier démarrage                | http://localhost:11435    |
+| `ollama`    | Modèle `mistral-nemo`, téléchargé au premier démarrage                | http://localhost:11435    |
 
-Sur Mac, `./run.sh` utilise l'Ollama installé sur la machine s'il tourne, car Docker n'accède pas à la puce graphique. Sans lui, prévoyez au moins 8 Go de mémoire pour Docker, et des réponses nettement plus lentes.
+Sur Mac, `./run.sh` utilise l'Ollama installé sur la machine s'il tourne, car Docker n'accède pas à la puce graphique. Sans lui, prévoyez au moins 12 Go de mémoire pour Docker, et des réponses nettement plus lentes.
 
 État des services : http://localhost:8080/api/health/services
 
@@ -58,8 +58,11 @@ Le frontend de développement tourne sur http://localhost:5173 et transmet `/api
 | Détresse, sujets sensibles et réponses relues | `backend/prompts/garde_fous.json`   |
 | Couleurs, typographie, espacements            | `frontend/src/styles/tokens.css`    |
 | Textes de l'interface                         | `frontend/src/content/fr.ts`        |
+| Animations de Néo selon les moments           | `frontend/src/mascot/clips.ts`      |
 
 Les fichiers de `backend/prompts/` sont relus à chaque changement, sans redémarrage.
+
+Néo vient de `mascotte/neo.glb`. `./run.sh` reprend automatiquement sa dernière version ; à la main, lancez `npm run mascot` dans `frontend`.
 
 ```bash
 cd backend && .venv/bin/python -m pytest

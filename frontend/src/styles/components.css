@@ -310,6 +310,7 @@
 }
 
 .welcome__art {
+  position: relative;
   flex: 1 1 13rem;
   min-height: 11rem;
   max-height: 20rem;
@@ -419,17 +420,51 @@
 .chat-head {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--space-1) var(--space-3);
+  gap: 0 var(--space-3);
   align-items: center;
-  padding: calc(var(--space-2) + env(safe-area-inset-top)) var(--space-4) var(--space-1);
+  padding: calc(var(--space-1) + env(safe-area-inset-top)) var(--space-4) 0;
 }
 
-/* Emplacement du futur compagnon : remplacer cette pastille par l'illustration. */
-.avatar {
-  width: var(--avatar-size);
-  height: var(--avatar-size);
+/* Néo : la pastille reste visible pendant le chargement et sans WebGL. */
+.mascot {
+  position: relative;
+  display: block;
+}
+
+.mascot--chat {
+  grid-row: 1 / span 2;
+  align-self: end;
+  width: var(--mascot-chat-width);
+  height: var(--mascot-chat-height);
+}
+
+.mascot--chat::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--color-accent-soft);
+  content: '';
+}
+
+.mascot--welcome {
+  position: absolute;
+  inset: 0;
+}
+
+.mascot canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.mascot[data-ready='true'] canvas {
+  opacity: 1;
 }
 
 .chat-head h1 {
@@ -474,7 +509,7 @@
 
 .chat-head__notice {
   display: flex;
-  grid-column: 1 / -1;
+  grid-column: 2 / -1;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -1209,4 +1244,26 @@ mark {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Historique des talents côté psychologue */
+.table__row--flag > * {
+  background: var(--color-talent-soft);
+}
+
+.flag {
+  margin-top: var(--space-1);
+}
+
+.history {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+}
+
+.add-talent__open {
+  justify-self: start;
 }

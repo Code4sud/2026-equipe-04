@@ -58,17 +58,25 @@ class OllamaClient:
         except (requests.RequestException, ValueError) as error:
             raise LLMError(str(error)) from error
 
-    def generate_json(self, system: str, user: str, schema: dict) -> dict:
+    def generate_json(
+        self,
+        system: str,
+        user: str,
+        schema: dict,
+        temperature: float | None = None,
+        examples: list[dict] | None = None,
+    ) -> dict:
         payload = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": system},
+                *(examples or []),
                 {"role": "user", "content": user},
             ],
             "stream": False,
             "format": schema,
             "keep_alive": KEEP_ALIVE,
-            "options": JSON_OPTIONS,
+            "options": {**JSON_OPTIONS, **({} if temperature is None else {"temperature": temperature})},
         }
         try:
             response = requests.post(

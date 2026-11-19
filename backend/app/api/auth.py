@@ -36,18 +36,21 @@ def _email(data: dict) -> str:
 def register():
     """Crée un compte jeune. Les comptes psychologues passent par `flask create-user`."""
     data = json_body()
-    # Le partage des discussions demande un accord explicite, jamais coché par défaut.
-    share_transcripts = data.get("share_transcripts") is True
+    # Le Centre des Possibles accompagne le jeune : son accord est demandé à l'inscription.
+    if data.get("accept_sharing") is not True:
+        raise ApiError(
+            400,
+            "consent_required",
+            "Pour continuer, accepte de partager ton parcours avec le Centre des Possibles.",
+        )
     user = User(
         email=_email(data),
         display_name=text_field(data, "display_name", "Le prénom ou pseudo", 1, 80),
         password_hash=generate_password_hash(text_field(data, "password", "Le mot de passe", 8, 200)),
         role=Role.YOUTH,
     )
-    user.youth_profile = YouthProfile(
-        share_transcripts=share_transcripts,
-        share_updated_at=utcnow() if share_transcripts else None,
-    )
+    now = utcnow()
+    user.youth_profile = YouthProfile(share_transcripts=True, share_updated_at=now, consent_at=now)
     db.session.add(user)
     try:
         db.session.commit()

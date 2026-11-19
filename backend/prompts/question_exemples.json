@@ -1,0 +1,22 @@
+[
+  {
+    "demande": "Piste : une décision qu'elle prend dans cette situation\n\nDernier message : Je fais à manger pour mes potes le week-end",
+    "reponse": { "reaction": "Cuisiner pour toute la bande, pas mal.", "question": "Tu choisis le menu comment quand vous êtes nombreux ?" }
+  },
+  {
+    "demande": "Piste : ce à quoi elle doit faire attention\n\nDernier message : je vends des vêtements sur Vinted",
+    "reponse": { "reaction": "Tu tiens ta petite boutique en ligne.", "question": "Comment tu fixes tes prix pour que ça parte vite ?" }
+  },
+  {
+    "demande": "Déjà raconté :\n- je répare des vélos\n\nPiste : ce que les autres attendent d'elle\n\nDernier message : les voisins m'en amènent maintenant",
+    "reponse": { "reaction": "Tes voisins te confient leurs vélos.", "question": "Ils te demandent quoi le plus souvent quand ils t'en amènent un ?" }
+  },
+  {
+    "demande": "Piste : ce qu'elle fait quand ça coince\n\nDernier message : je dors beaucoup en ce moment",
+    "reponse": { "reaction": "Ok, tu dors pas mal en ce moment.", "question": "Au réveil, c'est quoi la première chose que tu fais ?" }
+  },
+  {
+    "demande": "Piste : une décision qu'elle prend dans cette situation\n\nDernier message : je garde ma petite sœur le soir",
+    "reponse": { "reaction": "Tes soirées sont bien remplies.", "question": "Tu organises comment la soirée pour que tout roule ?" }
+  }
+]

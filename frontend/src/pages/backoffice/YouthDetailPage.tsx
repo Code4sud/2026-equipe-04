@@ -1,14 +1,48 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../api/client';
-import type { Conversation, Message, Skill, YouthDetail } from '../../api/types';
+import type { Conversation, Message, Skill, TrackedSkill, YouthDetail } from '../../api/types';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { formatDateTime, formatDay } from '../../components/format';
 import { Highlight } from '../../components/Highlight';
-import { CheckIcon } from '../../components/Icons';
+import { CheckIcon, CrossIcon } from '../../components/Icons';
 import { fr } from '../../content/fr';
 
 const t = fr.backoffice;
+
+const STATUS_CLASS = { validated: 'status status--on', pending: 'status status--waiting', rejected: 'status' };
+
+function TalentRow({ talent }: { talent: TrackedSkill }) {
+  return (
+    <tr className={talent.to_discuss ? 'table__row--flag' : undefined}>
+      <th scope="row">
+        {talent.name}
+        <span className="table__ref">
+          {t.origins[talent.origin]} · {fr.map.categories[talent.category] ?? talent.category}
+        </span>
+        {talent.to_discuss && <span className="status status--waiting flag">{t.toDiscuss}</span>}
+      </th>
+      <td className="table__quote">{talent.quote ? `« ${talent.quote} »` : talent.description || '—'}</td>
+      <td>
+        <span className={STATUS_CLASS[talent.status]}>
+          {talent.status === 'validated' && <CheckIcon />}
+          {talent.status === 'rejected' && <CrossIcon />}
+          {t.statuses[talent.status]}
+        </span>
+      </td>
+      <td>
+        <ol className="history">
+          {talent.history.map((event, index) => (
+            <li key={index}>
+              <span className="mono">{formatDay(event.at)}</span> {t.events[event.action]}
+              {event.previous_name && <span className="muted"> · {t.renamedFrom(event.previous_name)}</span>}
+            </li>
+          ))}
+        </ol>
+      </td>
+    </tr>
+  );
+}
 
 function ConversationItem({
   youthId,
@@ -104,6 +138,8 @@ export function YouthDetailPage() {
   if (!detail) return <Loading />;
 
   const { youth, skills: talents, pending_skills: pending, conversations } = detail;
+  const count = (status: Skill['status']) => talents.filter((talent) => talent.status === status).length;
+  const discuss = talents.filter((talent) => talent.to_discuss).length;
   const lastActivity = conversations[0]?.last_message_at;
 
   return (
@@ -121,12 +157,20 @@ export function YouthDetailPage() {
           </div>
           <div className="bo__stats">
             <div>
-              <b>{talents.length}</b>
+              <b>{count('validated')}</b>
               <span>{t.validated.toLowerCase()}</span>
             </div>
             <div>
               <b>{pending}</b>
               <span>{t.pending.toLowerCase()}</span>
+            </div>
+            <div>
+              <b>{count('rejected')}</b>
+              <span>{t.rejected.toLowerCase()}</span>
+            </div>
+            <div>
+              <b>{discuss}</b>
+              <span>{t.toDiscuss.toLowerCase()}</span>
             </div>
           </div>
         </div>
@@ -144,37 +188,22 @@ export function YouthDetailPage() {
                   <th scope="col">{t.talent}</th>
                   <th scope="col">{t.extract}</th>
                   <th scope="col">{t.status}</th>
+                  <th scope="col">{t.history}</th>
                 </tr>
               </thead>
               <tbody>
                 {talents.map((talent) => (
-                  <tr key={talent.id}>
-                    <th scope="row">
-                      {talent.name}
-                      <span className="table__ref">
-                        {fr.map.categories[talent.category] ?? talent.category} ·{' '}
-                        {formatDay(talent.reviewed_at ?? talent.created_at)}
-                      </span>
-                    </th>
-                    <td className="table__quote">« {talent.quote} »</td>
-                    <td>
-                      <span className="status status--on">
-                        <CheckIcon />
-                        {t.statusValidated}
-                      </span>
-                    </td>
-                  </tr>
+                  <TalentRow key={talent.id} talent={talent} />
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        <p className="bo__foot">{t.onlyValidated}</p>
+        <p className="bo__foot">{t.discussHint}</p>
       </section>
 
       <section className="stack-sm">
         <h2>{t.conversationsTitle}</h2>
-        {!youth.share_transcripts && <p className="notice">{t.locked}</p>}
         {conversations.length === 0 ? (
           <p className="empty">{t.noConversations}</p>
         ) : (
@@ -184,7 +213,7 @@ export function YouthDetailPage() {
                 key={conversation.id}
                 youthId={youth.id}
                 conversation={conversation}
-                shared={youth.share_transcripts}
+                shared
                 talents={talents}
               />
             ))}

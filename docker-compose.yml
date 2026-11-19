@@ -69,7 +69,7 @@ services:
         condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434
-    command: ["pull", "${OLLAMA_MODEL:-mistral}"]
+    command: ["pull", "${OLLAMA_MODEL:-mistral-nemo}"]
 
   backend:
     build: ./backend
@@ -86,7 +86,7 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: ${S3_BUCKET:-conversations}
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral-nemo}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Lancez ./run.sh pour créer le fichier .env}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       SEED_DEMO: ${SEED_DEMO:-true}

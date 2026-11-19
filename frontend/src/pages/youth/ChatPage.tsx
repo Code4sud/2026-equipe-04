@@ -14,6 +14,7 @@ import type {
   Conversation,
   ConversationDetail,
   Message,
+  ReplyKind,
   SafetyInfo,
   Skill,
   SkillStatus,
@@ -22,6 +23,8 @@ import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { SendIcon, TalentStar } from '../../components/Icons';
 import { SafetyCard } from '../../components/SafetyCard';
 import { fr } from '../../content/fr';
+import type { MoodName } from '../../mascot/clips';
+import { Mascot, type MascotHandle } from '../../mascot/Mascot';
 import { useTalents } from './useTalents';
 
 interface SendError {
@@ -31,6 +34,10 @@ interface SendError {
 
 const NEAR_BOTTOM_PX = 120;
 const MAX_COMPOSER_PX = 160;
+const LAUGHTER = /\b(?:(?:ha){2,}h?|(?:hi){2,}|mdr+|ptdr+|xptdr+|lol+)\b/i;
+const LAUGH_COOLDOWN_MS = 120_000;
+const RECENT_REVEAL_MS = 20_000;
+const IMPRESSIVE_STORY_WORDS = 12;
 
 function localMessage(id: string, content: string): Message {
   return { id, role: 'user', content, created_at: new Date().toISOString(), flags: [] };
@@ -88,6 +95,7 @@ export function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [safety, setSafety] = useState<SafetyInfo | null>(null);
   const [shared, setShared] = useState(false);
+  const [calmReply, setCalmReply] = useState(false);
   const [reply, setReply] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -100,18 +108,32 @@ export function ChatPage() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const streamRef = useRef<AbortController | null>(null);
   const followRef = useRef(true);
+  const mascotRef = useRef<MascotHandle>(null);
+  const lastRevealRef = useRef(0);
+  const lastLaughRef = useRef(0);
+  const impressedRef = useRef(false);
 
   const pending = (talents ?? []).filter((talent) => talent.status === 'pending');
   const found = pending
     .filter((talent) => talent.conversation_id === conversation?.id)
     .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
   const keptCount = (talents ?? []).filter((talent) => talent.status === 'validated').length;
+  const visibleTalentId = reply === null ? found?.id : undefined;
+
+  let mascotMood: MoodName = 'idle';
+  if (safety || calmReply) mascotMood = 'calm';
+  else if (reply === '') mascotMood = 'think';
+  else if (reply !== null) mascotMood = 'talk';
+  else if (found) mascotMood = 'cardOut';
+  else if (draft.trim()) mascotMood = 'listen';
 
   const applyDetail = useCallback((detail: ConversationDetail) => {
     setConversation(detail.conversation);
     setMessages(detail.messages);
     setSafety(detail.safety ?? null);
     setShared(detail.share_transcripts ?? false);
+    setCalmReply(false);
+    impressedRef.current = false;
   }, []);
 
   const load = useCallback(
@@ -141,6 +163,22 @@ export function ChatPage() {
     if (list && followRef.current) list.scrollTop = list.scrollHeight;
   }, [messages, reply, safety, sendError, found?.id, talentNote]);
 
+  // Néo n'est affiché qu'une fois la discussion chargée : il salue à ce moment-là.
+  const conversationId = conversation?.id;
+  const isNewConversation = messages.length === 1;
+  useEffect(() => {
+    if (conversationId && isNewConversation) mascotRef.current?.perform('greet');
+    // Une seule fois par discussion, pas à chaque nouveau message.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  // Un talent repéré : Néo le détecte (sauf s'il vient de l'annoncer), puis sort sa carte.
+  useEffect(() => {
+    if (!visibleTalentId) return;
+    if (Date.now() - lastRevealRef.current > RECENT_REVEAL_MS) mascotRef.current?.perform('reveal');
+    lastRevealRef.current = Date.now();
+  }, [visibleTalentId]);
+
   useEffect(() => {
     const composer = composerRef.current;
     if (!composer) return;
@@ -153,6 +191,33 @@ export function ChatPage() {
     if (list) {
       followRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < NEAR_BOTTOM_PX;
     }
+  }
+
+  function reactToReply(kind: ReplyKind, sentText: string | null) {
+    setCalmReply(kind === 'sensitive');
+    if (kind === 'relaunch') {
+      mascotRef.current?.perform('shrug');
+    } else if (kind === 'encourage') {
+      mascotRef.current?.perform('cheer');
+    } else if (kind === 'reveal') {
+      lastRevealRef.current = Date.now();
+      mascotRef.current?.perform('reveal');
+    } else if (
+      kind === 'model' &&
+      !impressedRef.current &&
+      sentText &&
+      sentText.trim().split(/\s+/).length >= IMPRESSIVE_STORY_WORDS
+    ) {
+      impressedRef.current = true;
+      mascotRef.current?.perform('impressed');
+    }
+  }
+
+  function laughAlong(sentText: string | null) {
+    if (!sentText || !LAUGHTER.test(sentText)) return;
+    if (Date.now() - lastLaughRef.current < LAUGH_COOLDOWN_MS) return;
+    lastLaughRef.current = Date.now();
+    mascotRef.current?.perform('laugh');
   }
 
   async function exchange(body: ReplyRequest) {
@@ -175,6 +240,9 @@ export function ChatPage() {
         case 'safety':
           setSafety(event.data);
           break;
+        case 'reply':
+          reactToReply(event.data.kind, sentText);
+          break;
         case 'delta':
           text += event.data.text;
           setReply(text);
@@ -183,6 +251,7 @@ export function ChatPage() {
           finished = true;
           setMessages((all) => [...all, event.data.assistant_message]);
           setReply(null);
+          laughAlong(sentText);
           void reloadTalents();
           break;
         case 'error':
@@ -251,6 +320,8 @@ export function ChatPage() {
     try {
       await updateTalent(talent.id, { status });
       setTalentNote(status === 'validated' ? fr.found.kept : fr.found.rejected);
+      if (status === 'validated') mascotRef.current?.perform('cardKeep', 'cheer');
+      else mascotRef.current?.perform('cardDrop', 'shrug');
     } catch (error) {
       setTalentNote(errorMessage(error));
     } finally {
@@ -281,7 +352,7 @@ export function ChatPage() {
     <section className="chat" aria-label={fr.chat.title}>
       <div className="chat-head__wrap">
         <header className="chat-head">
-          <span className="avatar" aria-hidden="true" />
+          <Mascot ref={mascotRef} mood={mascotMood} framing="portrait" className="mascot--chat" />
           <div>
             <h1>{fr.chat.title}</h1>
             <p className="chat-head__status">

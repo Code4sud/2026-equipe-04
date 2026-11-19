@@ -44,7 +44,7 @@ export function YouthListPage() {
                 <th scope="col" className="optional">{t.lastActivity}</th>
                 <th scope="col" className="numeric">{t.validated}</th>
                 <th scope="col" className="numeric">{t.pending}</th>
-                <th scope="col">{t.sharing}</th>
+                <th scope="col" className="numeric">{t.toDiscuss}</th>
               </tr>
             </thead>
             <tbody>
@@ -58,10 +58,12 @@ export function YouthListPage() {
                   </td>
                   <td className="numeric">{youth.validated_skills}</td>
                   <td className="numeric">{youth.pending_skills}</td>
-                  <td>
-                    <span className={youth.share_transcripts ? 'status status--on' : 'status'}>
-                      {youth.share_transcripts ? t.shared : t.notShared}
-                    </span>
+                  <td className="numeric">
+                    {youth.skills_to_discuss > 0 ? (
+                      <span className="status status--waiting">{youth.skills_to_discuss}</span>
+                    ) : (
+                      0
+                    )}
                   </td>
                 </tr>
               ))}

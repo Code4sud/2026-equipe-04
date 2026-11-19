@@ -1,9 +1,41 @@
 {
   "relances": {
     "declencheurs": [
-      "jsp", "jsais pas", "j sais pas", "je sais pas", "je ne sais pas", "sais pas", "chais pas",
-      "chepa", "rien", "rien du tout", "bof", "aucune idee", "pas d idee", "pas grand chose",
-      "euh", "mouais", "ok", "je vois pas", "je ne vois pas"
+      "jsp",
+      "jsais pas",
+      "j sais pas",
+      "je sais pas",
+      "je ne sais pas",
+      "sais pas",
+      "chais pas",
+      "chepa",
+      "rien",
+      "rien du tout",
+      "bof",
+      "aucune idee",
+      "pas d idee",
+      "pas grand chose",
+      "euh",
+      "mouais",
+      "ok",
+      "je vois pas",
+      "je ne vois pas",
+      "non",
+      "nan",
+      "nope",
+      "non rien",
+      "pas vraiment",
+      "non pas vraiment",
+      "pas trop",
+      "non pas trop",
+      "aucun",
+      "aucune",
+      "je sais pas trop",
+      "je ne sais pas trop",
+      "rien de special",
+      "je fais rien",
+      "je fais pas grand chose",
+      "je ne fais rien"
     ],
     "reponses": [
       "Tu peux passer si tu veux. Sinon, t'as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?",
@@ -11,24 +43,163 @@
       "Pas de souci. Y a un jeu, une série ou un sport sur lequel tu passes du temps ?",
       "Pas besoin d'une grande histoire. La dernière fois qu'on t'a demandé un coup de main, c'était pour quoi ?",
       "On y va tranquille. Tu fais quoi quand tu t'ennuies ?"
+    ],
+    "messages_passifs": [
+      "dors",
+      "dormir",
+      "je dors",
+      "je glande",
+      "glander",
+      "je traine",
+      "rien faire",
+      "je fais rien",
+      "je m ennuie"
     ]
   },
+  "salutations": {
+    "declencheurs": [
+      "salut",
+      "bonjour",
+      "bonsoir",
+      "coucou",
+      "hey",
+      "hello",
+      "yo",
+      "wesh",
+      "slt",
+      "bjr",
+      "cc",
+      "salut ca va",
+      "ca va",
+      "ca va et toi"
+    ],
+    "reponses": [
+      "Salut ! Ça fait plaisir. C'est quoi le dernier truc que t'as fait aujourd'hui, même tout bête ?",
+      "Hey ! On reprend tranquille. Qu'est-ce qui t'a occupé ces derniers jours ?",
+      "Salut toi. Raconte-moi un moment de ta semaine, même un tout petit."
+    ]
+  },
+  "rebonds": [
+    "Ça marche. Raconte-moi un autre truc que tu fais souvent, même sans y penser.",
+    "Ok. Et quand un pote a besoin d'un coup de main, il vient te voir pour quoi ?",
+    "Je vois. Y a un truc que tu fais mieux que les gens autour de toi, même un détail ?",
+    "D'accord. C'est quoi la dernière chose que t'as apprise tout seul, sur un écran ou ailleurs ?",
+    "Ça me va. Si tu devais montrer un truc à quelqu'un demain, ce serait quoi ?",
+    "On peut changer de sujet si tu veux. Tu passes du temps sur quoi quand personne ne te demande rien ?"
+  ],
   "identite": {
     "declencheurs": [
-      "t es qui", "tu es qui", "qui es tu", "vrai gars", "vraie personne", "vrai humain", "humain",
-      "robot", "une ia", "un ia", "intelligence artificielle", "chatgpt", "chat gpt", "un bot"
+      "t es qui",
+      "tu es qui",
+      "qui es tu",
+      "vrai gars",
+      "vraie personne",
+      "vrai humain",
+      "humain",
+      "robot",
+      "une ia",
+      "un ia",
+      "intelligence artificielle",
+      "chatgpt",
+      "chat gpt",
+      "un bot"
     ],
-    "reponse": "Je suis une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu'est-ce qui t'occupe en ce moment ?"
+    "reponse": "Moi c'est Néo, une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu'est-ce qui t'occupe en ce moment ?"
   },
   "tours": {
     "revelation_tous_les": 3,
     "mots_minimum_revelation": 8,
-    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu'elle vient d'écrire, sans rien ajouter ni supposer, puis pose une seule question courte sur sa façon de s'y prendre, par exemple « Comment tu t'y prends ? ». Ne parle ni de compétences, ni d'avenir, ni d'un autre sujet.",
+    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu'elle vient d'écrire, sans rien ajouter ni supposer, puis {angle} Une seule question courte, avec tes propres mots, différente de celles déjà posées. Ne parle ni de compétences, ni d'avenir.",
     "formules_revelation": [
       "Attends, je crois que j'ai trouvé un talent. Quand tu dis « {citation} », je vois quelqu'un qui sait {savoir_faire}. Tu te reconnais là-dedans ?",
       "Tiens, un talent sur la route : « {citation} », ça veut dire que tu sais {savoir_faire}. Tu te reconnais là-dedans ?",
       "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C'est toi, ça ?"
+    ],
+    "angles_ecoute": [
+      "demande-lui comment ça s'est passé concrètement.",
+      "demande-lui ce qui a été le plus compliqué.",
+      "demande-lui comment elle a appris à faire ça.",
+      "demande-lui un exemple précis, une fois où ça s'est passé.",
+      "demande-lui ce qu'elle fait quand ça ne marche pas.",
+      "demande-lui si quelqu'un compte sur elle pour ça."
+    ],
+    "pistes_question": [
+      "pour qui ou pour quoi la personne fait cela",
+      "une décision qu'elle prend dans cette situation",
+      "ce qu'elle fait quand ça coince",
+      "comment elle a appris à le faire",
+      "ce à quoi elle doit faire attention",
+      "ce que les autres lui demandent ou attendent d'elle"
+    ],
+    "questions_passe_partout": [
+      "comment tu t y prends",
+      "comment ca s est passe",
+      "comment ca se passe",
+      "peux tu m en dire plus",
+      "tu peux m en dire plus",
+      "raconte moi plus",
+      "quand un probleme se pose",
+      "pour le resoudre",
+      "quel a ete le plus complique"
+    ],
+    "echecs_sans_revelation": [
+      "rate",
+      "ratee",
+      "rates",
+      "raté",
+      "loupe",
+      "foire",
+      "echoue",
+      "perdu",
+      "plante",
+      "j ai merde",
+      "je n arrive pas",
+      "j arrive pas"
     ]
   },
-  "fin_de_consigne": "Écris uniquement ta réponse, sans parenthèses ni commentaire. Voici le dernier message de la personne :"
+  "fin_de_consigne": "Écris uniquement ta réponse, sans parenthèses ni commentaire. Voici le dernier message de la personne :",
+  "encouragement": {
+    "declencheurs": [
+      "pas de competence*",
+      "pas vraiment de competence*",
+      "aucune competence*",
+      "pas de talent*",
+      "pas vraiment de talent*",
+      "aucun talent*",
+      "sais rien faire",
+      "sais pas faire grand chose",
+      "suis nul*",
+      "suis bon a rien",
+      "suis bonne a rien",
+      "suis pas capable",
+      "vaux rien",
+      "sers a rien"
+    ],
+    "avec_citation": [
+      "Je ne suis pas d'accord avec toi : « {citation} », ça compte vraiment. C'était quoi le plus dur là-dedans ?",
+      "Tu en as plus que tu ne crois. Rien que « {citation} », ça ne vient pas tout seul. Qu'est-ce que tu as dû gérer ?",
+      "On passe tous à côté de ce qu'on sait faire. Toi, tu m'as dit « {citation} » : qu'est-ce que ça t'a appris ?"
+    ],
+    "sans_citation": [
+      "Tu en as sûrement plus que tu ne crois, et on va les trouver ensemble. Raconte-moi un truc que tu as fait cette semaine, même tout petit.",
+      "Personne ne part de zéro, toi non plus. Tes potes viennent te demander quoi, quand ils ont besoin d'un coup de main ?",
+      "On passe tous à côté de ce qu'on sait faire. La dernière fois qu'on t'a dit merci, c'était pour quoi ?"
+    ]
+  },
+  "phrases_interdites": [
+    "pas de competence*",
+    "pas vraiment de competence*",
+    "aucune competence*",
+    "sans competence*",
+    "pas de talent*",
+    "aucun talent*",
+    "sans talent*",
+    "tu ne sais pas faire",
+    "tu ne sais rien",
+    "tu sais rien",
+    "tu n as rien",
+    "tu ne fais rien",
+    "tu n es pas capable",
+    "tu n as pas de"
+  ]
 }

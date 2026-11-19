@@ -11,7 +11,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [shareTranscripts, setShareTranscripts] = useState(false);
+  const [acceptSharing, setAcceptSharing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const registering = mode === 'register';
@@ -23,7 +23,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     try {
       signIn(
         registering
-          ? await api.register(displayName, email, password, shareTranscripts)
+          ? await api.register(displayName, email, password, acceptSharing)
           : await api.login(email, password),
       );
     } catch (caught) {
@@ -82,8 +82,9 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           <label className="toggle">
             <input
               type="checkbox"
-              checked={shareTranscripts}
-              onChange={(event) => setShareTranscripts(event.target.checked)}
+              checked={acceptSharing}
+              onChange={(event) => setAcceptSharing(event.target.checked)}
+              required
             />
             <span>
               <strong>{fr.auth.shareTitle}</strong>

@@ -65,5 +65,10 @@ export function useTalents({ analyseOnOpen }: { analyseOnOpen: boolean }) {
     setTalents((current) => current?.map((item) => (item.id === id ? skill : item)) ?? null);
   }, []);
 
-  return { talents, extracting, error, reload, retry, update };
+  const add = useCallback(async (name: string, description: string) => {
+    const { skill } = await api.addSkill(name, description);
+    setTalents((current) => [skill, ...(current ?? [])]);
+  }, []);
+
+  return { talents, extracting, error, reload, retry, update, add };
 }

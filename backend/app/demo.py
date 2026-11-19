@@ -4,7 +4,6 @@ YOUTHS = [
     {
         "email_setting": "SEED_YOUTH_EMAIL",
         "display_name": "Sam",
-        "share_transcripts": True,
         "messages": [
             ("user", "Rien."),
             ("assistant", "Pas de souci, on n'est pas pressés. Hier, tu as fait quoi de ta journée, même un truc banal ?"),
@@ -20,6 +19,7 @@ YOUTHS = [
         "skills": [
             {
                 "name": "Diagnostiquer une panne",
+                "renamed_from": "Réparer des moteurs",
                 "category": "resolution_problemes",
                 "description": "Chercher méthodiquement la cause d'un problème technique.",
                 "quote": "je teste pièce par pièce jusqu'à trouver ce qui bloque",
@@ -39,12 +39,25 @@ YOUTHS = [
                 "quote": "je les fais manger et je vérifie leurs devoirs",
                 "status": "pending",
             },
+            {
+                "name": "Animer un événement",
+                "category": "relationnel",
+                "description": "Faire vivre un événement de quartier.",
+                "quote": "à l'asso du quartier je tiens la caisse pendant les événements",
+                "status": "rejected",
+            },
+            {
+                "name": "Bricoler à la maison",
+                "origin": "youth",
+                "category": "savoir_faire",
+                "description": "Réparer ce qui casse chez moi.",
+                "status": "validated",
+            },
         ],
     },
     {
         "email": "noa@example.org",
         "display_name": "Noa",
-        "share_transcripts": False,
         "messages": [
             ("user", "Je fais des montages vidéo pour une chaîne de skate, je coupe, je mets la musique et je publie chaque semaine."),
             ("assistant", "Publier chaque semaine, ça demande de la régularité. Comment tu choisis ce que tu gardes au montage ?"),

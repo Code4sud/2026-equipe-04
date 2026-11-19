@@ -1,7 +1,7 @@
-"""Backoffice psychologue.
+"""Backoffice psychologue du Centre des Possibles.
 
-Ne montre que ce que le jeune a accepté : ses compétences validées, et ses conversations
-seulement s'il a activé le partage.
+Le jeune accepte à l'inscription que son parcours soit partagé : la psychologue voit ses
+discussions, tous ses talents et l'historique de ses choix, pour pouvoir en parler avec lui.
 """
 from __future__ import annotations
 
@@ -10,16 +10,30 @@ from collections import defaultdict
 
 from flask import jsonify
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from ..errors import ApiError
 from ..extensions import db
-from ..models import Conversation, Role, Skill, SkillStatus, User, YouthProfile, as_utc, iso
+from ..models import (
+    Conversation,
+    Role,
+    Skill,
+    SkillAction,
+    SkillEvent,
+    SkillOrigin,
+    SkillStatus,
+    User,
+    YouthProfile,
+    as_utc,
+    iso,
+)
 from ..security import require_roles
 from ..services import service
 from . import api
 from .conversations import public_message
 
 STAFF_ROLES = (Role.PSYCHOLOGIST, Role.ADMIN)
+YOUTH_DECISIONS = (SkillAction.ADDED, SkillAction.REJECTED, SkillAction.RENAMED)
 
 
 def _youth_or_404(youth_id: uuid.UUID) -> tuple[User, YouthProfile]:
@@ -31,6 +45,13 @@ def _youth_or_404(youth_id: uuid.UUID) -> tuple[User, YouthProfile]:
     if row is None:
         raise ApiError(404, "not_found", "Jeune introuvable.")
     return row[0], row[1]
+
+
+def _to_discuss(skill: Skill) -> bool:
+    """Un talent dont le jeune s'est écarté de la proposition de Néo, ou qu'il a ajouté."""
+    return any(event.action in YOUTH_DECISIONS for event in skill.events) or (
+        skill.origin == SkillOrigin.YOUTH
+    )
 
 
 @api.get("/backoffice/youths")
@@ -47,6 +68,14 @@ def list_youths():
         select(Skill.youth_id, Skill.status, func.count()).group_by(Skill.youth_id, Skill.status)
     ):
         skill_counts[youth_id][status.value] = count
+
+    decisions = dict(
+        db.session.execute(
+            select(SkillEvent.youth_id, func.count(func.distinct(SkillEvent.skill_id)))
+            .where(SkillEvent.action.in_(YOUTH_DECISIONS))
+            .group_by(SkillEvent.youth_id)
+        ).all()
+    )
 
     activity = {
         youth_id: (count, last_at)
@@ -72,6 +101,8 @@ def list_youths():
                 "last_activity_at": iso(last_at),
                 "validated_skills": counts.get(SkillStatus.VALIDATED.value, 0),
                 "pending_skills": counts.get(SkillStatus.PENDING.value, 0),
+                "rejected_skills": counts.get(SkillStatus.REJECTED.value, 0),
+                "skills_to_discuss": decisions.get(user.id, 0),
                 "_sort": as_utc(last_at).timestamp() if last_at else 0,
             }
         )
@@ -83,16 +114,12 @@ def list_youths():
 @require_roles(*STAFF_ROLES)
 def get_youth(youth_id: uuid.UUID):
     user, profile = _youth_or_404(youth_id)
-    validated = db.session.scalars(
+    skills = db.session.scalars(
         select(Skill)
-        .where(Skill.youth_id == user.id, Skill.status == SkillStatus.VALIDATED)
-        .order_by(Skill.reviewed_at.desc())
+        .options(selectinload(Skill.events))
+        .where(Skill.youth_id == user.id)
+        .order_by(Skill.created_at.desc())
     ).all()
-    pending = db.session.scalar(
-        select(func.count())
-        .select_from(Skill)
-        .where(Skill.youth_id == user.id, Skill.status == SkillStatus.PENDING)
-    )
     conversations = db.session.scalars(
         select(Conversation)
         .where(Conversation.youth_id == user.id)
@@ -104,9 +131,13 @@ def get_youth(youth_id: uuid.UUID):
                 "id": str(user.id),
                 "display_name": user.display_name,
                 "share_transcripts": profile.share_transcripts,
+                "consent_at": iso(profile.consent_at),
             },
-            "skills": [skill.to_dict() for skill in validated],
-            "pending_skills": pending,
+            "skills": [
+                {**skill.to_dict(with_history=True), "to_discuss": _to_discuss(skill)}
+                for skill in skills
+            ],
+            "pending_skills": sum(skill.status == SkillStatus.PENDING for skill in skills),
             "conversations": [c.to_dict() for c in conversations],
         }
     )
@@ -115,9 +146,7 @@ def get_youth(youth_id: uuid.UUID):
 @api.get("/backoffice/youths/<uuid:youth_id>/conversations/<uuid:conversation_id>")
 @require_roles(*STAFF_ROLES)
 def get_youth_conversation(youth_id: uuid.UUID, conversation_id: uuid.UUID):
-    user, profile = _youth_or_404(youth_id)
-    if not profile.share_transcripts:
-        raise ApiError(403, "transcript_not_shared", "Ce jeune ne partage pas ses conversations.")
+    user, _profile = _youth_or_404(youth_id)
     conversation = db.session.get(Conversation, conversation_id)
     if conversation is None or conversation.youth_id != user.id:
         raise ApiError(404, "not_found", "Conversation introuvable.")
