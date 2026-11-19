@@ -103,8 +103,13 @@ def test_level_titles_are_unique_and_never_an_archetype_name():
     catalog = Catalog()
     titles = [plain(title) for title in catalog.sheet["level_titles"]]
     assert len(set(titles)) == len(titles)
-    # Le nom sans son article : « L’Étincelle » donne « etincelle ». Mot à mot, pour que « Le Vent »
-    # n'attrape pas « Aventurier·ère ».
+    # Le nom sans son article : « L’Étincelle » donne « etincelle ». Mot à mot, pluriel compris,
+    # pour que « Le Vent » attrape « Vents » sans attraper « Aventurier·ère ».
     names = {plain(re.split(r"[\s’']+", archetype["name"])[-1]) for archetype in catalog.archetypes}
     assert len(names) == len(catalog.archetypes)
-    assert not [title for title in catalog.sheet["level_titles"] if words(title) & names]
+    clashes = [
+        title
+        for title in catalog.sheet["level_titles"]
+        if any(word.startswith(name) for word in words(title) for name in names)
+    ]
+    assert not clashes, clashes
