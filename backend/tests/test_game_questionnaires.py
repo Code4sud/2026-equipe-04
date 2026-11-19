@@ -170,6 +170,22 @@ def test_grand_tri_activities_are_only_inspired_by_holland_types(catalog):
     assert "Grand Tri" in holland["licence"] and "Grand Tri" in holland["adaptation"]
 
 
+def test_grand_tri_gives_every_type_the_same_footing(catalog):
+    """Sans norme, un type aux phrases plus longues ou plus étroites part avec un handicap."""
+    prompts = {trait: [] for trait in HOLLAND_TYPES}
+    for item in catalog.instruments["grand_tri"]["items"]:
+        prompts[item["trait"]].append(normalize(item["prompt"]))
+    words = [sum(len(p.split()) for p in found) / len(found) for found in prompts.values()]
+    assert max(words) - min(words) <= 1.5, words
+    # Holland : l'entreprenant vise aussi un gain économique, le conventionnel manie des chiffres.
+    selling = ("acheter", "client", "prix", "sponsor")
+    numbers = ("budget", "caisse", "monnaie")
+    assert sum(any(w in p for w in selling) for p in prompts["riasec_e"]) >= 3
+    assert sum(any(w in p for w in numbers) for p in prompts["riasec_c"]) >= 2
+    # La note de cotation prévient que les six scores ne se comparent pas comme un classement.
+    assert "pas comme un classement" in catalog.instruments["grand_tri"]["scoring_note"]
+
+
 def test_no_content_cites_the_riasec_markers_any_more(catalog):
     assert "iip_riasec_markers" not in catalog.sources
     for instrument in catalog.instruments.values():
