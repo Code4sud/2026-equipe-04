@@ -37,7 +37,12 @@ function TopBar({
 }) {
   return (
     <div className="play-top">
-      <button type="button" className="link-button play-top__leave" onClick={onLeave} disabled={leaving}>
+      <button
+        type="button"
+        className="link-button play-top__leave"
+        onClick={onLeave}
+        disabled={leaving}
+      >
         <span aria-hidden="true">← </span>
         {label}
       </button>
@@ -83,9 +88,19 @@ export function QuestionnairePlayer({
     return chapter?.intro ? chapter : null;
   }, [started, current, index, items, chapters, seenChapters]);
 
-  const screen = !started ? 'intro' : pendingChapter ? 'chapter' : player.atEnd ? 'end' : 'question';
+  const screen = !started
+    ? 'intro'
+    : pendingChapter
+      ? 'chapter'
+      : player.atEnd
+        ? 'end'
+        : 'question';
   const screenKey =
-    screen === 'question' ? `question:${current?.id}` : screen === 'chapter' ? `chapter:${pendingChapter?.id}` : screen;
+    screen === 'question'
+      ? `question:${current?.id}`
+      : screen === 'chapter'
+        ? `chapter:${pendingChapter?.id}`
+        : screen;
 
   useEffect(() => {
     if (!instrument || result) return;
@@ -116,12 +131,20 @@ export function QuestionnairePlayer({
 
   if (result) {
     return (
-      <RunResults instrument={instrument} result={result} answerXp={player.xpGained} exitTo={exitTo} />
+      <RunResults
+        instrument={instrument}
+        result={result}
+        answerXp={player.xpGained}
+        exitTo={exitTo}
+      />
     );
   }
 
   const total = items.length;
   const answeredCount = player.answeredCount;
+  const topBar = (
+    <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} />
+  );
   const leaveNotice = leaveError && (
     <p className="form-error" role="alert">
       {leaveError}
@@ -201,13 +224,15 @@ export function QuestionnairePlayer({
   if (screen === 'chapter' && pendingChapter) {
     return (
       <div className="play play--chapter">
-        <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} />
+        {topBar}
         {progress}
         {leaveNotice}
         <div className="play-stage">
           <div className="play-hero">
             {chapters.length > 1 && (
-              <p className="play-kicker">{t.chapter.kicker(chapterPosition + 1, chapters.length)}</p>
+              <p className="play-kicker">
+                {t.chapter.kicker(chapterPosition + 1, chapters.length)}
+              </p>
             )}
             <h1 ref={setFocusTarget} tabIndex={-1}>
               {pendingChapter.title}
@@ -240,7 +265,7 @@ export function QuestionnairePlayer({
     };
     return (
       <div className="play play--end">
-        <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} />
+        {topBar}
         {progress}
         {leaveNotice}
         <div className="play-stage">
@@ -300,7 +325,7 @@ export function QuestionnairePlayer({
 
   return (
     <div className="play play--question">
-      <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} />
+      {topBar}
       {progress}
       {leaveNotice}
       {player.saveFailed && (

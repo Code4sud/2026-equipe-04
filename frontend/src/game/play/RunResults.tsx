@@ -16,7 +16,9 @@ type SheetGroups = CharacterSheet['trait_groups'];
  * Ce que montre la fin de partie, selon le jeu. Les autres jeux affichent les points forts
  * renvoyés par l’API (tous jeux confondus).
  */
-const RESULT_VIEWS: Record<string, { kind: 'tools' } | { kind: 'group'; group: string; limit?: number }> = {
+type ResultView = { kind: 'tools' } | { kind: 'group'; group: string; limit?: number };
+
+const RESULT_VIEWS: Record<string, ResultView> = {
   ton_style: { kind: 'tools' },
   miroir: { kind: 'group', group: 'personality' },
   grand_tri: { kind: 'group', group: 'interests', limit: 3 },
@@ -165,19 +167,26 @@ function StyleTools({ traits }: { traits: Record<string, YouthTrait> }) {
   );
 }
 
-/** Ce qui ressort, propre au jeu quand c’est possible, sinon les points forts tous jeux confondus. */
-function WhatStandsOut({ instrumentId, highlights }: { instrumentId: string; highlights: YouthTrait[] }) {
+/** Ce qui ressort : propre au jeu si possible, sinon les points forts tous jeux confondus. */
+function WhatStandsOut({
+  instrumentId,
+  highlights,
+}: {
+  instrumentId: string;
+  highlights: YouthTrait[];
+}) {
   const view = RESULT_VIEWS[instrumentId];
   const groups = useSheetGroups(view !== undefined);
 
   if (view && groups === null) return null;
   if (view?.kind === 'tools' && groups?.length) {
-    const traits = Object.fromEntries(groups.flatMap((group) => group.traits).map((trait) => [trait.id, trait]));
-    return <StyleTools traits={traits} />;
+    const all = groups.flatMap((group) => group.traits);
+    return <StyleTools traits={Object.fromEntries(all.map((trait) => [trait.id, trait]))} />;
   }
   if (view?.kind === 'group') {
     const group = groups?.find((entry) => entry.id === view.group);
-    const traits = (group?.traits ?? []).filter((trait) => trait.value !== null).slice(0, view.limit);
+    const known = (group?.traits ?? []).filter((trait) => trait.value !== null);
+    const traits = known.slice(0, view.limit);
     if (group && traits.length) {
       return (
         <TraitPanel

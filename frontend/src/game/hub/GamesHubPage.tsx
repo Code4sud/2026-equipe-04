@@ -71,12 +71,13 @@ function StateChip({ state, game }: { state: CardState; game: InstrumentSummary 
   );
 }
 
-/** `quizPending` : le quiz d’arrivée est rappelé plus haut, inutile de le redire sur chaque carte. */
+/** `quizPending` : le quiz d’arrivée est rappelé plus haut, pas besoin de le redire ici. */
 function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending: boolean }) {
   const state = cardState(game);
   const cta = state === 'progress' ? t.card.resume : state === 'done' ? t.card.replay : t.card.play;
   const canPlay = state !== 'locked' && (state !== 'done' || game.replayable);
   const titleId = `hub-game-${game.id}`;
+  const ctaClass = `button button--small hub-card__cta${state === 'done' ? '' : ' button--primary'}`;
 
   return (
     <li className={`hub-card hub-card--${state}`}>
@@ -124,7 +125,7 @@ function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending:
           {canPlay && (
             <Link
               to={`/jeune/jeux/${game.id}`}
-              className={`button button--small hub-card__cta${state === 'done' ? '' : ' button--primary'}`}
+              className={ctaClass}
               aria-describedby={titleId}
             >
               {cta}
