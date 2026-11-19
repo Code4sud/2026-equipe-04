@@ -306,6 +306,12 @@
   line-height: 1;
 }
 
+/* Toute la ligne tant que la grille est étroite : sur une seule colonne, le nom se coupe et
+   l'explication s'étire sur six lignes. Deux colonnes sur grand écran. */
+.bog-summary__archetype {
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 48rem) {
   .bog-summary__archetype {
     grid-column: span 2;
