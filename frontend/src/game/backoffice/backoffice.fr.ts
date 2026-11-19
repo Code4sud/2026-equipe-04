@@ -122,7 +122,7 @@ export const bo = {
     archetypeBasis: (headline: string) =>
       `Habillage ludique, attribué d’après le curseur de caractère le plus marqué\u00a0: ${headline}. Ce n’est pas un type de personnalité validé.`,
     archetypeBalanced:
-      'Habillage ludique. Aucun curseur de caractère ne s’écarte de plus de 8 points du milieu. Ce n’est pas un type de personnalité validé.',
+      'Habillage ludique. Aucun curseur de caractère ne s’écarte de plus de 8\u00a0points du milieu. Ce n’est pas un type de personnalité validé.',
     noArchetype: 'Pas encore attribué',
     level: 'Niveau',
     levelValue: (level: number, title: string) => (title ? `${level} · ${title}` : String(level)),
@@ -271,7 +271,7 @@ export const bo = {
       title: 'Archétype montré au jeune',
       paragraphs: [
         'À la fin du quiz d’arrivée, le jeune découvre un archétype\u00a0: un badge avec un nom, une devise et une description. C’est un habillage ludique de ses curseurs de caractère, recalculé avec toutes ses réponses et ses talents validés\u00a0: il peut changer d’une partie à l’autre, et la fin de partie le signale au jeune.',
-        'L’archétype est celui du pôle vers lequel penche le curseur de caractère le plus éloigné du milieu (50), toutes sources confondues. À égalité, le premier dans l’ordre des curseurs l’emporte. Si aucun curseur de caractère ne s’écarte de plus de 8 points du milieu, c’est Le Caméléon. Les intérêts et les jeux cognitifs n’entrent pas en compte.',
+        'L’archétype est celui du pôle vers lequel penche le curseur de caractère le plus éloigné du milieu (50), toutes sources confondues. À égalité, le premier dans l’ordre des curseurs l’emporte. Si aucun curseur de caractère ne s’écarte de plus de 8\u00a0points du milieu, c’est Le Caméléon. Les intérêts et les jeux cognitifs n’entrent pas en compte.',
         'Le jeune voit le nom, la devise, la description et la qualité de son pôle (par exemple «\u00a0Sociable\u00a0»), jamais le curseur ni sa valeur. Dans la fiche du jeune, la synthèse indique d’après quel curseur l’archétype a été attribué.',
       ],
       caption: 'Archétypes et pôles qui les désignent',
@@ -279,7 +279,7 @@ export const bo = {
       cursor: 'Curseur le plus marqué',
       pole: 'Pôle',
       quality: 'Qualité vue par le jeune',
-      balancedCursor: 'Aucun à plus de 8 points du milieu',
+      balancedCursor: 'Aucun à plus de 8\u00a0points du milieu',
     },
     method: {
       title: 'Méthode',

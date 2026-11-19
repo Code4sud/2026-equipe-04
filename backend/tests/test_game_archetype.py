@@ -195,7 +195,9 @@ def test_the_method_page_lists_every_archetype_and_its_pole(client, psychologist
 
 def test_the_backoffice_explains_the_margin_the_server_uses():
     # Le panneau et la page Méthode citent la marge en clair : elle doit rester celle du serveur.
+    # Une espace insécable (écrite \u00a0 dans le fichier) garde le nombre avec « points ».
     text = (GAME_FRONT / "backoffice" / "backoffice.fr.ts").read_text(encoding="utf-8")
+    text = text.replace("\\u00a0", " ").replace("\u00a0", " ")
     assert text.count(f"plus de {BALANCED_MARGIN} points du milieu") >= 2
 
 
