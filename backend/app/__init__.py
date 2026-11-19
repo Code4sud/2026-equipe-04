@@ -16,7 +16,8 @@ from .services.extraction import ExtractionService
 from .services.referentiel import Referentiel
 from .services.talent_detector import TalentDetector
 from .services.guardrails import Guardrails
-from .services.llm import OllamaClient
+from .services.llm import ChatPriority, OllamaClient
+from .services.moderation import Moderator
 from .services.prompts import PromptLibrary
 from .services.transcripts import S3TranscriptStore
 
@@ -57,8 +58,15 @@ def _register_services(app: Flask, overrides: dict) -> None:
     prompts = PromptLibrary(config["PROMPTS_DIR"])
     guardrails = Guardrails(prompts)
     llm = overrides.get("llm") or OllamaClient(
-        config["OLLAMA_URL"], config["OLLAMA_MODEL"], config["OLLAMA_TIMEOUT"]
+        config["OLLAMA_URL"],
+        config["OLLAMA_MODEL"],
+        config["OLLAMA_TIMEOUT"],
+        think=config["OLLAMA_THINK"],
+        priority=ChatPriority() if config["READER_YIELDS_TO_CHAT"] else None,
     )
+    # Lecteur de talents en parallèle de la discussion : même serveur Ollama, il cède la place
+    # au compagnon. Un autre modèle est possible (OLLAMA_READER_MODEL) si la machine le permet.
+    reader = llm.reader(config["OLLAMA_READER_MODEL"] or None) if hasattr(llm, "reader") else llm
     transcripts = overrides.get("transcripts") or S3TranscriptStore(
         config["S3_ENDPOINT"],
         config["S3_ACCESS_KEY"],
@@ -75,15 +83,16 @@ def _register_services(app: Flask, overrides: dict) -> None:
     else:
         embedder = OllamaEmbedder(config["OLLAMA_URL"], config["OLLAMA_EMBED_MODEL"], config["OLLAMA_TIMEOUT"])
     index = ReferentielIndex(embedder, referentiel) if embedder else None
-    detector = TalentDetector(llm, prompts, guardrails, referentiel, index)
+    detector = TalentDetector(reader, prompts, guardrails, referentiel, index)
     app.extensions.update(
         prompts=prompts,
         guardrails=guardrails,
         llm=llm,
         transcripts=transcripts,
         chat=ChatService(llm, transcripts, prompts, guardrails),
+        moderation=Moderator(llm, prompts),
         referentiel=referentiel,
-        extraction=ExtractionService(app, llm, transcripts, prompts, guardrails, detector),
+        extraction=ExtractionService(app, reader, transcripts, prompts, guardrails, detector),
         game_catalog=overrides.get("game_catalog") or Catalog(),
     )
 

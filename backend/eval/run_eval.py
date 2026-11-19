@@ -84,7 +84,7 @@ def run_baseline(detector, llm, guardrails, conversation) -> list:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default=os.environ.get("OLLAMA_URL", "http://localhost:11434"))
-    parser.add_argument("--model", default=os.environ.get("OLLAMA_MODEL", "mistral-nemo"))
+    parser.add_argument("--model", default=os.environ.get("OLLAMA_MODEL", "gemma4:12b"))
     parser.add_argument("--embed-model", default=os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"))
     parser.add_argument("--baseline", action="store_true")
     parser.add_argument("--only")

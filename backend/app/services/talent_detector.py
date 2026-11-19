@@ -185,8 +185,18 @@ class TalentDetector:
             logger.warning("Embeddings indisponibles, repérage sans rapprochement : %s", error)
             return [{} for _ in pieces]
 
+    @staticmethod
+    def _numbered(messages, prefix: str = "m") -> list[str]:
+        """Messages numérotés, précédés de la réplique de Truffe à laquelle ils répondent."""
+        lines = []
+        for index, message in enumerate(messages, start=1):
+            context = message.get("context", "").strip()
+            before = f"(Truffe : « {context} ») " if context else ""
+            lines.append(f"[{prefix}{index}] {before}{message['content']}")
+        return lines
+
     def _proposals(self, messages, known_names) -> list[dict]:
-        lines = [f"[m{index}] {m['content']}" for index, m in enumerate(messages, start=1)]
+        lines = self._numbered(messages)
         aliases = {f"m{index}": m["id"] for index, m in enumerate(messages, start=1)}
         known = ", ".join(known_names) if known_names else "aucune"
         prompt = (

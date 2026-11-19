@@ -3,7 +3,7 @@
 Le repérage lui-même (indices, référentiel ROME/ESCO, embeddings, vérification) est dans
 talent_detector.py. Ici : choix des messages à lire, doublons et enregistrement. Une
 compétence n'est enregistrée que si sa citation existe vraiment dans les messages du jeune et
-si elle respecte les garde-fous. Néo l'épingle directement ; le jeune peut la retirer.
+si elle respecte les garde-fous. Truffe l'épingle directement ; le jeune peut la retirer.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from ..errors import LLMError, StorageError
 from ..extensions import db
 from ..models import EXTRACTION_LEASE, Conversation, Skill, SkillAction, SkillStatus, utcnow
-from .chat import FLAG_CRISIS
+from .chat import is_shielded
 from .guardrails import name_key
 from .referentiel import CATEGORIES
 from .talent_detector import Finding, TalentDetector
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 MAX_SKILLS_PER_RUN = 4
 MAX_MESSAGES_PER_RUN = 12
 MIN_MESSAGE_CHARS = 12
+MAX_CONTEXT_CHARS = 220
 
 
 class ExtractionService:
@@ -105,16 +106,20 @@ class ExtractionService:
         conversation = db.session.get(Conversation, conversation_id)
         transcript = self.store.load(conversation.transcript_key)
         all_messages = transcript["messages"]
-        new_messages = all_messages[conversation.extracted_message_count :]
-        candidates = [
-            message
-            for message in new_messages
-            if message["role"] == "user"
-            and FLAG_CRISIS not in message.get("flags", [])
-            and len(message["content"]) >= MIN_MESSAGE_CHARS
-            # Santé, origine, religion : Néo a répondu hors sujet, rien à en tirer.
-            and not self.guardrails.is_sensitive(message["content"])
-        ][-MAX_MESSAGES_PER_RUN:]
+        start = conversation.extracted_message_count
+        candidates = []
+        for position, message in enumerate(all_messages[start:], start=start):
+            if (
+                message["role"] != "user"
+                # Détresse, violences confiées, sujets interdits : jamais lus pour les talents.
+                or is_shielded(message)
+                or len(message["content"]) < MIN_MESSAGE_CHARS
+                # Santé, origine, religion : Truffe a répondu hors sujet, rien à en tirer.
+                or self.guardrails.is_sensitive(message["content"])
+            ):
+                continue
+            candidates.append({**message, "context": self._question_before(all_messages, position)})
+        candidates = candidates[-MAX_MESSAGES_PER_RUN:]
         if not candidates:
             return len(all_messages)
 
@@ -148,6 +153,16 @@ class ExtractionService:
             accepted += 1
         db.session.commit()
         return len(all_messages)
+
+    @staticmethod
+    def _question_before(messages: list[dict], position: int) -> str:
+        """Ce que Truffe venait de dire : « tous les samedis » n'a de sens qu'avec la question."""
+        for message in reversed(messages[:position]):
+            if message["role"] == "assistant":
+                return message["content"][:MAX_CONTEXT_CHARS]
+            if message["role"] == "user":
+                return ""
+        return ""
 
     @staticmethod
     def _build_skill(conversation, finding: Finding) -> Skill:

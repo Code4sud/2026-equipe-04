@@ -15,7 +15,7 @@ from ..extensions import db
 from ..models import Conversation, ConversationStatus, Role, Skill, SkillStatus, YouthProfile
 from ..security import require_roles
 from ..services import service
-from ..services.chat import FLAG_CRISIS, FLAG_INTERRUPTED
+from ..services.chat import FLAG_CRISIS, FLAG_INTERRUPTED, FLAG_OFF_LIMITS, FLAG_REVEAL, FLAG_VICTIM
 from . import api
 from .helpers import json_body, text_field
 
@@ -43,17 +43,39 @@ def _own_conversation(conversation_id: uuid.UUID) -> Conversation:
     return conversation
 
 
+def _safety_card(flags: set[str]) -> dict | None:
+    """Contacts d'aide à afficher : détresse d'abord, puis confidence de violences subies."""
+    guardrails = service("guardrails")
+    if FLAG_CRISIS in flags:
+        return guardrails.crisis_card
+    if FLAG_VICTIM in flags:
+        return guardrails.victim_card
+    return None
+
+
+def _message_flags(content: str) -> list[str]:
+    """Lit le message avant toute réponse : détresse, violences subies ou sujet interdit."""
+    if service("guardrails").is_crisis(content):
+        return [FLAG_CRISIS]
+    verdict = service("moderation").check(content)
+    if verdict.distress:
+        return [FLAG_CRISIS]
+    if verdict.victim:
+        return [FLAG_VICTIM]
+    if verdict.forbidden:
+        return [FLAG_OFF_LIMITS]
+    return []
+
+
 def _conversation_payload(conversation: Conversation) -> dict:
     transcript = service("chat").transcript(conversation)
     messages = [public_message(message) for message in transcript["messages"]]
-    crisis_card = None
-    if any(FLAG_CRISIS in message["flags"] for message in messages):
-        crisis_card = service("guardrails").crisis_card
+    flags = {flag for message in messages for flag in message["flags"]}
     profile = db.session.get(YouthProfile, conversation.youth_id)
     return {
         "conversation": conversation.to_dict(),
         "messages": messages,
-        "safety": crisis_card,
+        "safety": _safety_card(flags),
         # Le jeune voit toujours si cette discussion est lisible par la psychologue.
         "share_transcripts": bool(profile and profile.share_transcripts),
     }
@@ -98,7 +120,7 @@ def close_conversation(conversation_id: uuid.UUID):
 def post_message(conversation_id: uuid.UUID):
     """Enregistre le message du jeune puis diffuse la réponse du compagnon.
 
-    Événements : start, safety (si détresse repérée), reply, delta, done ou error.
+    Événements : start, safety (détresse ou violences confiées), reply, delta, done ou error.
     Avec {"retry": true}, relance la réponse au dernier message resté sans réponse.
     """
     conversation = _own_conversation(conversation_id)
@@ -113,17 +135,16 @@ def post_message(conversation_id: uuid.UUID):
         last = transcript["messages"][-1]
         if last["role"] != "user":
             raise ApiError(409, "nothing_to_retry", "Aucun message en attente de réponse.")
-        crisis = FLAG_CRISIS in last.get("flags", [])
+        flags = last.get("flags", [])
     else:
         maximum = current_app.config["MAX_MESSAGE_CHARS"]
         content = text_field(data, "content", "Le message", 1, maximum)
-        crisis = service("guardrails").is_crisis(content)
-        flags = [FLAG_CRISIS] if crisis else []
+        flags = _message_flags(content)
         stored, transcript = chat.append_message(conversation.id, "user", content, flags)
         user_message = public_message(stored)
 
     stream = _reply_stream(
-        conversation_id, g.user.id, user_message, chat.plan_reply(transcript), crisis
+        conversation_id, g.user.id, user_message, chat.plan_reply(transcript), _safety_card(set(flags))
     )
     return Response(
         stream_with_context(stream),
@@ -132,11 +153,11 @@ def post_message(conversation_id: uuid.UUID):
     )
 
 
-def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
+def _reply_stream(conversation_id, youth_id, user_message, plan, safety):
     chat = service("chat")
     yield _sse("start", {"user_message": user_message})
-    if crisis:
-        yield _sse("safety", service("guardrails").crisis_card)
+    if safety:
+        yield _sse("safety", safety)
 
     # Détresse et sujets sensibles reçoivent un texte relu, jamais une génération libre.
     prepared, kind, revealed = chat.prepared_reply(plan)
@@ -150,7 +171,7 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
     try:
         with closing(source) as tokens:
             for token in tokens:
-                # Mistral commence souvent sa réponse par une espace.
+                # Certains modèles commencent leur réponse par une espace.
                 if not parts:
                     token = token.lstrip()
                     if not token:
@@ -170,7 +191,8 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         yield _sse("error", {"code": "empty_reply"})
         return
     try:
-        assistant_message, _ = chat.append_message(conversation_id, "assistant", reply)
+        reply_flags = [FLAG_REVEAL] if revealed is not None else None
+        assistant_message, _ = chat.append_message(conversation_id, "assistant", reply, reply_flags)
     except StorageError as error:
         logger.error("Réponse non enregistrée : %s", error)
         yield _sse("error", {"code": "storage_unavailable"})

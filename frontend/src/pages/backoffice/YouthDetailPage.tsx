@@ -99,6 +99,13 @@ function ConversationItem({
           {messages.map((message) => (
             <p key={message.id} className={`transcript__line transcript__line--${message.role}`}>
               <strong>{message.role === 'user' ? t.youth : t.companion}</strong>
+              {message.flags
+                .filter((flag) => flag in t.messageFlags)
+                .map((flag) => (
+                  <span key={flag} className="status status--alert transcript__flag">
+                    {t.messageFlags[flag]}
+                  </span>
+                ))}
               <Highlight
                 text={message.content}
                 quote={talents.find((talent) => talent.source_message_id === message.id)?.quote}

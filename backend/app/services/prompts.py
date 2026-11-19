@@ -48,13 +48,5 @@ class PromptLibrary:
         return self.text("verification.md")
 
     @property
-    def question(self) -> str:
-        return self.text("question.md")
-
-    @property
-    def question_examples(self) -> list[dict]:
-        return self.json("question_exemples.json")
-
-    @property
     def reveal(self) -> str:
         return self.text("revelation.md")

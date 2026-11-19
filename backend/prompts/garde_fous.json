@@ -1,21 +1,209 @@
 {
   "detresse": {
     "termes": [
-      "suicid*", "me tuer", "me foutre en l'air", "mettre fin a mes jours",
-      "en finir avec la vie", "envie d'en finir", "veux en finir", "vais en finir",
-      "plus envie de vivre", "marre de vivre", "envie de mourir", "veux mourir",
-      "voudrais mourir", "aimerais mourir", "veux disparaitre", "me faire du mal", "me scarifi*",
-      "me mutil*", "me frappe", "me frappent", "me viole", "me violent"
+      "suicid*",
+      "me tuer",
+      "me foutre en l'air",
+      "mettre fin a mes jours",
+      "en finir avec la vie",
+      "envie d'en finir",
+      "veux en finir",
+      "vais en finir",
+      "plus envie de vivre",
+      "marre de vivre",
+      "envie de mourir",
+      "veux mourir",
+      "voudrais mourir",
+      "aimerais mourir",
+      "veux disparaitre",
+      "me faire du mal",
+      "me scarifi*",
+      "me mutil*"
     ],
     "reponse": "Merci de me l'avoir dit. Ce que tu vis est important et je le prends au sérieux. Je suis une IA et je ne peux pas t'aider comme une personne le ferait : tu peux appeler le 3114 maintenant, c'est gratuit, confidentiel et quelqu'un te répond 24h/24. Si tu es en danger immédiat, appelle le 112. Est-ce que tu es en sécurité en ce moment ?",
+    "apres_reponse": [
+      "Merci de me répondre. Je reste là si tu veux parler, et le 3114 répond à toute heure si ça ne va pas.",
+      "D'accord. Prends soin de toi : si ça redevient trop lourd, le 3114 est là jour et nuit, gratuitement."
+    ],
     "consigne_modele": "ATTENTION : la personne a récemment exprimé une grande détresse ou un danger. Ne parle pas de compétences. Réponds avec douceur et sans jugement, demande-lui si elle est en sécurité, rappelle que tu es une IA et encourage-la à parler à quelqu'un : le 3114, gratuit, 24h/24, ou le 112 en cas de danger immédiat.",
     "message": "Ce que tu vis compte. Tu peux parler à quelqu'un maintenant, gratuitement et sans jugement.",
     "ressources": [
-      {"nom": "3114", "description": "Prévention du suicide, 24h/24 et 7j/7", "contact": "3114"},
-      {"nom": "112", "description": "Urgence, si tu es en danger immédiat", "contact": "112"},
-      {"nom": "119", "description": "Enfance en danger, pour les moins de 18 ans, 24h/24", "contact": "119"},
-      {"nom": "Fil Santé Jeunes", "description": "Écoute anonyme pour les 12-25 ans, de 9h à 23h", "contact": "0800235236"}
+      {
+        "nom": "3114",
+        "description": "Prévention du suicide, 24h/24 et 7j/7",
+        "contact": "3114"
+      },
+      {
+        "nom": "112",
+        "description": "Urgence, si tu es en danger immédiat",
+        "contact": "112"
+      },
+      {
+        "nom": "119",
+        "description": "Enfance en danger, pour les moins de 18 ans, 24h/24",
+        "contact": "119"
+      },
+      {
+        "nom": "Fil Santé Jeunes",
+        "description": "Écoute anonyme pour les 12-25 ans, de 9h à 23h",
+        "contact": "0800235236"
+      }
     ]
+  },
+  "victime": {
+    "note": "Le jeune confie subir des violences, un abus, du harcèlement ou des menaces : Truffe ne le renvoie jamais, il l'oriente vers de l'aide et la psychologue voit le message signalé. Le modèle repère aussi les confidences sans ces mots.",
+    "termes": [
+      "me frapp*",
+      "me tape dessus",
+      "me tapent dessus",
+      "me viole*",
+      "m a viole*",
+      "m ont viole*",
+      "violee",
+      "abus sexuel*",
+      "agression sexuelle",
+      "agressions sexuelles",
+      "violence sexuelle",
+      "violences sexuelles",
+      "attouchement*",
+      "abuse de moi",
+      "abusent de moi",
+      "m a agresse*",
+      "m ont agresse*",
+      "me harcel*",
+      "harcele",
+      "harcelee",
+      "harcelement*",
+      "cyberharcel*",
+      "me racket*",
+      "me fais racketter",
+      "me fait racketter",
+      "me menace*",
+      "me fait du chantage",
+      "me font du chantage",
+      "photos de moi nue*",
+      "photo de moi nue*",
+      "me force a",
+      "fais harcel*",
+      "fait harcel*",
+      "fais agresser",
+      "fait agresser",
+      "fais frapper",
+      "fait frapper",
+      "fais menacer",
+      "fait menacer",
+      "fais insulter tous les jours"
+    ],
+    "reponse": "Merci de m'avoir fait confiance. Ce que tu vis n'est pas normal et ce n'est pas de ta faute. Je ne peux pas parler de ce sujet comme une personne le ferait, mais des gens sont là pour t'aider : le 119 (24h/24, si tu as moins de 18 ans) ou le 116 006 (aide aux victimes, 7j/7). Si tu es en danger maintenant, appelle le 17. Tu peux aussi en parler à ta psychologue du Centre.",
+    "message": "Tu n'as pas à garder ça pour toi. Ces numéros sont gratuits et confidentiels.",
+    "ressources": [
+      {
+        "nom": "119",
+        "description": "Enfance en danger, pour les moins de 18 ans, 24h/24",
+        "contact": "119"
+      },
+      {
+        "nom": "116 006",
+        "description": "Aide aux victimes, gratuit, 7j/7 de 9h à 20h",
+        "contact": "116006"
+      },
+      {
+        "nom": "3018",
+        "description": "Harcèlement et violences en ligne, 7j/7 de 9h à 23h",
+        "contact": "3018"
+      },
+      {
+        "nom": "17",
+        "description": "Police secours, si tu es en danger maintenant",
+        "contact": "17"
+      }
+    ],
+    "reponses_suite": [
+      "Je t'entends, et je te crois. Ça mérite que quelqu'un t'aide pour de vrai : le 3018 pour ce qui se passe en ligne, le 116 006 pour le reste, ou ta psychologue du Centre.",
+      "Ce que tu racontes est sérieux, et tu as bien fait d'en parler. Je ne peux pas en discuter avec toi, mais les numéros juste au-dessus sont là pour ça, gratuitement."
+    ],
+    "apres_confidence": [
+      "Avec plaisir. Je reste là : si tu veux, on peut parler d'autre chose, à ton rythme.",
+      "Je suis là. Quand tu veux, on peut discuter de ce que tu aimes faire, sans pression."
+    ]
+  },
+  "sujets_interdits": {
+    "note": "Sujets dont Truffe ne parle pas : il répond « Je ne peux pas parler de ce sujet » puis propose autre chose. Ces mots explicites suffisent ; le modèle (prompts/moderation.md) repère le reste selon le contexte. Ne mettre ici que des termes sans double sens (« j'ai tué le game » doit rester une discussion normale).",
+    "sexuel": [
+      "porno*",
+      "pornographi*",
+      "nudes",
+      "sextape*",
+      "onlyfans",
+      "plan cul",
+      "plans cul",
+      "sexe",
+      "sexuel*",
+      "masturb*",
+      "branlette*",
+      "fellation*",
+      "sodomi*",
+      "partouze*",
+      "coucher avec",
+      "baiser avec",
+      "nichon*",
+      "faire l amour"
+    ],
+    "illegal": [
+      "cocaine",
+      "beuh",
+      "cannabis",
+      "ecstasy",
+      "mdma",
+      "acheter de la drogue",
+      "vendre de la drogue",
+      "trafic de drogue",
+      "vol a l etalage",
+      "voler dans un magasin",
+      "carte bancaire volee",
+      "cartes bancaires volees",
+      "arme a feu",
+      "armes a feu",
+      "kalach*",
+      "flingue*",
+      "pirater le compte",
+      "pirater un compte",
+      "faux billet*",
+      "fausse monnaie"
+    ],
+    "violence": [
+      "fabriquer une bombe",
+      "bombe artisanale",
+      "decapit*",
+      "egorg*"
+    ],
+    "haine": [
+      "sale arabe",
+      "sale noir",
+      "sale juif",
+      "sale noire",
+      "sale juive",
+      "bougnoul*",
+      "youpin*",
+      "negro",
+      "sale pd",
+      "grosse pute",
+      "sale pute"
+    ]
+  },
+  "hors_cadre": {
+    "refus": "Je ne peux pas parler de ce sujet.",
+    "avec_citation": [
+      "Par contre, tout à l'heure tu m'as dit « {citation} » : raconte-moi comment ça se passe.",
+      "Revenons plutôt à « {citation} », ça m'intéresse bien plus. Tu t'y prends comment ?"
+    ],
+    "propositions": [
+      "Parle-moi plutôt de ce que tu fais quand t'as du temps pour toi : un jeu, un sport, un truc que tu kiffes ?",
+      "Par contre, je suis curieux de savoir ce qui t'a occupé ces derniers jours.",
+      "On change de route : c'est quoi le dernier coup de main que t'as donné à quelqu'un ?",
+      "Et si tu me racontais plutôt un truc que t'as appris tout seul ?"
+    ],
+    "explication": "C'est un sujet que je laisse de côté ici : je suis là pour parler de ce que tu fais au quotidien et de ce que tu sais faire."
   },
   "reponses_sujet_sensible": [
     "Merci de me le confier, c'est à toi d'en parler comme tu veux. Si tu en as envie, raconte-moi plutôt ce que tu aimes faire quand tu as un moment pour toi.",
@@ -25,40 +213,132 @@
   "consigne_famille": "La personne évoque un proche : parle uniquement de ce qu'elle fait elle-même, sans nommer ce proche, sans le commenter, sans poser aucune question sur lui et sans rien déduire.",
   "talents_refuses": {
     "note": "Mots refusés dans un talent (nom, description ou citation) mais pas dans la discussion : « je veux devenir infirmière » reste une conversation normale.",
-    "termes": ["medecin*", "medica*", "docteur*", "pharmac*", "ordonnance*", "kine*", "infirmi*", "soin medical", "soins medicaux"]
+    "termes": [
+      "medecin*",
+      "medica*",
+      "docteur*",
+      "pharmac*",
+      "ordonnance*",
+      "kine*",
+      "infirmi*",
+      "soin medical",
+      "soins medicaux"
+    ]
   },
   "sujets_sensibles": {
     "sante": {
       "bloque_citation": true,
       "termes": [
-        "sante", "malade", "maladie", "handicap*", "depress*", "anxi*", "cancer", "diabet*",
-        "psychiatr*", "psychotrop*", "therapie", "therapeute", "medicament", "hopital", "hopitaux",
-        "autis*", "tdah", "dyslex*", "dyspraxi*", "bipolaire", "schizophren*", "addiction",
+        "sante",
+        "malade",
+        "maladie",
+        "handicap*",
+        "depress*",
+        "anxi*",
+        "cancer",
+        "diabet*",
+        "psychiatr*",
+        "psychotrop*",
+        "therapie",
+        "therapeute",
+        "medicament",
+        "hopital",
+        "hopitaux",
+        "autis*",
+        "tdah",
+        "dyslex*",
+        "dyspraxi*",
+        "bipolaire",
+        "schizophren*",
+        "addiction",
         "alcoolique"
       ]
     },
     "origine": {
       "bloque_citation": true,
       "termes": [
-        "mes origines", "ses origines", "mon origine", "son origine", "origine etrangere",
-        "origine ethnique", "pays d'origine", "nationalite", "immigr*", "ethni*",
-        "couleur de peau", "racial*", "racis*", "sans papiers", "titre de sejour", "pays natal"
+        "mes origines",
+        "ses origines",
+        "mon origine",
+        "son origine",
+        "origine etrangere",
+        "origine ethnique",
+        "pays d'origine",
+        "nationalite",
+        "immigr*",
+        "ethni*",
+        "couleur de peau",
+        "racial*",
+        "racis*",
+        "sans papiers",
+        "titre de sejour",
+        "pays natal"
       ]
     },
     "religion": {
       "bloque_citation": true,
       "termes": [
-        "religion", "religieu*", "priere", "musulman*", "chretien*", "catholique", "protestant*",
-        "juif", "juive", "juifs", "juives", "bouddhist*", "hindou*", "mosquee", "eglise",
-        "synagogue", "temple", "ramadan", "islam*", "coran", "bible", "torah", "ma foi", "sa foi"
+        "religion",
+        "religieu*",
+        "priere",
+        "musulman*",
+        "chretien*",
+        "catholique",
+        "protestant*",
+        "juif",
+        "juive",
+        "juifs",
+        "juives",
+        "bouddhist*",
+        "hindou*",
+        "mosquee",
+        "eglise",
+        "synagogue",
+        "temple",
+        "ramadan",
+        "islam*",
+        "coran",
+        "bible",
+        "torah",
+        "ma foi",
+        "sa foi"
       ]
     },
     "famille": {
       "bloque_citation": false,
       "termes": [
-        "famille", "familial*", "mere", "maman", "pere", "papa", "parent", "parental*", "frere",
-        "soeur", "fratrie", "grand mere", "grand pere", "grands parents", "fils", "fille",
-        "conjoint", "conjointe", "mari", "orphelin*", "divorce"
+        "famille",
+        "familial*",
+        "mere",
+        "maman",
+        "pere",
+        "papa",
+        "parent",
+        "parental*",
+        "frere",
+        "soeur",
+        "fratrie",
+        "grand mere",
+        "grand pere",
+        "grands parents",
+        "fils",
+        "fille",
+        "conjoint",
+        "conjointe",
+        "mari",
+        "orphelin*",
+        "divorce",
+        "oncle",
+        "tante",
+        "cousin*",
+        "neveu",
+        "niece",
+        "beau pere",
+        "belle mere",
+        "demi frere",
+        "demi soeur",
+        "tonton",
+        "tata"
       ]
     }
   }

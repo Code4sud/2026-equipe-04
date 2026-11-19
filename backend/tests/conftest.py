@@ -52,10 +52,12 @@ class FakeLLM:
         self.json_calls: list[tuple[str, str]] = []
         self.reveal = {"citation": "", "savoir_faire": ""}
         self.reveal_calls: list[str] = []
-        self.questions: list[dict] = []
-        self.question_calls: list[str] = []
+        # Garde-fou : catégorie rendue par le modèle, et relecture d'une alerte.
+        self.moderation = "ok"
+        self.confirm = True
+        self.moderation_calls: list[str] = []
 
-    def chat_stream(self, messages):
+    def chat_stream(self, messages, options=None):
         self.chat_calls.append(messages)
         if self.fail:
             raise LLMError("indisponible")
@@ -64,12 +66,17 @@ class FakeLLM:
             return
         yield from self.tokens
 
-    def generate_json(self, system, user, schema, temperature=None, examples=None):
+    def complete(self, messages, options=None):
+        return "".join(self.chat_stream(messages, options))
+
+    def generate_json(self, system, user, schema, temperature=None, examples=None, options=None):
         if self.fail:
             raise LLMError("indisponible")
-        if "question" in schema["properties"]:
-            self.question_calls.append(user)
-            return self.questions.pop(0) if self.questions else {}
+        if "confirme" in schema["properties"]:
+            return {"confirme": self.confirm}
+        if set(schema["properties"]) == {"categorie"}:
+            self.moderation_calls.append(user)
+            return {"categorie": self.moderation}
         if "savoir_faire" in schema["properties"]:
             self.reveal_calls.append(user)
             return self.reveal

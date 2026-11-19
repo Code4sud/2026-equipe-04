@@ -33,6 +33,13 @@ def _int(name: str, default: int) -> int:
     return int(os.environ.get(name) or default)
 
 
+def _flag(name: str, default: bool) -> bool:
+    value = os.environ.get(name, "").strip().lower()
+    if not value:
+        return default
+    return value in {"1", "true", "oui", "yes", "on"}
+
+
 def load_config() -> dict:
     database_url = normalize_database_url(os.environ.get("DATABASE_URL", ""))
     origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
@@ -46,7 +53,14 @@ def load_config() -> dict:
         "S3_BUCKET": os.environ.get("S3_BUCKET", "conversations"),
         "S3_REGION": os.environ.get("S3_REGION", "us-east-1"),
         "OLLAMA_URL": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
-        "OLLAMA_MODEL": os.environ.get("OLLAMA_MODEL", "mistral-nemo"),
+        # Gemma 4 12B : meilleur compromis mesuré le 2026-11-19 sur un Mac 24 Go (voir docs/ia.md).
+        "OLLAMA_MODEL": os.environ.get("OLLAMA_MODEL", "gemma4:12b"),
+        # Modèle du lecteur de talents ; vide = le même que la discussion (un seul modèle en mémoire).
+        "OLLAMA_READER_MODEL": os.environ.get("OLLAMA_READER_MODEL", ""),
+        # Réflexion avant de répondre (Gemma 4, Qwen 3.5) : coupée, elle triple le temps de réponse.
+        "OLLAMA_THINK": _flag("OLLAMA_THINK", False),
+        # Le lecteur s'interrompt quand le jeune attend une réponse (Ollama sert une requête à la fois).
+        "READER_YIELDS_TO_CHAT": _flag("READER_YIELDS_TO_CHAT", True),
         "OLLAMA_TIMEOUT": _int("OLLAMA_TIMEOUT", 300),
         # Embeddings multilingues pour rapprocher le récit du référentiel ROME/ESCO ; vide = désactivé.
         "OLLAMA_EMBED_MODEL": os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"),
@@ -60,7 +74,7 @@ def load_config() -> dict:
         # Rythme d'affichage des réponses déjà écrites, en secondes par mot.
         "PREPARED_REPLY_WORD_DELAY": 0.025,
         # Nombre de nouveaux messages (jeune + compagnon) avant une analyse automatique :
-        # 2 = après chaque message du jeune et la réponse de Néo.
+        # 2 = après chaque message du jeune et la réponse de Truffe.
         "EXTRACTION_EVERY_MESSAGES": _int("EXTRACTION_EVERY_MESSAGES", 2),
         "EXTRACTION_SYNC": False,
         "SEED_PSY_EMAIL": os.environ.get("SEED_PSY_EMAIL", "psy@example.org"),

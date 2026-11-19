@@ -1,9 +1,11 @@
 """Garde-fous déterministes : ils s'appliquent même si le modèle se trompe.
 
 - repérage de messages de détresse (affiche des contacts d'aide au jeune) ;
+- textes relus pour les confidences de violences subies et pour les sujets interdits
+  (le repérage lui-même est dans moderation.py) ;
 - refus des compétences qui touchent à la santé, l'origine, la famille ou la religion ;
 - vérification que chaque citation vient réellement des mots du jeune.
-Les listes de termes se modifient dans prompts/garde_fous.json.
+Les listes de termes et les textes se modifient dans prompts/garde_fous.json.
 """
 from __future__ import annotations
 
@@ -148,6 +150,28 @@ class Guardrails:
     def crisis_card(self) -> dict:
         crisis = self._load()["detresse"]
         return {"message": crisis["message"], "resources": crisis["ressources"]}
+
+    @property
+    def crisis_follow_ups(self) -> list[str]:
+        return self._load()["detresse"]["apres_reponse"]
+
+    @property
+    def victim_reply(self) -> str:
+        return self._load()["victime"]["reponse"]
+
+    @property
+    def victim_texts(self) -> dict:
+        return self._load()["victime"]
+
+    @property
+    def victim_card(self) -> dict:
+        victim = self._load()["victime"]
+        return {"message": victim["message"], "resources": victim["ressources"]}
+
+    @property
+    def off_limits(self) -> dict:
+        """Refus des sujets interdits et pistes proposées à la place."""
+        return self._load()["hors_cadre"]
 
     def sensitive_reply(self, text: str, turn: int) -> str | None:
         """Réponse relue si le message touche à la santé, l'origine ou la religion."""

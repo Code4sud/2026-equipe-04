@@ -1,7 +1,6 @@
 """Vie d'une conversation : création, ajout de messages, contexte envoyé au modèle."""
 from __future__ import annotations
 
-import json
 import logging
 import re
 import uuid
@@ -23,42 +22,49 @@ logger = logging.getLogger(__name__)
 
 FLAG_CRISIS = "crisis"
 FLAG_INTERRUPTED = "interrupted"
+# Réponse de Truffe qui annonce un talent : la réponse courte qui suit en tient compte.
+FLAG_REVEAL = "revelation"
+# Le jeune confie subir des violences : orienté vers de l'aide, signalé à la psychologue.
+FLAG_VICTIM = "victime"
+# Sujet interdit (sexe, actes illégaux, violence, haine) : Truffe n'en parle pas.
+FLAG_OFF_LIMITS = "hors_cadre"
+# Messages jamais analysés pour les talents ni relus par le modèle de discussion.
+SHIELDED_FLAGS = (FLAG_CRISIS, FLAG_VICTIM, FLAG_OFF_LIMITS)
+HIDDEN_FROM_MODEL = "[message retiré : sujet dont Truffe ne parle pas]"
 # Après un message de détresse, le compagnon reste prudent pendant quelques échanges.
 RECENT_CRISIS_WINDOW = 3
 FOLLOW_UP_WORDS = 20
 REVEAL_SOURCE_MESSAGES = 1
 SHORT_MESSAGE_WORDS = 3
 PASSIVE_MESSAGE_WORDS = 6
+BRIEF_MESSAGE_WORDS = 8
 MIN_STORY_WORDS = 4
 MAX_ENCOURAGING_QUOTE_CHARS = 90
-MODEL_ATTEMPTS = 2
 RECENT_REPLIES_COMPARED = 6
 SIMILAR_REPLY_RATIO = 0.72
-QUESTION_TEMPERATURES = (0.35, 0.5, 0.65)
-MAX_REACTION_WORDS = 13
-MAX_QUESTION_WORDS = 18
-MAX_FREE_REPLY_WORDS = 35
-# Tournures fréquentes de Mistral en français : « tu choisis-tu », « tu organisez », « Il semble ».
+SIMILAR_QUESTION_RATIO = 0.8
+REPLY_TEMPERATURES = (0.7, 0.8, 0.9)
+MAX_FREE_REPLY_WORDS = 45
+MAX_REVEAL_QUOTE_CHARS = 140
+MAX_REVEAL_SKILL_CHARS = 70
+_INFINITIVE = re.compile(r"^(?:s |se |me )?\w+(?:er|ir|re)\b")
+# Tournures fautives fréquentes des petits modèles : « tu choisis-tu », « tu organisez ».
 _BROKEN_FRENCH = re.compile(
     r"\btu\s+(?:[\w’'-]+\s+){0,2}?[\w’'-]+-tu\b|\btu\s+(?:les?\s+|la\s+)?\w+ez\b|\bt[’']\w+-tu\b",
     re.IGNORECASE,
 )
 _THIRD_PERSON_START = re.compile(r"^(?:il|elle|on dirait|la personne)\b", re.IGNORECASE)
-RECENT_STORY_MESSAGES = 4
-RECENT_QUESTIONS = 4
-COMMON_WORDS = frozenset(
-    "alors aussi avec avoir beaucoup comme dans depuis des fois fait faire fais juste mais meme "
-    "moins plus pour quand quoi sais suis sans sont souvent tout tous tres trop vraiment".split()
+# Mot répété par erreur : « une sacrée sacrée dose » (« vous vous » reste correct).
+_REPEATED_WORD = re.compile(r"\b(?!(?:nous|vous)\b)(\w{3,})\s+\1\b", re.IGNORECASE)
+# Élision oubliée : « qui te occupe », « je aime », « de un ».
+_MISSING_ELISION = re.compile(
+    r"\b(?:je|me|te|se|le|la|ne|de|que)\s+(?!(?:ouf|oui|ouais|onze|un|une|ouest|ok)\b)[aeiouéèêàâîïôû]\w*",
+    re.IGNORECASE,
 )
-QUESTION_SCHEMA = {
-    "type": "object",
-    "properties": {"reaction": {"type": "string"}, "question": {"type": "string"}},
-    "required": ["reaction", "question"],
-}
-SIMILAR_QUESTION_RATIO = 0.8
-MAX_REVEAL_QUOTE_CHARS = 140
-MAX_REVEAL_SKILL_CHARS = 70
-_INFINITIVE = re.compile(r"^(?:s |se |me )?\w+(?:er|ir|re)\b")
+_GREETING_START = re.compile(r"^(?:salut|bonjour|bonsoir|coucou|hello|hey)\b", re.IGNORECASE)
+# Le lecteur de talents s'en charge avec une citation vérifiée : le compagnon n'en parle pas.
+_TALENT_WORDS = re.compile(r"\b(?:talents?|compétences?)\b", re.IGNORECASE)
+_SPEAKER_PREFIX = re.compile(r"^\s*(?:truffe|toi|moi)\s*:\s*", re.IGNORECASE)
 
 REVEAL_SCHEMA = {
     "type": "object",
@@ -73,7 +79,7 @@ REVEAL_SCHEMA = {
 
 @dataclass(frozen=True)
 class RevealedTalent:
-    """Talent annoncé par Néo dans sa réponse, enregistré tout de suite pour le jeune."""
+    """Talent annoncé par Truffe dans sa réponse, enregistré tout de suite pour le jeune."""
 
     name: str
     quote: str
@@ -85,18 +91,17 @@ class RevealedTalent:
 class ReplyPlan:
     kind: str = "model"
     fixed_text: str | None = None
-    # Réponse générée au fil de l'eau, aussi utilisée si la révélation n'aboutit pas.
+    # Réponse générée par le modèle, aussi utilisée si la révélation n'aboutit pas.
     messages: list[dict] | None = None
     reveal_from: tuple[dict, ...] = ()
     reveal_formula: str = ""
     companion_text: str = ""
     previous_replies: tuple[str, ...] = ()
     forbidden_phrases: tuple[str, ...] = ()
-    question_prompt: str | None = None
-    last_message: str = ""
-    generic_questions: tuple[str, ...] = ()
     fallback_replies: tuple[str, ...] = ()
     turn: int = 0
+    # Ce tour-ci, Truffe réagit ou invite à raconter sans poser de question.
+    no_question: bool = False
 
 
 def _similarity(first: str, second: str) -> float:
@@ -118,17 +123,27 @@ def _is_repetition(reply: str, previous: tuple[str, ...]) -> bool:
 
 
 def _reads_badly(text: str) -> bool:
-    return bool(_BROKEN_FRENCH.search(text) or _THIRD_PERSON_START.match(text.strip()))
+    return bool(
+        _BROKEN_FRENCH.search(text)
+        or _THIRD_PERSON_START.match(text.strip())
+        or _MISSING_ELISION.search(text)
+        or _REPEATED_WORD.search(text)
+    )
 
 
-def _topic_stems(text: str) -> set[str]:
-    return {word[:4] for word in words(text) if len(word) >= 4 and word not in COMMON_WORDS}
+def _clean_reply(text: str) -> str:
+    reply = _SPEAKER_PREFIX.sub("", text.strip())
+    return reply.strip().strip('"“”«»').strip()
 
 
 def _fresh_reply(replies: list[str] | tuple[str, ...], said: list[str], turn: int) -> str:
     """Prend la prochaine réponse pas encore dite dans cette conversation."""
     rotated = [replies[(turn + index) % len(replies)] for index in range(len(replies))]
     return next((reply for reply in rotated if reply not in said), rotated[0])
+
+
+def is_shielded(message: dict) -> bool:
+    return any(flag in message.get("flags", []) for flag in SHIELDED_FLAGS)
 
 
 class ChatService:
@@ -215,9 +230,34 @@ class ChatService:
         last = youth_messages[-1]
         turn = len(youth_messages)
         text = last["content"]
+        flags = last.get("flags", [])
+        said = [m["content"] for m in transcript["messages"] if m["role"] == "assistant"]
 
-        if FLAG_CRISIS in last.get("flags", []):
+        if FLAG_CRISIS in flags:
             return ReplyPlan(kind="crisis", fixed_text=self.guardrails.crisis_reply)
+        earlier_flags = {flag for m in youth_messages[:-1] for flag in m.get("flags", [])}
+        if FLAG_VICTIM in flags:
+            if FLAG_VICTIM in earlier_flags:
+                # La confidence continue : les numéros sont déjà affichés, on ne les répète pas.
+                follow = self.guardrails.victim_texts["reponses_suite"]
+                return ReplyPlan(kind="victim", fixed_text=_fresh_reply(follow, said, turn))
+            return ReplyPlan(kind="victim", fixed_text=self.guardrails.victim_reply)
+        if FLAG_OFF_LIMITS in flags:
+            reply = self._off_limits_reply(youth_messages[:-1], said, turn)
+            return ReplyPlan(kind="off_limits", fixed_text=reply)
+        brief = len(words(text)) < BRIEF_MESSAGE_WORDS
+        previous_flags = youth_messages[-2].get("flags", []) if turn > 1 else []
+        if brief and FLAG_OFF_LIMITS in previous_flags:
+            # « Pourquoi ? » juste après un refus : on explique, sans revenir sur le sujet.
+            reply = self._off_limits_reply(youth_messages[:-1], said, turn, explain=True)
+            return ReplyPlan(kind="off_limits", fixed_text=reply)
+        if brief and (FLAG_VICTIM in previous_flags or FLAG_CRISIS in previous_flags):
+            texts = (
+                self.guardrails.victim_texts["apres_confidence"]
+                if FLAG_VICTIM in previous_flags
+                else self.guardrails.crisis_follow_ups
+            )
+            return ReplyPlan(kind="sensitive", fixed_text=_fresh_reply(texts, said, turn))
         sensitive = self.guardrails.sensitive_reply(text, turn)
         # Une courte relance juste après un sujet sensible reste sur ce sujet.
         if not sensitive and len(youth_messages) > 1 and len(words(text)) < FOLLOW_UP_WORDS:
@@ -228,12 +268,19 @@ class ChatService:
         settings = self.prompts.conversation
         if matches_any(text, settings["identite"]["declencheurs"]):
             return ReplyPlan(kind="identity", fixed_text=settings["identite"]["reponse"])
-        said = [m["content"] for m in transcript["messages"] if m["role"] == "assistant"]
         if matches_any(text, settings["encouragement"]["declencheurs"]):
             reply = self._encouragement(youth_messages[:-1], said, turn, settings)
             return ReplyPlan(kind="encourage", fixed_text=reply)
         normalized = " ".join(words(text))
         is_one_of = lambda triggers: normalized in {" ".join(words(t)) for t in triggers}
+        assistant = [m for m in transcript["messages"] if m["role"] == "assistant"]
+        if assistant and FLAG_REVEAL in assistant[-1].get("flags", []):
+            # « Ouais » juste après un talent annoncé : on le fête ou on rassure, sans relancer à vide.
+            after = settings["apres_revelation"]
+            if is_one_of(after["oui"]):
+                return ReplyPlan(kind="reveal_answer", fixed_text=_fresh_reply(after["reponses_oui"], said, turn))
+            if is_one_of(after["non"]):
+                return ReplyPlan(kind="reveal_answer", fixed_text=_fresh_reply(after["reponses_non"], said, turn))
         if is_one_of(settings["salutations"]["declencheurs"]):
             reply = _fresh_reply(settings["salutations"]["reponses"], said, turn)
             return ReplyPlan(kind="greeting", fixed_text=reply)
@@ -244,28 +291,28 @@ class ChatService:
         if passive or is_one_of(relaunch["declencheurs"]):
             reply = _fresh_reply(settings["relances"]["reponses"], said, turn)
             return ReplyPlan(kind="relaunch", fixed_text=reply)
-        # Trop peu de matière pour le modèle : il inventerait ou se répéterait.
         if len(words(text)) < SHORT_MESSAGE_WORDS:
-            return ReplyPlan(kind="followup", fixed_text=_fresh_reply(settings["rebonds"], said, turn))
+            # « Ouais » ne dit rien : relance relue. « Jett » répond à sa question : le modèle
+            # rebondit dessus, c'est ce qui rend la discussion naturelle.
+            asked = bool(assistant) and "?" in assistant[-1]["content"]
+            if not asked or is_one_of(settings["acquiescements"]["mots"]):
+                return ReplyPlan(kind="followup", fixed_text=_fresh_reply(settings["rebonds"], said, turn))
 
         in_crisis = any(
             FLAG_CRISIS in m.get("flags", []) for m in youth_messages[-RECENT_CRISIS_WINDOW:]
         )
-        messages = self._llm_messages(transcript, settings, in_crisis, turn)
+        turns = settings["tours"]
+        instruction, no_question = self._turn_instruction(transcript, turns, turn)
+        if in_crisis:
+            instruction, no_question = self.guardrails.crisis_instruction, False
         generation = {
-            "messages": messages,
+            "messages": self._llm_messages(transcript, settings, instruction),
             "previous_replies": tuple(said[-RECENT_REPLIES_COMPARED:]),
             "fallback_replies": tuple(settings["rebonds"]),
             "turn": turn,
             "forbidden_phrases": tuple(settings["phrases_interdites"]),
+            "no_question": no_question,
         }
-        turns = settings["tours"]
-        if not in_crisis:
-            generation.update(
-                question_prompt=self._question_prompt(youth_messages, said, turn, turns),
-                last_message=text,
-                generic_questions=tuple(turns["questions_passe_partout"]),
-            )
         every = turns["revelation_tous_les"]
         if in_crisis or turn % every or len(words(text)) < turns["mots_minimum_revelation"]:
             return ReplyPlan(**generation)
@@ -275,29 +322,48 @@ class ChatService:
             **generation,
             reveal_from=tuple(youth_messages[-REVEAL_SOURCE_MESSAGES:]),
             reveal_formula=formulas[(turn // every - 1) % len(formulas)],
-            companion_text=" ".join(
-                name_key(m["content"]) for m in transcript["messages"] if m["role"] == "assistant"
-            ),
+            companion_text=" ".join(name_key(reply) for reply in said),
         )
+
+    def _story_quote(self, earlier: list[dict], exclude: list[str]) -> str | None:
+        """Un passage court et sans risque de ce que le jeune a déjà raconté."""
+        for message in reversed(earlier):
+            story = message["content"].strip().rstrip(".!")
+            usable = (
+                MIN_STORY_WORDS <= len(words(story))
+                and len(story) <= MAX_ENCOURAGING_QUOTE_CHARS
+                and not is_shielded(message)
+                and not self.guardrails.is_sensitive(story)
+                and not matches_any(story, exclude)
+                and self.guardrails.review_skill(story, "", "") is not None
+            )
+            if usable:
+                return story
+        return None
 
     def _encouragement(
         self, earlier: list[dict], said: list[str], turn: int, settings: dict
     ) -> str:
         """Répond au doute en s'appuyant, si possible, sur ce que le jeune a déjà raconté."""
         texts = settings["encouragement"]
-        for message in reversed(earlier):
-            story = message["content"].strip().rstrip(".!")
-            usable = (
-                MIN_STORY_WORDS <= len(words(story))
-                and len(story) <= MAX_ENCOURAGING_QUOTE_CHARS
-                and FLAG_CRISIS not in message.get("flags", [])
-                and not matches_any(story, texts["declencheurs"])
-                and self.guardrails.review_skill(story, "", "") is not None
-            )
-            if usable:
-                options = [option.format(citation=story) for option in texts["avec_citation"]]
-                return _fresh_reply(options, said, turn)
+        story = self._story_quote(earlier, texts["declencheurs"])
+        if story:
+            options = [option.format(citation=story) for option in texts["avec_citation"]]
+            return _fresh_reply(options, said, turn)
         return _fresh_reply(texts["sans_citation"], said, turn)
+
+    def _off_limits_reply(
+        self, earlier: list[dict], said: list[str], turn: int, explain: bool = False
+    ) -> str:
+        """« Je ne peux pas parler de ce sujet », puis une autre piste, si possible la sienne."""
+        texts = self.guardrails.off_limits
+        story = self._story_quote(earlier, self.prompts.conversation["encouragement"]["declencheurs"])
+        if story:
+            options = [option.format(citation=story) for option in texts["avec_citation"]]
+        else:
+            options = texts["propositions"]
+        opening = texts["explication"] if explain else texts["refus"]
+        return _fresh_reply([f"{opening} {option}" for option in options], said, turn)
 
     def prepared_reply(self, plan: ReplyPlan) -> tuple[str | None, str, RevealedTalent | None]:
         """Texte déjà prêt pour ce tour (ou None), type de réponse et talent révélé."""
@@ -310,101 +376,68 @@ class ChatService:
         return text, "reveal", talent
 
     def model_reply(self, plan: ReplyPlan) -> str:
-        """Fait écrire le modèle, en refusant qu'il répète ce qui vient d'être dit."""
-        personal = self._personal_reply(plan)
-        if personal:
-            return personal
+        """Fait écrire le modèle librement, puis relit sa réponse avant de la montrer."""
         messages = list(plan.messages or [])
-        for _ in range(MODEL_ATTEMPTS):
-            reply = "".join(self.llm.chat_stream(messages)).strip().strip('"').strip()
-            usable = (
-                reply
-                and len(words(reply)) <= MAX_FREE_REPLY_WORDS
-                and not _reads_badly(reply)
-                and self.guardrails.review_skill(reply, "", "") is not None
-                and not matches_any(reply, list(plan.forbidden_phrases))
-            )
-            if usable and not _is_repetition(reply, plan.previous_replies):
+        for attempt, temperature in enumerate(REPLY_TEMPERATURES):
+            reply = _clean_reply(self.llm.complete(messages, {"temperature": temperature}))
+            problem = self._reply_problem(reply, plan, strict=attempt == 0)
+            if problem is None:
                 return reply
-            logger.info("Réponse répétitive écartée")
+            logger.info("Réponse du compagnon écartée : %s", problem)
             messages = [
                 {
                     "role": "system",
-                    "content": f"{messages[0]['content']}\n\nTa réponse précédente répétait la "
-                    "conversation. Réagis à son dernier message et pose une question nouvelle.",
+                    "content": f"{plan.messages[0]['content']}\n\nTa réponse précédente a été refusée : {problem}",
                 },
-                *messages[1:],
+                *plan.messages[1:],
             ]
         return _fresh_reply(plan.fallback_replies, list(plan.previous_replies), plan.turn)
 
-    def _question_prompt(
-        self, youth_messages: list[dict], said: list[str], turn: int, turns: dict
-    ) -> str:
-        last = youth_messages[-1]["content"]
-        story = [
-            m["content"] for m in youth_messages[:-1] if len(words(m["content"])) >= SHORT_MESSAGE_WORDS
-        ][-RECENT_STORY_MESSAGES:]
-        asked = [_last_sentence(reply) for reply in said if "?" in reply][-RECENT_QUESTIONS:]
-        tracks = turns["pistes_question"]
-        lines = []
-        if story:
-            lines.append("Déjà raconté :\n" + "\n".join(f"- {item}" for item in story))
-        if asked:
-            lines.append("Questions déjà posées :\n" + "\n".join(f"- {item}" for item in asked))
-        lines.append(f"Piste : {tracks[turn % len(tracks)]}")
-        family = self.guardrails.family_instruction(last)
-        if family:
-            lines.append(family)
-        lines.append(f"Dernier message : {last}")
-        return "\n\n".join(lines)
-
-    def _personal_reply(self, plan: ReplyPlan) -> str | None:
-        """Construit une réaction et une question propres à ce que le jeune vient de dire."""
-        if not plan.question_prompt:
-            return None
-        prompt = plan.question_prompt
-        examples = []
-        for example in self.prompts.question_examples:
-            examples.append({"role": "user", "content": example["demande"]})
-            answer = json.dumps(example["reponse"], ensure_ascii=False)
-            examples.append({"role": "assistant", "content": answer})
-        for temperature in QUESTION_TEMPERATURES:
-            answer = self.llm.generate_json(
-                self.prompts.question,
-                prompt,
-                QUESTION_SCHEMA,
-                temperature=temperature,
-                examples=examples,
-            )
-            reply = self._checked_question(answer, plan)
-            if reply:
-                return reply
-            prompt = f"{plan.question_prompt}\n\nSois plus simple et plus précis que ta proposition précédente."
+    def _reply_problem(self, reply: str, plan: ReplyPlan, strict: bool = False) -> str | None:
+        if not reply:
+            return "elle était vide."
+        if strict and plan.no_question and "?" in reply:
+            # Règle souple : au deuxième essai, une question vaut mieux qu'une réponse toute faite.
+            return "cette fois, pas de question. Réagis ou invite-la à raconter, sans point d'interrogation."
+        if len(words(reply)) > MAX_FREE_REPLY_WORDS:
+            return "elle était trop longue. Écris 1 à 3 phrases courtes."
+        if reply.count("?") > 1:
+            return "elle posait plusieurs questions. Une seule au maximum."
+        if _reads_badly(reply):
+            return "elle était mal formulée. Parle directement à la personne, en tutoyant, en français correct."
+        if _GREETING_START.match(reply):
+            return "elle commençait par une salutation. La discussion a déjà commencé."
+        if _TALENT_WORDS.search(reply):
+            return "elle parlait de talents ou de compétences. Contente-toi de discuter."
+        if self.guardrails.review_skill(reply, "", "") is None:
+            return "elle parlait de santé, d'origine, de religion ou des proches de la personne."
+        if matches_any(reply, list(plan.forbidden_phrases)):
+            return "elle n'était pas encourageante."
+        if _is_repetition(reply, plan.previous_replies):
+            return "elle répétait une réponse déjà donnée. Dis quelque chose de nouveau."
         return None
 
-    def _checked_question(self, answer: object, plan: ReplyPlan) -> str | None:
-        if not isinstance(answer, dict):
-            return None
-        reaction = str(answer.get("reaction", "")).strip()
-        question = str(answer.get("question", "")).strip()
-        if not reaction or "?" in reaction or not question.endswith("?") or question.count("?") != 1:
-            return None
-        if len(words(reaction)) > MAX_REACTION_WORDS or len(words(question)) > MAX_QUESTION_WORDS:
-            return None
-        if re.search(r"[.!…]", question) or _reads_badly(reaction) or _reads_badly(question):
-            return None
-        normalized = " ".join(words(question))
-        if any(" ".join(words(generic)) in normalized for generic in plan.generic_questions):
-            return None
-        reply = f"{reaction} {question}"
-        topic = _topic_stems(plan.last_message)
-        if topic and not topic & _topic_stems(reply):
-            return None
-        if self.guardrails.review_skill(reply, "", "") is None:
-            return None
-        if matches_any(reply, list(plan.forbidden_phrases)):
-            return None
-        return None if _is_repetition(reply, plan.previous_replies) else reply
+    def _turn_instruction(self, transcript: dict, turns: dict, turn: int) -> tuple[str, bool]:
+        """Varie la forme des réponses pour éviter l'effet interrogatoire."""
+        replies = [m["content"] for m in transcript["messages"] if m["role"] == "assistant"]
+        youth = [m for m in transcript["messages"] if m["role"] == "user"]
+        last_words = len(words(youth[-1]["content"]))
+        moves = turns["mouvements"]
+        # Une question sur deux au plus quand le jeune raconte : le reste du temps, Truffe
+        # réagit ou l'invite à raconter, comme dans une vraie discussion.
+        asked = sum("?" in reply for reply in replies[-2:])
+        if last_words < BRIEF_MESSAGE_WORDS and turn >= 3:
+            pistes = turns["pistes"]
+            move = moves["nouvelle_piste"].format(piste=pistes[turn % len(pistes)])
+        elif last_words < BRIEF_MESSAGE_WORDS:
+            move = moves["reponse_courte"]
+        elif asked >= 2 or (asked == 1 and turn % 2 == 0):
+            move = moves["impression"] if turn % 4 < 2 else moves["recit"]
+            return turns["consigne"].format(mouvement=move), True
+        else:
+            angles = turns["angles"]
+            move = moves["question"].format(angle=angles[turn % len(angles)])
+        return turns["consigne"].format(mouvement=move), False
 
     def _reveal(self, plan: ReplyPlan) -> tuple[str, RevealedTalent] | None:
         """Compose la révélation d'une compétence à partir d'une citation vérifiée.
@@ -445,12 +478,10 @@ class ChatService:
         skill = skill[0].lower() + skill[1:]
         return plan.reveal_formula.format(citation=match.quote, savoir_faire=skill), talent
 
-    def _llm_messages(
-        self, transcript: dict, settings: dict, in_crisis: bool, turn: int
-    ) -> list[dict]:
+    def _llm_messages(self, transcript: dict, settings: dict, instruction: str) -> list[dict]:
         limit = current_app.config["CHAT_HISTORY_MESSAGES"]
         recent = transcript["messages"][-limit:]
-        # Le format de Mistral attend un échange qui commence par la personne.
+        # Les formats de discussion des modèles attendent un échange qui commence par la personne.
         while recent and recent[0]["role"] == "assistant":
             recent = recent[1:]
 
@@ -458,10 +489,7 @@ class ChatService:
         family = self.guardrails.family_instruction(recent[-1]["content"])
         if family:
             parts.append(family)
-        turns = settings["tours"]
-        angles = turns["angles_ecoute"]
-        listening = turns["ecoute"].format(angle=angles[turn % len(angles)])
-        parts.append(self.guardrails.crisis_instruction if in_crisis else listening)
+        parts.append(instruction)
         parts.append(settings["fin_de_consigne"])
 
         # Une phrase déjà répétée dans l'historique pousserait le modèle à continuer.
@@ -472,5 +500,9 @@ class ChatService:
             if message["role"] == "assistant" and key in seen:
                 continue
             seen.add(key)
-            history.append({"role": message["role"], "content": message["content"]})
+            hidden = message["role"] == "user" and any(
+                flag in message.get("flags", []) for flag in (FLAG_VICTIM, FLAG_OFF_LIMITS)
+            )
+            content = HIDDEN_FROM_MODEL if hidden else message["content"]
+            history.append({"role": message["role"], "content": content})
         return [{"role": "system", "content": "\n\n".join(parts)}, *history]

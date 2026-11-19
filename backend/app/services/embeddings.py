@@ -33,7 +33,7 @@ class OllamaEmbedder:
         try:
             response = requests.post(
                 f"{self.base_url}/api/embed",
-                json={"model": self.model, "input": texts, "keep_alive": "30m"},
+                json={"model": self.model, "input": texts, "keep_alive": "2h"},
                 timeout=(CONNECT_TIMEOUT, self.timeout),
             )
             if response.status_code >= 400:

@@ -115,7 +115,10 @@ export type ReplyKind =
   | 'encourage'
   | 'identity'
   | 'sensitive'
-  | 'crisis';
+  | 'crisis'
+  | 'victim'
+  | 'off_limits'
+  | 'reveal_answer';
 
 export type ChatEvent =
   | { type: 'start'; data: { user_message: Message | null } }

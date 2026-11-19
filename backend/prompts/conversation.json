@@ -87,6 +87,101 @@
     "Ça me va. Si tu devais montrer un truc à quelqu’un demain, ce serait quoi ?",
     "On peut changer de sujet si tu veux. Tu passes du temps sur quoi quand personne ne te demande rien ?"
   ],
+  "acquiescements": {
+    "note": "Réponses de 1 ou 2 mots sans contenu : Truffe relance avec un texte relu. Un mot qui répond vraiment à sa question (« Jett », « le foot ») va au modèle.",
+    "mots": [
+      "oui",
+      "ouais",
+      "ouai",
+      "ok",
+      "okay",
+      "d accord",
+      "dac",
+      "dacc",
+      "mdr",
+      "lol",
+      "ptdr",
+      "grave",
+      "trop",
+      "carrement",
+      "yes",
+      "yep",
+      "vrai",
+      "c est vrai",
+      "exact",
+      "bien sur",
+      "merci",
+      "cool",
+      "top",
+      "stylé",
+      "ah",
+      "ah bon",
+      "hmm",
+      "mmh",
+      "bah oui",
+      "si"
+    ]
+  },
+  "apres_revelation": {
+    "note": "Réponse courte du jeune juste après un talent annoncé dans la discussion.",
+    "oui": [
+      "oui",
+      "ouais",
+      "ouai",
+      "yes",
+      "grave",
+      "carrement",
+      "trop",
+      "exact",
+      "exactement",
+      "c est vrai",
+      "c est moi",
+      "ca me parle",
+      "je valide",
+      "valide",
+      "bien sur",
+      "oui je pense",
+      "je pense",
+      "je crois",
+      "un peu",
+      "ouais un peu",
+      "oui un peu",
+      "ptet",
+      "peut etre",
+      "possible",
+      "ah ouais",
+      "ah oui",
+      "oui c est vrai",
+      "ouais c est vrai",
+      "ouais grave",
+      "oui grave"
+    ],
+    "non": [
+      "non",
+      "nan",
+      "pas vraiment",
+      "pas trop",
+      "bof",
+      "pas du tout",
+      "non pas vraiment",
+      "non pas trop",
+      "je sais pas",
+      "jsp",
+      "je crois pas",
+      "je pense pas",
+      "mouais"
+    ],
+    "reponses_oui": [
+      "Top, il rejoint ta carte ! Et sinon, raconte-moi un autre moment où t'as dû te débrouiller.",
+      "Validé, c'est noté sur ta carte. On continue : c'est quoi l'autre truc qui t'occupe en ce moment ?",
+      "Trop bien, un de plus sur ta carte. Raconte-moi la suite, j'ai l'impression que t'en as d'autres en stock."
+    ],
+    "reponses_non": [
+      "Pas de souci, c'est toi qui décides : tu pourras le retirer de ta carte. Raconte-moi plutôt ce que t'aimes faire en ce moment.",
+      "Ok, c'est toi qui vois, tu peux l'enlever de ta carte quand tu veux. Parle-moi d'un truc qui te ressemble plus.",
+      "Ça marche, ta carte c'est toi qui la tiens : retire-le si ça ne te parle pas. Qu'est-ce qui te ressemble plus, alors ?"
+    ]
+  },
   "identite": {
     "declencheurs": [
       "t es qui",
@@ -107,40 +202,41 @@
     "reponse": "Moi c’est Truffe, une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu’est-ce qui t’occupe en ce moment ?"
   },
   "tours": {
-    "revelation_tous_les": 3,
+    "revelation_tous_les": 4,
     "mots_minimum_revelation": 8,
-    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu’elle vient d’écrire, sans rien ajouter ni supposer, puis {angle} Une seule question courte, avec tes propres mots, différente de celles déjà posées. Ne parle ni de compétences, ni d’avenir.",
+    "consigne": "Pour ta prochaine réponse : {mouvement}",
+    "mouvements": {
+      "question": "rebondis sur un détail concret de son dernier message, puis pose une seule question, ouverte et simple, par exemple sur {angle}.",
+      "impression": "réagis à son dernier message avec un détail concret et ton impression sincère, sans poser de question cette fois. Termine par une phrase qui lui donne envie de continuer.",
+      "recit": "invite-la à raconter un moment précis en lien avec ce qu'elle vient de dire, en commençant par exemple par « Raconte-moi », sans point d'interrogation.",
+      "nouvelle_piste": "réagis en une phrase à ce qu'elle vient de dire, puis ouvre doucement une autre porte de sa vie : {piste}.",
+      "reponse_courte": "elle a répondu en quelques mots : accueille sa réponse simplement, puis relance avec une question facile et concrète en lien avec ce dont vous parliez."
+    },
+    "angles": [
+      "comment elle s'y prend",
+      "une fois précise où ça s'est passé",
+      "ce qui a été le plus chaud ou le plus compliqué",
+      "comment elle a appris à faire ça",
+      "l'astuce qu'elle a trouvée",
+      "qui compte sur elle pour ça",
+      "ce qu'elle préfère là-dedans"
+    ],
+    "pistes": [
+      "ce qui l'occupe dans ses journées en ce moment",
+      "un jeu, un sport ou une passion",
+      "un coup de main qu'elle a donné récemment",
+      "un truc qu'elle a appris toute seule",
+      "ce que ses potes viennent lui demander",
+      "un moment où elle a été fière d'elle",
+      "un petit boulot, ou un truc qu'elle a vendu, réparé ou organisé"
+    ],
     "formules_revelation": [
       "Attends, je crois que j’ai trouvé un talent. Quand tu dis « {citation} », je vois quelqu’un qui sait {savoir_faire}. Tu te reconnais là-dedans ?",
       "Tiens, un talent sur la route : « {citation} », ça veut dire que tu sais {savoir_faire}. Tu te reconnais là-dedans ?",
-      "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C’est toi, ça ?"
-    ],
-    "angles_ecoute": [
-      "demande-lui comment ça s’est passé concrètement.",
-      "demande-lui ce qui a été le plus compliqué.",
-      "demande-lui comment elle a appris à faire ça.",
-      "demande-lui un exemple précis, une fois où ça s’est passé.",
-      "demande-lui ce qu’elle fait quand ça ne marche pas.",
-      "demande-lui si quelqu’un compte sur elle pour ça."
-    ],
-    "pistes_question": [
-      "pour qui ou pour quoi la personne fait cela",
-      "une décision qu’elle prend dans cette situation",
-      "ce qu’elle fait quand ça coince",
-      "comment elle a appris à le faire",
-      "ce à quoi elle doit faire attention",
-      "ce que les autres lui demandent ou attendent d’elle"
-    ],
-    "questions_passe_partout": [
-      "comment tu t y prends",
-      "comment ca s est passe",
-      "comment ca se passe",
-      "peux tu m en dire plus",
-      "tu peux m en dire plus",
-      "raconte moi plus",
-      "quand un probleme se pose",
-      "pour le resoudre",
-      "quel a ete le plus complique"
+      "Ma truffe a reniflé un talent : « {citation} ». Ça montre que tu sais {savoir_faire}. Tu valides ?",
+      "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C’est toi, ça ?",
+      "Je note un truc : « {citation} ». Pour moi, ça veut dire que tu sais {savoir_faire}. Ça te parle ?",
+      "Stop, je t’arrête deux secondes : « {citation} », c’est savoir {savoir_faire}. Tu le voyais comme ça ?"
     ],
     "echecs_sans_revelation": [
       "rate",
@@ -157,7 +253,7 @@
       "j arrive pas"
     ]
   },
-  "fin_de_consigne": "Écris uniquement ta réponse, sans parenthèses ni commentaire. Voici le dernier message de la personne :",
+  "fin_de_consigne": "Écris uniquement la réplique de Truffe, sans guillemets, sans parenthèses ni commentaire.",
   "encouragement": {
     "declencheurs": [
       "pas de competence*",

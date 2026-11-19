@@ -996,6 +996,11 @@ mark {
   color: var(--color-talent-text);
 }
 
+.status--alert {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
 .count {
   color: var(--color-text-muted);
   font-family: var(--font-mono);
@@ -1204,6 +1209,13 @@ mark {
 
 .transcript__line--assistant {
   color: var(--color-text-muted);
+}
+
+.transcript__flag {
+  display: flex;
+  width: fit-content;
+  margin-bottom: var(--space-1);
+  white-space: normal;
 }
 
 .bo__foot {

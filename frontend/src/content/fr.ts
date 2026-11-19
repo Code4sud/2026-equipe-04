@@ -165,6 +165,12 @@ export const fr = {
     hide: 'Fermer',
     youth: 'Jeune',
     companion: 'Truffe',
+    // Messages signalés par le garde-fou, à reprendre avec le jeune.
+    messageFlags: {
+      crisis: 'Détresse : contacts d’aide affichés',
+      victime: 'Confie des violences : orienté vers le 119 et le 116 006',
+      hors_cadre: 'Sujet hors cadre : Truffe a refusé d’en parler',
+    } as Record<string, string>,
   },
   notFound: 'Cette page n’existe pas.',
 };

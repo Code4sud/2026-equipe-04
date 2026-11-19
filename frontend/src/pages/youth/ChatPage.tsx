@@ -277,7 +277,8 @@ export function ChatPage() {
   }
 
   function reactToReply(kind: ReplyKind, sentText: string | null) {
-    setCalmReply(kind === 'sensitive');
+    // Confidences, sujets hors cadre : Truffe reste posé, sans animation enjouée.
+    setCalmReply(kind === 'sensitive' || kind === 'victim' || kind === 'off_limits');
     if (kind === 'relaunch') {
       mascotRef.current?.perform('shrug');
     } else if (kind === 'encourage') {
