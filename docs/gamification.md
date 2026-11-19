@@ -4,7 +4,7 @@
 
 1. À la création du compte, le jeune accepte que ses données soient transmises au Centre des Possibles et à sa psychologue (formulaire d'inscription, hors de ce module).
 2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions dans un ordre tiré au hasard, par séries de 10 (voir « Quiz d'arrivée » ci-dessous). Il peut passer une question ou continuer plus tard.
-3. Le quiz révèle son archétype, un badge tiré de son trait de caractère le plus marqué (voir « Archétype »), et débloque les jeux de `/jeune/jeux`. L'archétype est recalculé avec toutes ses réponses : si une partie le fait changer, son résultat l'annonce (`previous_archetype` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer au fil des jeux et des talents gardés.
+3. Sa première série de 10 questions débloque les mini-jeux de `/jeune/jeux` (voir « Déblocage ») et la fin du quiz révèle son archétype, un badge tiré de son trait de caractère le plus marqué (voir « Archétype »). L'archétype est recalculé avec toutes ses réponses : si une partie le fait changer, son résultat l'annonce (`previous_archetype` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer au fil des jeux et des talents gardés.
 4. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur ce que chaque curseur affiche. Si un curseur bipolaire change de pôle ensuite, son ancien verdict ne s'affiche plus et il peut juger le nouveau.
 5. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, ainsi que chaque modification du jeune (détail corrigé avec sa réponse d'origine, détail masqué ou remontré, verdict donné, changé ou retiré avec ce qu'il jugeait, réponse changée ou retirée), pour pouvoir en parler avec lui.
 
@@ -14,6 +14,7 @@
 - **Chapitres.** Ils restent dans le contenu, à la suite : la partie vue par la psychologue range les réponses dans l'ordre du contenu, chapitre par chapitre. Le jeune ne les voit plus.
 - **Séries.** Les questions viennent par séries de 10 (`SERIES_SIZE`, `frontend/src/game/quiz/quizLogic.ts`). L'écran de question montre un point par question de la série et le total (« 23 réponses sur 50 ») ; la dernière série ne compte que les questions qui restent (« Question 3 sur 7 »). Une question d'une séance précédente, revue avec « Retour », n'a ni points ni place dans une série : l'écran dit « Tu y as déjà répondu » ou « Tu l'avais passée ». Après 10 questions vues dans la séance (répondues ou passées), s'il en reste de jamais vues, Truffe propose « 10 de plus ! » (« Les 7 dernières ! » en fin de quiz) ou « Je reprends plus tard », qui met la partie en pause et ouvre `/jeune/jeux`. Cet écran montre l'XP gagnée pendant le quiz, les questions à faire avant la révélation et le badge d'archétype encore caché derrière son « ? » : l'archétype reste une surprise jusqu'à la révélation. Ce compte, comme celui de l'écran de reprise (« Plus que 7 questions… »), prend les questions jamais vues, ou les réponses qui manquent pour `min_answers` si elles sont plus nombreuses (beaucoup de questions passées).
 - **Séances.** Chaque ouverture du quiz commence une séance : le compte des séries repart de zéro, et l'écran de reprise annonce les réponses déjà données et une nouvelle série de 10 questions jamais vues. Quand toutes les questions ont été vues, la fin ne change pas : revue des questions passées s'il manque des réponses (`min_answers`), puis « Tu as fait le tour ! » et la révélation.
+- **Déblocage.** Les mini-jeux exigent le quiz (`requires: ["onboarding"]`), qui fixe `unlocks_after: 10` : ils se débloquent dès que sa partie a vu 10 questions, répondues ou passées (`seen`), ou quand une partie du quiz est terminée. Le serveur décide seul, avec la même fonction pour le refus de `POST /instruments/<id>/runs` (`409 locked`) et pour `locked` dans `GET /api/me/game` (`_satisfied_requirements`, `service.py`) ; le front affiche le seuil qu'il reçoit. L'accueil l'annonce (« Dès la première série, tu débloques les mini-jeux »), l'écran de reprise dit combien de questions manquent, et la fin de la série qui franchit le seuil, même quand une séance précédente s'était arrêtée en cours de série (3 vues, puis la 7e question de la série suivante), le fête : bulle de Truffe, carte « 🎮 Mini-jeux débloqués » au-dessus de l'archétype caché et « Aller aux mini-jeux » à la place de « Je reprends plus tard », pour la même pause. Les séries suivantes et la revue des questions passées n'en parlent plus. Le hub (« Encore 7 questions pour débloquer les mini-jeux. », cartes « Après 10 questions »), la page d'un jeu verrouillé ouverte par son adresse et la quête du quiz sur la fiche disent combien de questions manquent. `must_onboard` ne change pas : le quiz reste l'arrivée tant qu'il n'est ni terminé ni en pause.
 - **Pause.** « Continuer plus tard » reste sur chaque question. Tant que le quiz n'est ni terminé ni en pause, `OnboardingGate` renvoie au quiz (`must_onboard`) : la première séance d'un nouveau jeune est donc sa première série, puis le choix. Ouvrir le quiz lève la pause.
 - **Temps de réponse.** `response_ms` ne compte ni l'accueil, ni la reprise, ni la fin de série (`markShown` en quittant ces écrans). Sur la fin de série, un appui reçu juste après l'affichage, fin d'un double appui sur la dernière réponse, est ignoré.
 - **Hub et fiche.** Tant que le quiz n'est pas terminé, ils y invitent ; dès la première question vue, même passée (`seen` dans `GET /api/me/game`, `answered` ne compte que les réponses), avec le nombre de réponses déjà données (« 10 réponses sur 50 ») et « Continuer », comme l'écran de reprise du quiz.
@@ -47,7 +48,7 @@
   "kind": "quiz | questionnaire | performance",
   "tier": "validated | translated | adapted | custom | performance",
   "title": "…", "tagline": "…", "icon": "…", "duration_min": 5, "xp": 80,
-  "requires": ["onboarding"], "replayable": true, "min_answers": 12,
+  "requires": ["onboarding"], "replayable": true, "min_answers": 12, "unlocks_after": 5,
   "source_ids": ["ipip_mini"], "source_note": "Montré au jeune",
   "scoring_note": "Montré à la psychologue",
   "scale": { "min": 1, "max": 5, "labels": ["…"] },
@@ -55,6 +56,8 @@
   "items": []
 }
 ```
+
+`requires` liste les instruments à faire avant celui-ci. Un instrument requis retient les jeux qui l'exigent jusqu'à ce qu'une de ses parties soit terminée, ou, s'il fixe `unlocks_after`, jusqu'à ce que sa partie ait vu ce nombre de questions, répondues ou passées. `unlocks_after` est facultatif : un nombre entier de 1 au nombre de questions de l'instrument, sinon le catalogue refuse de démarrer (un jeu chronométré, sans questions, n'en a pas). Le quiz d'arrivée fixe 10, une série.
 
 Types de questions :
 
@@ -160,6 +163,8 @@ Une réponse renvoyée à l'identique, un détail réécrit sans changement ou u
 ## API
 
 Jeune (`/api/me/game`) : `GET /`, `POST /instruments/<id>/runs`, `PUT /runs/<id>/answers/<item>`, `POST /runs/<id>/pause`, `POST /runs/<id>/complete`, `GET /sheet`, `PATCH /facts/<clé>`, `PUT /traits/<id>/feedback`.
+
+- `GET /` donne pour chaque instrument `locked` et `unlocks_after` (son seuil, `null` s'il n'en fixe pas), et l'instrument renvoyé avec une partie porte aussi `unlocks_after`. `POST /instruments/<id>/runs` refuse un jeu verrouillé (`409 locked`) avec le vrai seuil : « Ce jeu se débloque après les 10 premières questions du quiz d’arrivée. » (sans seuil, « Ce jeu se débloque après le quiz d'arrivée. »).
 
 - `POST /runs/<id>/complete` renvoie `archetype` et `previous_archetype`, et `GET /sheet` donne `identity.archetype`, `null` jusqu'à la fin du quiz d'arrivée (voir « Archétype ») : jamais le curseur, le pôle ni la valeur qui l'ont désigné.
 - `POST /runs/<id>/complete` d'un jeu chronométré renvoie dans `metrics` les seules réussites du jeune : la projection `youth` de chaque correcteur (`SCORERS`), par défaut toutes les mesures sans aucun `percent`. Empan : `span`, `trials`, `correct`, `phases.<id>.span`... ; Stroop : `trials`, `best_streak`, `fastest_rt_ms` ; énigmes : `solved`, `best_streak`. La psychologue garde toutes les mesures.
