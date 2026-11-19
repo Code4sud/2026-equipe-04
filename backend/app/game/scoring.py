@@ -66,7 +66,7 @@ def item_scale(instrument: dict, item: dict) -> dict:
 def _score_likert(instrument: dict, item: dict, value) -> ScoredAnswer:
     scale = item_scale(instrument, item)
     low, high = scale["min"], scale["max"]
-    if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+    if not is_scale_value(value, low, high):
         raise InvalidAnswer("Réponse hors de l'échelle.")
     position = (value - low) / (high - low) * 100
     signals = [
@@ -124,8 +124,16 @@ def score_answer(instrument: dict, item: dict, value) -> ScoredAnswer:
     return scored
 
 
+def is_scale_value(value, low: int, high: int) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
 def scale_scores(instrument: dict, answers: list) -> dict:
-    """Score brut par échelle pour la psychologue (somme des items Likert, clés inversées comprises)."""
+    """Score brut par échelle pour la psychologue (somme des items Likert, clés inversées comprises).
+
+    Une valeur qui n'est pas un entier de l'échelle (réponse donnée avant un changement du
+    contenu) est ignorée plutôt que de faire échouer la fin de partie.
+    """
     items = {item["id"]: item for item in instrument.get("items", [])}
     scales: dict[str, dict] = {}
     for answer in answers:
@@ -134,6 +142,8 @@ def scale_scores(instrument: dict, answers: list) -> dict:
             continue
         scale = item_scale(instrument, item)
         low, high = scale["min"], scale["max"]
+        if not is_scale_value(answer.value, low, high):
+            continue
         for part in likert_parts(item):
             keyed = answer.value if part.get("keyed", "+") == "+" else low + high - answer.value
             entry = scales.setdefault(part["trait"], {"n": 0, "raw_sum": 0, "raw_min": 0, "raw_max": 0})

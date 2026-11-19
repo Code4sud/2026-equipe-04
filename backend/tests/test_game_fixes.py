@@ -11,6 +11,7 @@ import uuid
 from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import event, update
@@ -22,7 +23,7 @@ from app.game import events
 from app.game import service as game
 from app.game.catalog import Catalog
 from app.game.performance import SCORERS, drop_percents
-from app.game.scoring import InvalidAnswer, UnsafeText, clean_text
+from app.game.scoring import InvalidAnswer, UnsafeText, clean_text, scale_scores
 from app.models import GameAnswer, GameEvent, GameFact, GameRun, GameRunStatus, User, iso, utcnow
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
@@ -57,6 +58,55 @@ ECHO = {
         },
     ],
 }
+
+VERSIONED = {
+    "id": "fixture_versions",
+    "version": 1,
+    "order": 40,
+    "kind": "questionnaire",
+    "tier": "custom",
+    "title": "Versions fictives",
+    "tagline": "Pour tester",
+    "icon": "mirror",
+    "duration_min": 1,
+    "xp": 20,
+    "min_answers": 2,
+    "scale": {"min": 1, "max": 5, "labels": ["Non", "Plutôt non", "Bof", "Plutôt oui", "Oui"]},
+    "items": [
+        {
+            "id": "q1", "type": "choice", "prompt": "Un choix",
+            "options": [
+                {"id": "a", "label": "A", "signals": [{"trait": "extraversion", "value": 90}]},
+                {"id": "b", "label": "B", "signals": [{"trait": "extraversion", "value": 10}]},
+            ],
+        },
+        {"id": "q2", "type": "likert", "prompt": "Je parle facilement.", "trait": "extraversion", "keyed": "+"},
+        {"id": "q3", "type": "likert", "prompt": "Je range.", "trait": "conscientiousness", "keyed": "+"},
+        {"id": "q4", "type": "likert", "prompt": "Je finis.", "trait": "conscientiousness", "keyed": "+"},
+        {
+            "id": "q5", "type": "choice", "prompt": "Un autre choix",
+            "options": [{"id": "x", "label": "X"}, {"id": "y", "label": "Y"}, {"id": "z", "label": "Z"}],
+        },
+    ],
+}
+
+
+def version_two() -> dict:
+    instrument = copy.deepcopy(VERSIONED)
+    instrument["version"] = 2
+    items = {item["id"]: item for item in instrument["items"]}
+    # q1 devient une question Likert : l'ancienne réponse « a » n'a plus de sens.
+    items["q1"] = {"id": "q1", "type": "likert", "prompt": "Une échelle", "trait": "extraversion", "keyed": "+"}
+    # q2 change de sens : la réponse gardée est recalculée avec la nouvelle clé.
+    items["q2"]["keyed"] = "-"
+    # q3 passe de 1-5 à 1-7 : un 4 ne veut plus dire la même chose.
+    items["q3"]["scale"] = {"min": 1, "max": 7}
+    # q4 est renommée : elle ne doit pas compter deux fois.
+    renamed = {**items.pop("q4"), "id": "q4b"}
+    # q5 perd l'option « z ».
+    items["q5"]["options"] = items["q5"]["options"][:2]
+    instrument["items"] = [items["q1"], items["q2"], items["q3"], renamed, items["q5"]]
+    return instrument
 
 
 @pytest.fixture(autouse=True)
@@ -198,6 +248,63 @@ def test_unipolar_traits_never_show_a_low_value_whatever_their_group(client, you
     assert all(trait["value"] >= 50 for trait in traits.values() if trait["kind"] == "unipolar")
     # Un curseur bipolaire reste neutre : ses deux pôles se montrent.
     assert traits["extraversion"]["value"] == 10.0
+
+
+# --- 4. Une partie commencée sur une ancienne version du contenu ---
+
+
+def test_resuming_an_old_version_reconciles_the_answers(client, youth, psychologist, catalog):
+    catalog.instruments["fixture_versions"] = copy.deepcopy(VERSIONED)
+    run_id = start(client, youth, "fixture_versions")["run"]["id"]
+    for item_id, value in [("q1", "a"), ("q2", 5), ("q3", 4), ("q4", 3), ("q5", "z")]:
+        assert answer(client, youth, run_id, item_id, value).status_code == 200
+
+    catalog.instruments["fixture_versions"] = version_two()
+    resumed = start(client, youth, "fixture_versions")
+    assert resumed["run"]["id"] == run_id and resumed["run"]["instrument_version"] == 2
+    assert resumed["answers"] == [{"item_id": "q2", "value": 5, "skipped": False}]
+
+    assert answer(client, youth, run_id, "q4b", 3).status_code == 200
+    assert complete(client, youth, run_id).status_code == 200
+    detail = client.get(f"{psy_base(client, youth)}/runs/{run_id}", headers=psychologist).get_json()
+    rows = {row["item_id"]: row for row in detail["answers"]}
+    assert list(rows) == ["q1", "q2", "q3", "q4b", "q5"]
+    assert [rows[i]["status"] for i in rows] == ["unanswered", "answered", "unanswered", "answered", "unanswered"]
+    # q2 garde sa réponse, recalculée avec la nouvelle clé inversée.
+    assert rows["q2"]["signals"][0]["value"] == 0
+    scales = detail["run"]["metrics"]["scales"]
+    assert scales["extraversion"]["n"] == 1 and scales["conscientiousness"]["n"] == 1
+    trail = client.get(f"{psy_base(client, youth)}/traits/conscientiousness", headers=psychologist).get_json()
+    assert [row["item_id"] for row in trail["signals"]] == ["q4b"]
+
+
+def test_completing_after_a_content_update_does_not_crash(client, youth, psychologist, catalog):
+    catalog.instruments["fixture_versions"] = copy.deepcopy(VERSIONED)
+    run_id = start(client, youth, "fixture_versions")["run"]["id"]
+    for item_id, value in [("q1", "a"), ("q2", 5), ("q3", 4), ("q4", 3), ("q5", "x")]:
+        answer(client, youth, run_id, item_id, value)
+
+    catalog.instruments["fixture_versions"] = version_two()
+    response = complete(client, youth, run_id)
+    assert response.status_code == 200, response.get_json()
+    assert response.get_json()["run"]["instrument_version"] == 2
+    detail = client.get(f"{psy_base(client, youth)}/runs/{run_id}", headers=psychologist).get_json()
+    assert set(detail["run"]["metrics"]["scales"]) == {"extraversion"}
+    answered = [row["item_id"] for row in detail["answers"] if row["status"] == "answered"]
+    assert answered == ["q2", "q5"]
+
+
+def test_scale_scores_skip_values_that_are_not_on_the_scale():
+    instrument = {
+        "scale": {"min": 1, "max": 5},
+        "items": [{"id": "e1", "type": "likert", "trait": "extraversion", "keyed": "-"}],
+    }
+    answers = [
+        SimpleNamespace(item_id="e1", skipped=False, value=value) for value in ("a", 4.5, True, None, 9, 4)
+    ]
+    assert scale_scores(instrument, answers) == {
+        "extraversion": {"n": 1, "raw_sum": 2, "raw_min": 1, "raw_max": 5, "percent": 25.0}
+    }
 
 
 # --- 6. Le jeune ne reçoit que ses réussites ---

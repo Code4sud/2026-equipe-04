@@ -333,6 +333,8 @@ def start_run(user: User, instrument_id: str) -> tuple[dict, bool]:
         )
         db.session.add(run)
         created = True
+    else:
+        _reconcile(run, instrument)
     run.paused_at = None
     try:
         db.session.commit()
@@ -382,6 +384,45 @@ def _scale_snapshot(instrument: dict, item: dict) -> dict | None:
     return {"min": scale["min"], "max": scale["max"], "labels": list(scale.get("labels") or [])}
 
 
+def _same_question(instrument: dict, item: dict, answer: GameAnswer) -> bool:
+    """La question a gardé son type et son échelle depuis la réponse."""
+    if answer.item_type is not None and answer.item_type != item["type"]:
+        return False
+    if item["type"] == "likert" and answer.item_scale is not None:
+        return answer.item_scale == _scale_snapshot(instrument, item)
+    return True
+
+
+def _reconcile(run: GameRun, instrument: dict) -> None:
+    """Remet une partie commencée sur une ancienne version du contenu à la version actuelle.
+
+    Une réponse dont la question a disparu, ou changé de type ou d'échelle, est retirée ;
+    les autres sont recalculées avec la définition actuelle, et retirées si elles ne sont plus
+    valides. Ainsi une question renommée ne compte pas deux fois et la fin de partie ne bute
+    pas sur une ancienne valeur. Les parties terminées gardent leur version.
+    """
+    if run.instrument_version == instrument["version"]:
+        return
+    if instrument["kind"] != "performance":
+        cat = catalog()
+        for answer in list(run.answers):
+            item = cat.item(instrument, answer.item_id)
+            if item is None or not _same_question(instrument, item, answer):
+                run.answers.remove(answer)
+                continue
+            answer.position = instrument["items"].index(item)
+            answer.item_type, answer.item_scale = item["type"], _scale_snapshot(instrument, item)
+            if answer.skipped:
+                continue
+            try:
+                scored = score_answer(instrument, item, answer.value)
+            except InvalidAnswer:
+                run.answers.remove(answer)
+                continue
+            answer.value, answer.label, answer.signals = scored.value, scored.label, scored.signals
+    run.instrument_version = instrument["version"]
+
+
 def _save_fact(user: User, instrument: dict, item: dict, fact: tuple[str, str, str]) -> None:
     key, label, value = fact
     row = db.session.get(GameFact, (user.id, key), with_for_update=True, populate_existing=True)
@@ -429,6 +470,7 @@ def _store_answer(
             db.session.add(answer)
         answer.position = instrument["items"].index(item)
         answer.prompt = item["prompt"]
+        answer.item_type, answer.item_scale = item["type"], _scale_snapshot(instrument, item)
         answer.skipped = skipped
         answer.value = None if skipped else scored.value
         answer.label = None if skipped else scored.label
@@ -511,6 +553,8 @@ def _highlights(cursors: dict[str, dict], feedback: dict[str, str], limit: int =
 
 def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     run, instrument = own_run(user, run_id, lock=True)
+    if run.status != GameRunStatus.COMPLETED:
+        _reconcile(run, instrument)
     before = progress(load_youth(user.id))
     if run.status == GameRunStatus.COMPLETED:
         return _result(user, run, instrument, before)
@@ -551,6 +595,7 @@ def _score_performance(run: GameRun, instrument: dict, trials) -> None:
                 label=row.get("label"),
                 response_ms=row.get("response_ms"),
                 signals=[],
+                item_type="trial",
             )
         )
 
@@ -999,9 +1044,11 @@ def psy_run_detail(user: User, run_id: uuid.UUID) -> dict:
                 "status": "unanswered" if answer is None else "skipped" if answer.skipped else "answered",
                 "answer_label": answer.label if answer else None,
                 "value": answer.value if answer else None,
-                # Ce qui était proposé au jeune : choix possibles, ou échelle et ses libellés.
+                # Ce qui était proposé au jeune : choix possibles, ou échelle et ses libellés
+                # (celle gardée avec la réponse, sinon celle du contenu actuel).
                 "options": _offered_options(item),
-                "scale": _scale_snapshot(instrument, item) if instrument and item else None,
+                "scale": (answer.item_scale if answer else None)
+                or (_scale_snapshot(instrument, item) if instrument and item else None),
                 # Le jeune a masqué ce détail de sa fiche : la psychologue le voit quand même.
                 "hidden_by_youth": (run.instrument_id, item_id) in hidden,
                 "response_ms": answer.response_ms if answer else None,
