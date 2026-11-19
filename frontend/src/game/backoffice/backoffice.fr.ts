@@ -267,6 +267,20 @@ export const bo = {
     intro:
       'Ce que mesurent le quiz, les questionnaires et les jeux proposés aux jeunes, d’où viennent leurs questions et comment les curseurs sont calculés.',
     toc: 'Sur cette page',
+    archetypes: {
+      title: 'Archétype montré au jeune',
+      paragraphs: [
+        'À la fin du quiz d’arrivée, le jeune découvre un archétype\u00a0: un badge avec un nom, une devise et une description. C’est un habillage ludique de ses curseurs de caractère, recalculé avec toutes ses réponses et ses talents validés\u00a0: il peut changer d’une partie à l’autre, et la fin de partie le signale au jeune.',
+        'L’archétype est celui du pôle vers lequel penche le curseur de caractère le plus éloigné du milieu (50), toutes sources confondues. À égalité, le premier dans l’ordre des curseurs l’emporte. Si aucun curseur de caractère ne s’écarte de plus de 8 points du milieu, c’est Le Caméléon. Les intérêts et les jeux cognitifs n’entrent pas en compte.',
+        'Le jeune voit le nom, la devise, la description et la qualité de son pôle (par exemple «\u00a0Sociable\u00a0»), jamais le curseur ni sa valeur. Dans la fiche du jeune, la synthèse indique d’après quel curseur l’archétype a été attribué.',
+      ],
+      caption: 'Archétypes et pôles qui les désignent',
+      name: 'Archétype',
+      cursor: 'Curseur le plus marqué',
+      pole: 'Pôle',
+      quality: 'Qualité vue par le jeune',
+      balancedCursor: 'Aucun à plus de 8 points du milieu',
+    },
     method: {
       title: 'Méthode',
       paragraphs: [
@@ -294,6 +308,7 @@ export const bo = {
         'Aucun résultat n’est un diagnostic. Un jeu cognitif donne un score propre à ce jeu.',
         'Une traduction faite pour le projet n’est pas une version française validée.',
         'Le MBTI n’est pas utilisé comme test.',
+        'L’archétype montré au jeune est un habillage ludique\u00a0: ce n’est ni un type de personnalité validé ni un type MBTI.',
         'Aucune question ni déduction ne porte sur la santé, le handicap, l’origine, la famille, la religion, la vie amoureuse ou les opinions.',
         'Le jeune dit s’il se reconnaît dans chaque curseur. Un désaccord est une information à part entière, à explorer avec lui.',
       ],

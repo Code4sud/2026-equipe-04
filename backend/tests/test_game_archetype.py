@@ -5,6 +5,8 @@ le curseur, le pôle et la valeur qui l'ont désigné.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from test_game import answer, complete, cursor, finish_onboarding, fixture_catalog, start, youth_id  # noqa: F401
 
@@ -12,6 +14,7 @@ from app.game import service as game
 from app.game.catalog import ARCHETYPE_POLES, BALANCED_POLE, Catalog, ContentError
 from app.game.service import BALANCED_LABEL, BALANCED_MARGIN
 
+GAME_FRONT = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game"
 YOUTH_FIELDS = {"id", "name", "motto", "description", "emoji", "quality"}
 PSY_FIELDS = YOUTH_FIELDS | {"trait", "pole", "value", "trait_label", "pole_label"}
 
@@ -141,6 +144,12 @@ def test_the_method_page_lists_every_archetype_and_its_pole(client, psychologist
     assert (lanterne["trait"], lanterne["pole"], lanterne["quality"]) == ("extraversion", "low", "Réservé·e")
     assert (lanterne["trait_label"], lanterne["pole_label"]) == ("Réservé ↔ Sociable", "Réservé")
     assert (rows["cameleon"]["trait"], rows["cameleon"]["pole"]) == (None, BALANCED_POLE)
+
+
+def test_the_backoffice_explains_the_margin_the_server_uses():
+    # Le panneau et la page Méthode citent la marge en clair : elle doit rester celle du serveur.
+    text = (GAME_FRONT / "backoffice" / "backoffice.fr.ts").read_text(encoding="utf-8")
+    assert text.count(f"plus de {BALANCED_MARGIN} points du milieu") >= 2
 
 
 # --- Contenu ---

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
-import type { GameSource, InstrumentInfo, PsyCatalog } from '../types';
+import type { GameSource, InstrumentInfo, PsyArchetypeInfo, PsyCatalog } from '../types';
 import { bo } from './backoffice.fr';
 import './backoffice.css';
 import { TIER_ORDER, formatNumber } from './format';
@@ -49,6 +49,51 @@ function Method({ method }: { method: MethodValues }) {
       {t.method.after(formatNumber(thresholds.medium), formatNumber(thresholds.high)).map((text) => (
         <p key={text}>{text}</p>
       ))}
+    </section>
+  );
+}
+
+/** Comment l'archétype montré au jeune est choisi, et la liste des archétypes une fois chargée. */
+function Archetypes({ archetypes }: { archetypes: PsyArchetypeInfo[] | undefined }) {
+  const a = t.archetypes;
+  return (
+    <section className="bog-section bog-prose" aria-labelledby="bog-archetypes">
+      <h2 id="bog-archetypes">{a.title}</h2>
+      {a.paragraphs.map((text) => (
+        <p key={text}>{text}</p>
+      ))}
+      {archetypes && archetypes.length > 0 && (
+        <div className="table-wrap bog-weights">
+          <table className="table bog-archetypes">
+            <caption className="visually-hidden">{a.caption}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{a.name}</th>
+                <th scope="col">{a.cursor}</th>
+                <th scope="col">{a.pole}</th>
+                <th scope="col">{a.quality}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {archetypes.map((archetype) => (
+                <tr key={archetype.id}>
+                  <th scope="row">
+                    <span className="bog-archetype">
+                      <span className="bog-archetype__emoji" aria-hidden="true">
+                        {archetype.emoji}
+                      </span>
+                      {archetype.name}
+                    </span>
+                  </th>
+                  <td>{archetype.trait_label ?? a.balancedCursor}</td>
+                  <td>{archetype.pole_label}</td>
+                  <td>{archetype.quality}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }
@@ -208,6 +253,9 @@ export default function SourcesPage() {
             <a href="#bog-method">{t.method.title}</a>
           </li>
           <li>
+            <a href="#bog-archetypes">{t.archetypes.title}</a>
+          </li>
+          <li>
             <a href="#bog-limits">{t.limits.title}</a>
           </li>
           <li>
@@ -219,6 +267,7 @@ export default function SourcesPage() {
         </ul>
       </nav>
       <Method method={catalog ? methodFrom(catalog) : FALLBACK_METHOD} />
+      <Archetypes archetypes={catalog?.archetypes} />
       <Limits />
       {error ? (
         <ErrorState message={error} onRetry={() => void load()} />

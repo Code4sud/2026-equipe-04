@@ -276,6 +276,8 @@ export interface PsyCatalog {
   weights: Record<Tier, number>;
   /** Poids total minimal d'une confiance moyenne et bonne ; en dessous : faible, à 0 : aucune. */
   confidence_thresholds: { medium: number; high: number };
+  /** Chaque archétype et le pôle qui le désigne ; absent d'une ancienne version de l'API. */
+  archetypes?: PsyArchetypeInfo[];
 }
 
 /** Ce que le jeune a jugé avec « C'est moi » ou « Pas moi », et quand. */
