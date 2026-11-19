@@ -8,7 +8,7 @@ import type { AnswerValue } from '../types';
 import { isPending, useRunPlayer } from '../useRunPlayer';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
-import { QUIZ_ID, SERIES_SIZE, seriesSpot, sittingOrder, XP_PER_ANSWER } from './quizLogic';
+import { QUIZ_ID, SERIES_SIZE, seriesMinutes, seriesSpot, sittingOrder, XP_PER_ANSWER } from './quizLogic';
 import { QuizReveal } from './QuizReveal';
 import { SeriesDots } from './SeriesDots';
 import { XpCounter } from './XpCounter';
@@ -167,8 +167,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <p className="quiz-bubble">{frenchSpacing(instrument.intro ?? t.welcome.intro)}</p>
         <ul className="quiz-rules plain-list" aria-label={t.welcome.rulesLabel}>
           <li>
+            <span aria-hidden="true">🎲</span>
+            {t.welcome.series(SERIES_SIZE)}
+          </li>
+          <li>
             <span aria-hidden="true">⏱️</span>
-            {t.welcome.duration(instrument.duration_min)}
+            {t.welcome.duration(seriesMinutes(instrument.duration_min, total))}
           </li>
           {t.welcome.rules.map((rule) => (
             <li key={rule.text}>

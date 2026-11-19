@@ -8,13 +8,13 @@ export const quizFr = {
     kicker: 'Quiz d’arrivée',
     title: 'Salut, moi c’est Truffe !',
     intro:
-      'Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton archétype.',
+      'Je te pose 50 questions sur ton quotidien, dix par dix. Pas de bonne réponse, juste la tienne ! À la fin, je te révèle ton archétype.',
     rulesLabel: 'Comment ça marche',
-    duration: (minutes: number) => `Environ ${minutes} minutes`,
+    series: (size: number) => `Des séries de ${size} questions, tirées au hasard`,
+    duration: (minutes: number) => `Environ ${minutes} ${plural(minutes, 'minute', 'minutes')} par série`,
     rules: [
-      { icon: '🙌', text: 'Pas de bonne réponse, juste la tienne' },
+      { icon: '⏸️', text: 'Après chaque série, tu continues ou tu reviens plus tard' },
       { icon: '⏭️', text: 'Tu peux passer n’importe quelle question' },
-      { icon: '⏸️', text: 'Tu t’arrêtes quand tu veux, on reprendra plus tard' },
     ],
     transparency:
       'Tes réponses sont transmises à ta psychologue du Centre des Possibles, comme prévu à ton inscription.',
