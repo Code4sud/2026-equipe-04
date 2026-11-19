@@ -114,20 +114,20 @@ def youth_texts(catalog: Catalog):
     yield from strings(catalog.sheet, "fiche")
 
 
-# Lexèmes d'un fichier TypeScript : commentaire, /expression régulière/ (un / après une parenthèse,
-# une virgule ou un opérateur ; ailleurs c'est une division) ou chaîne '…', "…", `…`. Seules les
-# chaînes comptent, mais sauter le reste évite de lire l'apostrophe d'un commentaire ou de /'/g
-# comme le début d'une chaîne.
-TS_TOKEN = re.compile(
-    r"""
-      //[^\n]* | /\*.*?\*/
-    | (?<=[(,=:?!&|\[{};])\s*/(?![/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^/\\\n\[])+/[a-z]*
-    | (?P<text>'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`)
-    """,
-    re.S | re.X,
-)
+# Lecture d'un fichier TypeScript : seules les chaînes comptent, mais il faut sauter les
+# commentaires et les /expressions régulières/ pour ne pas lire l'apostrophe de /'/g comme le début
+# d'une chaîne. Un / ouvre une expression régulière après un opérateur, une ouvrante, => ou un mot
+# comme return ; après un nom, un nombre ou une fermante, c'est une division. Un gabarit `…` donne
+# son texte, chaque ${…} remplacé par « ${…} », et son expression est relue comme du code : ses
+# chaînes et ses gabarits imbriqués sont contrôlés à part.
 TS_ESCAPE = re.compile(r"\\(u\{[0-9a-fA-F]+\}|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|.)", re.S)
 TS_CONTROL = {"n": "\n", "r": "\r", "t": "\t", "b": "\b", "f": "\f", "v": "\v", "0": "\0"}
+TS_WORD = re.compile(r"[A-Za-z0-9_$]+")
+TS_REGEX_AFTER_WORD = {
+    "return", "typeof", "case", "in", "of", "void", "delete", "throw", "new", "yield", "await",
+    "else", "do", "instanceof",
+}
+TS_HOLE = "${…}"
 
 
 def _unescape(match: re.Match) -> str:
@@ -135,12 +135,97 @@ def _unescape(match: re.Match) -> str:
     return TS_CONTROL.get(code, code) if len(code) == 1 else chr(int(code.strip("ux{}"), 16))
 
 
+def _quoted_end(source: str, i: int) -> int:
+    """Position du guillemet fermant (ou de la fin de ligne) d'une chaîne qui commence en i."""
+    quote, j = source[i], i + 1
+    while j < len(source) and source[j] not in (quote, "\n"):
+        j += 2 if source[j] == "\\" else 1
+    return min(j, len(source))
+
+
+def _regex_end(source: str, i: int) -> int:
+    """Position juste après /…/drapeaux, en tenant compte des classes [...]."""
+    j, in_class = i + 1, False
+    while j < len(source) and source[j] != "\n":
+        char = source[j]
+        if char == "\\":
+            j += 2
+            continue
+        if char == "[":
+            in_class = True
+        elif char == "]":
+            in_class = False
+        elif char == "/" and not in_class:
+            j += 1
+            while j < len(source) and source[j].isalpha():
+                j += 1
+            return j
+        j += 1
+    return j
+
+
+def _template(source: str, i: int, found: list) -> int:
+    """Lit `…` à partir du backtick ouvrant ; renvoie la position qui suit le backtick fermant."""
+    j, start, parts = i + 1, i + 1, []
+    while j < len(source):
+        if source[j] == "\\":
+            j += 2
+            continue
+        if source[j] == "`":
+            break
+        if source.startswith("${", j):
+            parts.append(source[start:j])
+            j = _code(source, j + 2, found, in_hole=True) + 1
+            start = j
+            continue
+        j += 1
+    parts.append(source[start:j])
+    found.append((i, TS_HOLE.join(parts)))
+    return j + 1
+
+
+def _code(source: str, i: int, found: list, in_hole: bool = False) -> int:
+    """Lit du code à partir de i, jusqu'à la fin ou jusqu'à l'accolade qui ferme un ${…}."""
+    depth, regex_allowed = 0, True
+    while i < len(source):
+        char = source[i]
+        if source.startswith("//", i):
+            end = source.find("\n", i)
+            i = len(source) if end < 0 else end
+        elif source.startswith("/*", i):
+            end = source.find("*/", i + 2)
+            i = len(source) if end < 0 else end + 2
+        elif char in "'\"":
+            end = _quoted_end(source, i)
+            found.append((i, source[i + 1 : end]))
+            i, regex_allowed = end + 1, False
+        elif char == "`":
+            i, regex_allowed = _template(source, i, found), False
+        elif char == "/" and regex_allowed:
+            i, regex_allowed = _regex_end(source, i), False
+        elif char.isspace():
+            i += 1
+        elif TS_WORD.match(source, i):
+            word = TS_WORD.match(source, i)
+            i, regex_allowed = word.end(), word[0] in TS_REGEX_AFTER_WORD
+        else:
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                if in_hole and depth == 0:
+                    return i
+                depth -= 1
+            i, regex_allowed = i + 1, char not in ")]"
+    return i
+
+
 def string_literals(source: str) -> list[tuple[int, str]]:
     """Chaînes d'un fichier TypeScript, échappements décodés, avec leur numéro de ligne."""
+    found: list[tuple[int, str]] = []
+    _code(source, 0, found)
     return [
-        (source.count("\n", 0, match.start()) + 1, TS_ESCAPE.sub(_unescape, match["text"][1:-1]))
-        for match in TS_TOKEN.finditer(source)
-        if match["text"]
+        (source.count("\n", 0, start) + 1, TS_ESCAPE.sub(_unescape, text))
+        for start, text in sorted(found)
     ]
 
 
@@ -208,9 +293,36 @@ def test_string_literals_skip_comments_and_regular_expressions():
     assert string_literals(source) == [
         (4, "C’est à toi\u00a0!"),
         (5, 'Entre "guillemets"'),
-        (6, "${n} ${plural(n, 'jeu', 'jeux')}"),
+        (6, "${…} ${…}"),
+        (6, "jeu"),
+        (6, "jeux"),
         (7, "’"),
     ]
+
+
+def test_string_literals_read_nested_templates_and_regexes_after_arrows():
+    source = "\n".join([
+        "export const fr = {",
+        "  a: (n: number) => `${n > 1 ? `Tes parents sont fiers` : `Bravo`} !`,",
+        "  b: (v: number | null) => `${v === null ? 'À découvrir' : `${v} sur 20`} pour toi`,",
+        "  c: (c: string) => /'/.test(c) ? 'Tes parents' : 'ok',",
+        "  d(c: string) { return /'/.test(c) ? 'Ta sœur' : `${{ a: 1 }.a}`; },",
+        "};",
+    ])
+    assert string_literals(source) == [
+        (2, "${…} !"),
+        (2, "Tes parents sont fiers"),
+        (2, "Bravo"),
+        (3, "${…} pour toi"),
+        (3, "À découvrir"),
+        (3, "${…} sur 20"),
+        (4, "Tes parents"),
+        (4, "ok"),
+        (5, "Ta sœur"),
+        (5, "${…}"),
+    ]
+    problems = guardrail_problems((f"fr.ts:{line}", text) for line, text in string_literals(source))
+    assert [problem.split(" ")[1] for problem in problems] == ["[famille", "[famille", "[famille"]
 
 
 # Texte → sujets repérés : formes piégeuses du français, puis mots ordinaires à laisser passer.
