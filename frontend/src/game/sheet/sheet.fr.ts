@@ -18,6 +18,7 @@ export const sheetFr = {
     clan: 'Clan',
     noClan: 'encore secret',
     noClanHint: 'Ton clan se révèle à la fin du quiz d’arrivée.',
+    clanNote: 'Il suit ce qui t’attire le plus : il peut changer au fil de tes jeux et de tes talents.',
     level: 'Niv.',
     levelFull: (level: number) => `Niveau ${level}`,
     xp: (xp: number, next: number) => `${xp} / ${next} XP`,

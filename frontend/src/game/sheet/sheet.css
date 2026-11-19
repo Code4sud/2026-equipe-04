@@ -216,6 +216,10 @@
   line-height: var(--leading-snug);
 }
 
+.sheet-hero__note {
+  color: var(--color-text-muted);
+}
+
 .sheet-hero__level {
   grid-area: level;
   display: flex;

@@ -163,10 +163,13 @@ def clan_for(cursors: dict[str, dict]) -> dict | None:
     return best
 
 
-def youth_clan(cursors: dict[str, dict]) -> dict | None:
+def public_clan(clan: dict | None) -> dict | None:
     """Le clan tel que le voit le jeune, sans l'identifiant du curseur qui le désigne."""
-    clan = clan_for(cursors)
     return {k: v for k, v in clan.items() if k != "trait"} if clan else None
+
+
+def youth_clan(cursors: dict[str, dict]) -> dict | None:
+    return public_clan(clan_for(cursors))
 
 
 def youth_leaning(trait_id: str, value: float | None) -> str | None:
@@ -604,9 +607,11 @@ def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     run, instrument = own_run(user, run_id, lock=True)
     if run.status != GameRunStatus.COMPLETED:
         _reconcile(run, instrument)
-    before = progress(load_youth(user.id))
+    data_before = load_youth(user.id)
+    before = progress(data_before)
     if run.status == GameRunStatus.COMPLETED:
         return _result(user, run, instrument, before)
+    clan_before = clan_for(cursors_of(data_before))
 
     if instrument["kind"] == "performance":
         _score_performance(run, instrument, body.get("trials"))
@@ -620,7 +625,7 @@ def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     run.completed_at = utcnow()
     run.paused_at = None
     db.session.commit()
-    return _result(user, run, instrument, before)
+    return _result(user, run, instrument, before, clan_before)
 
 
 def _score_performance(run: GameRun, instrument: dict, trials) -> None:
@@ -649,18 +654,24 @@ def _score_performance(run: GameRun, instrument: dict, trials) -> None:
         )
 
 
-def _result(user: User, run: GameRun, instrument: dict, before: dict) -> dict:
+def _result(
+    user: User, run: GameRun, instrument: dict, before: dict, clan_before: dict | None = None
+) -> dict:
     data = load_youth(user.id)
     after = progress(data)
     cursors = cursors_of(data)
+    clan = clan_for(cursors)
     earned_before = {b["id"] for b in before["badges"] if b["earned"]}
+    changed = clan_before is not None and clan is not None and clan_before["id"] != clan["id"]
     return {
         "run": run_dict(run, instrument),
         "xp_gained": after["xp"] - before["xp"],
         "progress": after,
         "leveled_up": after["level"] > before["level"],
         "new_badges": [b for b in after["badges"] if b["earned"] and b["id"] not in earned_before],
-        "clan": youth_clan(cursors),
+        "clan": public_clan(clan),
+        # Le clan suit l'intérêt le plus fort : le jeune voit quand une partie le fait changer.
+        "previous_clan": public_clan(clan_before) if changed else None,
         "highlights": _highlights(cursors, data.feedback),
         # Ses réussites seulement : les pourcentages et les mesures fines restent à la psychologue.
         "metrics": youth_metrics(instrument, run.metrics) if instrument["kind"] == "performance" else None,

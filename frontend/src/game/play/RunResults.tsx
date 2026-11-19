@@ -211,6 +211,27 @@ function WhatStandsOut({
   );
 }
 
+/** Le clan suit l'intérêt le plus fort : une partie peut faire passer le jeune dans un autre. */
+function ClanChange({ result }: { result: RunResult }) {
+  const { clan, previous_clan: previous } = result;
+  if (!clan || !previous) return null;
+  return (
+    <section className="play-panel" aria-labelledby="play-clan-title">
+      <h2 id="play-clan-title">{t.result.clanTitle}</h2>
+      <p className="play-badge">
+        <span className="play-badge__icon" aria-hidden="true">
+          {gameEmoji(clan.icon)}
+        </span>
+        <span>
+          <strong>{clan.name}</strong>
+          <small>{t.result.clanBefore(previous.name)}</small>
+        </span>
+      </p>
+      <p className="play-panel__hint">{t.result.clanHint}</p>
+    </section>
+  );
+}
+
 interface Props {
   instrument: PublicInstrument;
   result: RunResult;
@@ -279,6 +300,8 @@ export function RunResults({ instrument, result, answerXp, exitTo }: Props) {
           </ul>
         </section>
       )}
+
+      <ClanChange result={result} />
 
       <WhatStandsOut instrumentId={instrument.id} highlights={result.highlights} />
 

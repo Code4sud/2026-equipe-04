@@ -162,6 +162,8 @@ export interface RunResult {
   leveled_up: boolean;
   new_badges: Badge[];
   clan: Clan | null;
+  /** Clan d'avant quand cette partie l'a fait changer (il suit l'intérêt le plus fort), sinon null. */
+  previous_clan?: Clan | null;
   highlights: YouthTrait[];
   /**
    * Jeux chronométrés : les réussites du jeune seulement (record, séries, meilleure série,

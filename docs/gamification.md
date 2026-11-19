@@ -4,7 +4,7 @@
 
 1. À la création du compte, le jeune accepte que ses données soient transmises au Centre des Possibles et à sa psychologue (formulaire d'inscription, hors de ce module).
 2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions en chapitres. Il peut passer une question ou continuer plus tard.
-3. Le quiz révèle son clan (type RIASEC dominant) et débloque les jeux de `/jeune/jeux`.
+3. Le quiz révèle son clan (type RIASEC dominant) et débloque les jeux de `/jeune/jeux`. Le clan suit l'intérêt le plus fort : si une partie le fait changer, son résultat l'annonce (`previous_clan` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer.
 4. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur ce que chaque curseur affiche. Si un curseur bipolaire change de pôle ensuite, son ancien verdict ne s'affiche plus et il peut juger le nouveau.
 5. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, ainsi que chaque modification du jeune (détail corrigé avec sa réponse d'origine, détail masqué ou remontré, verdict donné, changé ou retiré avec ce qu'il jugeait, réponse changée ou retirée), pour pouvoir en parler avec lui.
 

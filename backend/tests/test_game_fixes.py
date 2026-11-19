@@ -990,3 +990,30 @@ def test_the_youth_clan_does_not_name_its_cursor(client, youth, psychologist):
     assert "trait" not in sheet(client, youth)["identity"]["clan"]
     overview = client.get(f"/api/backoffice/youths/{youth_id(client, youth)}/game", headers=psychologist)
     assert overview.get_json()["clan"]["trait"].startswith("riasec_")
+
+
+def test_a_game_that_changes_the_clan_says_so(client, youth, catalog):
+    _, onboarding = finish_onboarding(client, youth)
+    first = onboarding["clan"]
+    assert first and onboarding["previous_clan"] is None
+    first_trait = next(clan["trait"] for clan in catalog.clans if clan["id"] == first["id"])
+    target = next(clan for clan in catalog.clans if clan["id"] != first["id"])
+    items = [
+        {"id": f"{key}{i}", "type": "likert", "prompt": f"Phrase {key}{i}", "trait": trait, "keyed": keyed}
+        for key, trait, keyed in (("up", target["trait"], "+"), ("down", first_trait, "-"))
+        for i in range(8)
+    ]
+    catalog.instruments["fixture_clan"] = {
+        "id": "fixture_clan", "version": 1, "order": 50, "kind": "questionnaire", "tier": "custom",
+        "title": "Clan fictif", "tagline": "Pour tester", "icon": "compass", "duration_min": 1,
+        "xp": 10, "min_answers": 1, "scale": {"min": 1, "max": 5}, "items": items,
+    }
+    run_id = start(client, youth, "fixture_clan")["run"]["id"]
+    for item in items:
+        assert answer(client, youth, run_id, item["id"], 5).status_code == 200
+    result = complete(client, youth, run_id).get_json()
+    assert result["clan"]["id"] == target["id"]
+    assert result["previous_clan"] == {k: v for k, v in first.items()}
+    assert "trait" not in result["previous_clan"]
+    # Redemander le résultat d'une partie finie n'annonce plus de changement.
+    assert complete(client, youth, run_id).get_json()["previous_clan"] is None

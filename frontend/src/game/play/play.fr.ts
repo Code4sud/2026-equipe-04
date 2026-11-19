@@ -50,6 +50,9 @@ export const playFr = {
     levelUp: (level: number) => `Niveau ${level} !`,
     levelTitle: (title: string) => `Te voilà ${title}.`,
     badges: (count: number) => (count > 1 ? 'Nouveaux badges' : 'Nouveau badge'),
+    clanTitle: 'Ton clan évolue',
+    clanBefore: (name: string) => `Avant : ${name}`,
+    clanHint: 'Ton clan suit ce qui t’attire le plus : il peut changer quand tu joues.',
     highlights: 'Ce qui ressort de tes jeux',
     views: {
       personality: 'Ton caractère',

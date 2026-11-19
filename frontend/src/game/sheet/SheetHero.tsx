@@ -67,7 +67,11 @@ export function SheetHero({ sheet }: { sheet: CharacterSheet }) {
         </div>
       </div>
 
-      {clan && <p className="sheet-hero__description">{typo(clan.description)}</p>}
+      {clan && (
+        <p className="sheet-hero__description">
+          {typo(clan.description)} <span className="sheet-hero__note">{t.clanNote}</span>
+        </p>
+      )}
     </header>
   );
 }
