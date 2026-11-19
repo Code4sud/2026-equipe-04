@@ -15,7 +15,7 @@
   "intro": "Chaque énigme cache une règle. Trouve ce qui vient ensuite, ou la case qui complète la grille. Pas de chrono : prends ton temps, et tu peux passer une énigme.",
   "outro": "Énigmes bouclées ! Ton esprit logique a bien tourné.",
   "source_note": "Énigmes inventées pour Potentiel, dans le style des tests de raisonnement publiés.",
-  "scoring_note": "10 énigmes originales (5 suites de lettres ou de nombres, 5 matrices 3×3 de formes), 6 choix chacune, sans limite de temps, possibilité de passer. Format inspiré de l’ICAR (Condon & Revelle, 2014) : aucun item ICAR n’est reproduit. 2 énigmes d’entraînement corrigées à l’écran, gardées mais non comptées. La clé de correction reste sur le serveur. Curseur = énigmes résolues / 10 × 100. Niveaux de difficulté (1 à 3) estimés par l’équipe, non mesurés. Pas d’étalonnage, pas un diagnostic.",
+  "scoring_note": "10 énigmes originales (5 suites de lettres ou de nombres, 5 matrices 3×3 de formes), 6 choix chacune, sans limite de temps, possibilité de passer, avec une consigne générale identique pour tous (suites : « Regarde ce qui change d’un élément à l’autre » ; matrices : « Compare les lignes, puis les colonnes »). Format inspiré de l’ICAR (Condon & Revelle, 2014) : aucun item ICAR n’est reproduit. 2 énigmes d’entraînement corrigées à l’écran, gardées mais non comptées. La clé de correction reste sur le serveur. Curseur = énigmes résolues / 10 × 100. Niveaux de difficulté (1 à 3) estimés par l’équipe, non mesurés. Pas d’étalonnage, pas un diagnostic.",
   "performance": {
     "scorer": "logic",
     "variant": "logic",
