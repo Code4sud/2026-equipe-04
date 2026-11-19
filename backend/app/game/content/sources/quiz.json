@@ -5,10 +5,10 @@
       "title": "Marqueurs des cinq grands facteurs de personnalité de Goldberg, version IPIP en 50 items",
       "citation": "Goldberg, L. R. (1992). The development of markers for the Big-Five factor structure. Psychological Assessment, 4(1), 26-42. https://doi.org/10.1037/1040-3590.4.1.26. Items : International Personality Item Pool, « Goldberg's (1992) Big-Five Factor Markers », https://ipip.ori.org/newBigFive5broadKey.htm",
       "url": "https://ipip.ori.org/newBigFive5broadKey.htm",
-      "licence": "Items IPIP dans le domaine public : copie, modification, traduction et tout usage autorisés sans demande de permission ni frais (ipip.ori.org). Aucun item n'est montré au jeune : les situations du quiz sont des créations originales du projet.",
+      "licence": "Items IPIP dans le domaine public : copie, modification, traduction et tout usage autorisés sans demande de permission ni frais (ipip.ori.org). Aucun item n’est montré au jeune : les situations du quiz sont des créations originales du projet.",
       "validated": false,
-      "adaptation": "Inspiration seulement (relation « inspired »). Chaque situation, écrite en français pour le quiz, s'appuie sur un marqueur IPIP cité en anglais avec sa clé (+ ou -) dans ref et original. Format en choix entre 3 ou 4 réactions du quotidien, ni traduit ni validé : les qualités psychométriques des échelles IPIP ne s'appliquent pas au quiz.",
-      "note": "Échelles IPIP de 10 items : alpha de .79 (conscienciosité) à .87 (extraversion) selon la table publiée par l'IPIP (https://ipip.ori.org/newBigFive5broadTable.htm). Ces valeurs concernent les échelles d'origine, pas ce quiz."
+      "adaptation": "Inspiration seulement (relation « inspired »). Chaque situation, écrite en français pour le quiz, s’appuie sur un marqueur IPIP cité en anglais avec sa clé (+ ou -) dans ref et original. Format en choix entre 3 ou 4 réactions du quotidien, ni traduit ni validé : les qualités psychométriques des échelles IPIP ne s’appliquent pas au quiz.",
+      "note": "Échelles IPIP de 10 items : alpha de .79 (conscienciosité) à .87 (extraversion) selon la table publiée par l’IPIP (https://ipip.ori.org/newBigFive5broadTable.htm). Ces valeurs concernent les échelles d’origine, pas ce quiz."
     },
     {
       "id": "ipip_neo",

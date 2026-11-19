@@ -245,7 +245,10 @@ def catalog():
 
 
 def test_youth_facing_text_respects_guardrails(catalog):
-    problems = guardrail_problems(youth_texts(catalog))
+    texts = list(youth_texts(catalog))
+    problems = guardrail_problems(texts)
+    # Même convention que l'interface : apostrophe typographique dans tout ce que lit le jeune.
+    problems += [f"{where} [apostrophe droite] {text}" for where, text in texts if "'" in text]
     assert not problems, "\n".join(problems)
 
 

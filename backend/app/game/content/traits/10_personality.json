@@ -14,7 +14,7 @@
       "kind": "bipolar",
       "youth": { "low": "Franc·he", "high": "Conciliant·e" },
       "psy": { "low": "Direct", "high": "Conciliant" },
-      "description": "Manière de gérer les désaccords et d'aller vers les autres.",
+      "description": "Manière de gérer les désaccords et d’aller vers les autres.",
       "reference": "Big Five, facteur Agréabilité"
     },
     {
@@ -22,7 +22,7 @@
       "kind": "bipolar",
       "youth": { "low": "Spontané·e", "high": "Organisé·e" },
       "psy": { "low": "Spontané", "high": "Organisé" },
-      "description": "Préférence pour l'improvisation ou pour le cadre et la méthode.",
+      "description": "Préférence pour l’improvisation ou pour le cadre et la méthode.",
       "reference": "Big Five, facteur Conscienciosité"
     },
     {
