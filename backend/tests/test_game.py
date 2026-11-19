@@ -109,7 +109,7 @@ def test_cannot_touch_someone_elses_run(client, youth):
     assert complete(client, other, run_id).status_code == 404
 
 
-def test_completion_needs_enough_answers_and_gives_clan_and_xp(client, youth):
+def test_completion_needs_enough_answers_and_gives_an_archetype_and_xp(client, youth):
     run_id = start(client, youth)["run"]["id"]
     answer(client, youth, run_id, "groupe", "a")
     assert complete(client, youth, run_id).status_code == 409
@@ -118,7 +118,8 @@ def test_completion_needs_enough_answers_and_gives_clan_and_xp(client, youth):
     client.put(f"/api/me/game/runs/{run_id}/answers/agenda", json={"skipped": True}, headers=youth)
     answer(client, youth, run_id, "couleur", "jaune")
     result = complete(client, youth, run_id).get_json()
-    assert result["clan"]["id"] == "batisseurs"
+    # Seul curseur de caractère connu : Réservé ↔ Sociable à 90, côté sociable.
+    assert (result["archetype"]["id"], result["archetype"]["quality"]) == ("etincelle", "Sociable")
     assert result["progress"]["xp"] == 150 + 3 * 2
     assert result["xp_gained"] == 150
     assert [badge["id"] for badge in result["new_badges"]] == ["premiers_pas"]
@@ -243,7 +244,8 @@ def test_sheet_shows_facts_and_psychologist_sees_every_change(client, youth, psy
     assert {fact["label"]: fact["value"] for fact in sheet["facts"]} == {
         "Couleur préférée": "Jaune", "Passion": "Jeux vidéo"
     }
-    assert sheet["identity"]["clan"]["id"] == "batisseurs"
+    # Organisé à 100 s'écarte plus du milieu que Réservé à 10.
+    assert sheet["identity"]["archetype"]["id"] == "charpente"
     groups = {group["id"]: group["traits"] for group in sheet["trait_groups"]}
     assert groups["personality"][0]["label"] == "Réservé·e"
     assert all(trait["value"] >= 50 for trait in groups["interests"])

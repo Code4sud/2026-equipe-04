@@ -99,7 +99,7 @@ def youth_fields(entry: dict) -> dict:
 
 
 def youth_texts(catalog: Catalog):
-    """Tout le contenu que reçoit le jeune : parties, libellés de ses détails, curseurs, clans, fiche."""
+    """Tout le contenu que reçoit le jeune : parties, libellés de ses détails, curseurs, archétypes, fiche."""
     for instrument in catalog.instruments.values():
         name = instrument["id"]
         yield from strings(catalog.public_instrument(instrument), name)
@@ -110,7 +110,7 @@ def youth_texts(catalog: Catalog):
         yield from strings(youth_fields(group), f"groupe {group['id']}")
     for trait in catalog.traits.values():
         yield from strings(youth_fields(trait), f"curseur {trait['id']}")
-    yield from strings(catalog.clans, "clans")
+    yield from strings(catalog.archetypes, "archetypes")
     yield from strings(catalog.sheet, "fiche")
 
 
@@ -261,10 +261,19 @@ def test_lint_reads_every_field_sent_to_the_youth(catalog):
     paths = [where for where, _ in youth_texts(catalog)]
     for field in (
         ".prompt", ".hint", ".placeholder", ".options[", ".scale.labels[", ".chapters[", ".outro",
-        ".source_note", ".performance.", ".fact_label", ".youth.", ".youth_label", "clans[",
+        ".source_note", ".performance.", ".fact_label", ".youth.", ".youth_label", "archetypes[",
         "fiche.attributes[", "fiche.level_titles[", "fiche.badges[",
     ):
         assert any(field in path for path in paths), field
+    # Chaque texte de chaque archétype, et un texte fautif y serait signalé.
+    for archetype in catalog.archetypes:
+        for field in ("name", "motto", "description", "emoji"):
+            assert f"archetypes[{archetype['id']}].{field}" in paths, (archetype["id"], field)
+    archetypes = copy.deepcopy(catalog.archetypes)
+    archetypes[0]["motto"] = "Fier comme tes parents"
+    assert guardrail_problems(strings(archetypes, "archetypes")) == [
+        f"archetypes[{archetypes[0]['id']}].motto [famille : parents] Fier comme tes parents"
+    ]
 
 
 def test_front_youth_texts_respect_guardrails():

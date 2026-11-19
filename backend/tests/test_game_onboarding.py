@@ -242,11 +242,12 @@ def test_public_quiz_hides_facts_traits_and_sources(client):
     assert len(instrument["chapters"]) == 5 and instrument["min_answers"] == 30
 
 
-def test_full_quiz_reveals_a_clan_and_levels_up(client):
+def test_full_quiz_reveals_an_archetype_and_levels_up(client):
     youth = register(client)
     run_id, items = play(client, youth, answers=50)
     result = client.post(f"/api/me/game/runs/{run_id}/complete", headers=youth).get_json()
-    assert result["clan"] is not None
+    assert result["archetype"]["name"] and result["archetype"]["quality"]
+    assert result["previous_archetype"] is None
     assert len(result["highlights"]) == 3
     assert result["xp_gained"] == 200
     assert result["progress"]["xp"] == 200 + 2 * len(items)

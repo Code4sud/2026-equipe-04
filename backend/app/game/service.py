@@ -35,7 +35,7 @@ from ..models import (
 )
 from ..services import service
 from . import events
-from .catalog import FACT_KEY, Catalog
+from .catalog import ARCHETYPE_TEXTS, BALANCED_POLE, FACT_KEY, Catalog
 from .discovery import reveal_with
 from .performance import SCORERS, finite_ms, youth_metrics
 from .scoring import (
@@ -163,22 +163,55 @@ def cursors_of(data: YouthData) -> dict[str, dict]:
     return aggregate(catalog(), collect_signals(data))
 
 
-def clan_for(cursors: dict[str, dict]) -> dict | None:
-    best, best_value = None, -1.0
-    for clan in catalog().clans:
-        value = cursors[clan["trait"]]["value"]
-        if value is not None and value > best_value:
-            best, best_value = clan, value
-    return best
+def archetype_for(cursors: dict[str, dict]) -> dict | None:
+    """L'archétype du jeune, recalculé à chaque fois à partir de tous ses signaux.
+
+    Seuls comptent les curseurs de personnalité qui ont une valeur. Le plus éloigné du milieu
+    l'emporte (à égalité, le premier dans traits/10_personality.json) et son pôle donne
+    l'archétype ; s'il ne s'écarte pas de plus de BALANCED_MARGIN points, c'est l'archétype
+    équilibré. Sans aucune valeur, pas encore d'archétype.
+    """
+    cat = catalog()
+    best, distance = None, -1.0
+    for trait_id in cat.archetype_traits():
+        value = cursors[trait_id]["value"]
+        if value is not None and abs(value - 50) > distance:
+            best, distance = trait_id, abs(value - 50)
+    if best is None:
+        return None
+    if distance <= BALANCED_MARGIN:
+        return cat.archetype(None, BALANCED_POLE)
+    return cat.archetype(best, "high" if cursors[best]["value"] > 50 else "low")
 
 
-def public_clan(clan: dict | None) -> dict | None:
-    """Le clan tel que le voit le jeune, sans l'identifiant du curseur qui le désigne."""
-    return {k: v for k, v in clan.items() if k != "trait"} if clan else None
+def youth_archetype(archetype: dict | None) -> dict | None:
+    """L'archétype tel que le voit le jeune : sa qualité en clair, jamais le curseur, le pôle ni la
+    valeur qui le désignent."""
+    if archetype is None:
+        return None
+    trait_id = archetype["trait"]
+    quality = catalog().traits[trait_id]["youth"][archetype["pole"]] if trait_id else BALANCED_LABEL
+    return {**{k: archetype[k] for k in ARCHETYPE_TEXTS}, "quality": quality}
 
 
-def youth_clan(cursors: dict[str, dict]) -> dict | None:
-    return public_clan(clan_for(cursors))
+def archetype_info(archetype: dict) -> dict:
+    """Pour la psychologue : l'archétype et le pôle qui le désigne, nommés comme ses curseurs."""
+    trait_id = archetype["trait"]
+    return {
+        **youth_archetype(archetype),
+        "trait": trait_id,
+        "pole": archetype["pole"],
+        "trait_label": _trait_label(trait_id) if trait_id else None,
+        "pole_label": catalog().traits[trait_id]["psy"][archetype["pole"]] if trait_id else BALANCED_LABEL,
+    }
+
+
+def psy_archetype(archetype: dict | None, cursors: dict[str, dict]) -> dict | None:
+    """Ajoute la valeur du curseur qui désigne l'archétype (None pour l'archétype équilibré)."""
+    if archetype is None:
+        return None
+    trait_id = archetype["trait"]
+    return {**archetype_info(archetype), "value": cursors[trait_id]["value"] if trait_id else None}
 
 
 def youth_leaning(trait_id: str, value: float | None) -> str | None:
@@ -620,7 +653,7 @@ def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     before = progress(data_before)
     if run.status == GameRunStatus.COMPLETED:
         return _result(user, run, instrument, before)
-    clan_before = clan_for(cursors_of(data_before))
+    archetype_before = archetype_for(cursors_of(data_before))
 
     if instrument["kind"] == "performance":
         _score_performance(run, instrument, body.get("trials"))
@@ -634,7 +667,7 @@ def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
     run.completed_at = utcnow()
     run.paused_at = None
     db.session.commit()
-    return _result(user, run, instrument, before, clan_before)
+    return _result(user, run, instrument, before, archetype_before)
 
 
 def _score_performance(run: GameRun, instrument: dict, trials) -> None:
@@ -664,23 +697,26 @@ def _score_performance(run: GameRun, instrument: dict, trials) -> None:
 
 
 def _result(
-    user: User, run: GameRun, instrument: dict, before: dict, clan_before: dict | None = None
+    user: User, run: GameRun, instrument: dict, before: dict, archetype_before: dict | None = None
 ) -> dict:
     data = load_youth(user.id)
     after = progress(data)
     cursors = cursors_of(data)
-    clan = clan_for(cursors)
+    archetype = archetype_for(cursors)
     earned_before = {b["id"] for b in before["badges"] if b["earned"]}
-    changed = clan_before is not None and clan is not None and clan_before["id"] != clan["id"]
+    changed = (
+        archetype_before is not None and archetype is not None and archetype_before["id"] != archetype["id"]
+    )
     return {
         "run": run_dict(run, instrument),
         "xp_gained": after["xp"] - before["xp"],
         "progress": after,
         "leveled_up": after["level"] > before["level"],
         "new_badges": [b for b in after["badges"] if b["earned"] and b["id"] not in earned_before],
-        "clan": public_clan(clan),
-        # Le clan suit l'intérêt le plus fort : le jeune voit quand une partie le fait changer.
-        "previous_clan": public_clan(clan_before) if changed else None,
+        "archetype": youth_archetype(archetype),
+        # L'archétype suit le trait de caractère le plus marqué : le jeune voit quand une partie
+        # le fait changer.
+        "previous_archetype": youth_archetype(archetype_before) if changed else None,
         "highlights": _highlights(cursors, data.feedback),
         # Ses réussites seulement : les pourcentages et les mesures fines restent à la psychologue.
         "metrics": youth_metrics(instrument, run.metrics) if instrument["kind"] == "performance" else None,
@@ -838,7 +874,7 @@ def character_sheet(user: User) -> dict:
         Skill.youth_id == user.id, Skill.status == SkillStatus.PENDING
     ).count()
     return {
-        "identity": {"display_name": user.display_name, "clan": youth_clan(cursors)},
+        "identity": {"display_name": user.display_name, "archetype": youth_archetype(archetype_for(cursors))},
         "progress": progress(data),
         "facts": [fact_dict(f) for f in data.facts],
         "attributes": _attributes(
@@ -1108,7 +1144,7 @@ def psy_overview(user: User) -> dict:
     return {
         "youth": {"id": str(user.id), "display_name": user.display_name},
         "progress": {k: current[k] for k in ("xp", "level", "level_title")},
-        "clan": clan_for(cursors),
+        "archetype": psy_archetype(archetype_for(cursors), cursors),
         "cursor_groups": [
             {
                 "id": group["id"],
@@ -1235,4 +1271,6 @@ def psy_catalog() -> dict:
         # niveau de confiance (en dessous de « medium » : « low », sans donnée : « none »).
         "weights": dict(TIER_WEIGHTS),
         "confidence_thresholds": dict(CONFIDENCE_THRESHOLDS),
+        # Chaque archétype montré au jeune et le pôle qui le désigne (archetype_for).
+        "archetypes": [archetype_info(archetype) for archetype in cat.archetypes],
     }

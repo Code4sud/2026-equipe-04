@@ -24,6 +24,12 @@ PUBLIC_INSTRUMENT_FIELDS = (
 )
 # Clé d'un détail de la fiche (couleur_preferee...) : elle arrive aussi dans l'URL de correction.
 FACT_KEY = re.compile(r"[a-z][a-z0-9_]{0,59}")
+# Archétypes : un par pôle des curseurs bipolaires de ce groupe, plus un pour un profil équilibré.
+ARCHETYPE_GROUP = "personality"
+ARCHETYPE_POLES = ("low", "high")
+BALANCED_POLE = "balanced"
+ARCHETYPE_TEXTS = ("id", "name", "motto", "description", "emoji")
+ARCHETYPE_FIELDS = (*ARCHETYPE_TEXTS, "trait", "pole")
 
 
 class ContentError(ValueError):
@@ -59,7 +65,7 @@ class Catalog:
         self.trait_groups.sort(key=lambda group: group.get("order", 100))
 
         self.skill_signals: dict[str, list[dict]] = _read(root / "skill_signals.json")
-        self.clans: list[dict] = _read(root / "clans.json")["clans"]
+        self.archetypes: list[dict] = _read(root / "archetypes.json")["archetypes"]
         self.sheet: dict = _read(root / "sheet.json")
 
         roots = [*overlays, root] if not overlays_win else [root, *overlays]
@@ -80,11 +86,22 @@ class Catalog:
     def item(self, instrument: dict, item_id: str) -> dict | None:
         return next((item for item in instrument.get("items", []) if item["id"] == item_id), None)
 
+    def archetype_traits(self) -> list[str]:
+        """Curseurs qui désignent l'archétype : les bipolaires du groupe Personnalité, dans l'ordre
+        de leur fichier, qui départage deux curseurs aussi marqués."""
+        group = next((g for g in self.trait_groups if g["id"] == ARCHETYPE_GROUP), None)
+        if group is None:
+            return []
+        return [t for t in group["trait_ids"] if self.traits[t]["kind"] == "bipolar"]
+
+    def archetype(self, trait_id: str | None, pole: str) -> dict:
+        """L'archétype d'un pôle, ou l'archétype équilibré avec (None, BALANCED_POLE)."""
+        return next(a for a in self.archetypes if a["trait"] == trait_id and a["pole"] == pole)
+
     def validate(self) -> None:
         for category, signals in self.skill_signals.items():
             self._check_signals(signals, f"talents/{category}")
-        for clan in self.clans:
-            self._check_trait(clan["trait"], f"clan {clan['id']}")
+        self._check_archetypes()
         for attribute in self.sheet["attributes"]:
             for part in attribute["traits"]:
                 self._check_trait(part["trait"], f"attribut {attribute['id']}")
@@ -94,6 +111,44 @@ class Catalog:
     def _check_trait(self, trait_id: str, where: str) -> None:
         if trait_id not in self.traits:
             raise ContentError(f"{where} : curseur inconnu « {trait_id} »")
+
+    def _check_archetypes(self) -> None:
+        """Un archétype par pôle de chaque curseur de personnalité, un seul pour le profil équilibré."""
+        traits = self.archetype_traits()
+        ids: set[str] = set()
+        owners: dict[tuple[str | None, str], str] = {}
+        for archetype in self.archetypes:
+            where = f"archétype {archetype.get('id', '?')}"
+            for field in ARCHETYPE_FIELDS:
+                if field not in archetype:
+                    raise ContentError(f"{where} : champ manquant « {field} »")
+            for field in ARCHETYPE_TEXTS:
+                if not isinstance(archetype[field], str) or not archetype[field].strip():
+                    raise ContentError(f"{where} : « {field} » doit être un texte non vide")
+            if archetype["id"] in ids:
+                raise ContentError(f"{where} : identifiant en double")
+            ids.add(archetype["id"])
+            trait_id, pole = archetype["trait"], archetype["pole"]
+            if pole == BALANCED_POLE:
+                if trait_id is not None:
+                    raise ContentError(f"{where} : l'archétype équilibré ne vise aucun curseur")
+            elif pole in ARCHETYPE_POLES:
+                self._check_trait(trait_id, where)
+                if trait_id not in traits:
+                    raise ContentError(
+                        f"{where} : « {trait_id} » n'est pas un curseur bipolaire de personnalité"
+                    )
+            else:
+                raise ContentError(f"{where} : pôle invalide « {pole} »")
+            if (trait_id, pole) in owners:
+                raise ContentError(f"{where} : même pôle que l'archétype {owners[trait_id, pole]}")
+            owners[trait_id, pole] = archetype["id"]
+        if (None, BALANCED_POLE) not in owners:
+            raise ContentError("archétypes : aucun archétype pour le profil équilibré")
+        for trait_id in traits:
+            for pole in ARCHETYPE_POLES:
+                if (trait_id, pole) not in owners:
+                    raise ContentError(f"archétypes : aucun archétype pour le pôle {pole} de {trait_id}")
 
     def _check_signals(self, signals: list[dict], where: str, ceiling: str | None = None) -> None:
         for signal in signals:

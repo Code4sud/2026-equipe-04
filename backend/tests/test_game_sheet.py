@@ -1,6 +1,7 @@
 """Fiche d'aventurier : attributs à découvrir, badges et titres de niveau."""
 from __future__ import annotations
 
+import re
 import unicodedata
 from pathlib import Path
 
@@ -91,13 +92,19 @@ def test_every_badge_can_be_earned():
             assert rule["count"] >= 1, badge["id"]
 
 
-def test_level_titles_are_unique_and_never_a_clan_name():
+def test_level_titles_are_unique_and_never_an_archetype_name():
     def plain(text: str) -> str:
         text = unicodedata.normalize("NFKD", text).lower()
         return "".join(c for c in text if c.isalpha())
 
+    def words(text: str) -> set[str]:
+        return {plain(word) for word in re.split(r"[\s’'·-]+", text) if plain(word)}
+
     catalog = Catalog()
     titles = [plain(title) for title in catalog.sheet["level_titles"]]
     assert len(set(titles)) == len(titles)
-    clan_roots = {plain(clan["name"].split()[-1])[:-2] for clan in catalog.clans}
-    assert not [t for t in titles for root in clan_roots if root in t]
+    # Le nom sans son article : « L’Étincelle » donne « etincelle ». Mot à mot, pour que « Le Vent »
+    # n'attrape pas « Aventurier·ère ».
+    names = {plain(re.split(r"[\s’']+", archetype["name"])[-1]) for archetype in catalog.archetypes}
+    assert len(names) == len(catalog.archetypes)
+    assert not [title for title in catalog.sheet["level_titles"] if words(title) & names]

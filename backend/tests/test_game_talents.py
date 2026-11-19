@@ -2,7 +2,7 @@
 
 Un talent que le jeune ajoute lui-même sur sa carte reçoit la catégorie par défaut
 « savoir_faire » : le compter ferait monter « Intérêt manuel et technique » quel que soit le
-talent, pourrait changer son clan et donnerait de l'XP à chaque nom tapé.
+talent et donnerait de l'XP à chaque nom tapé.
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def test_talents_the_youth_adds_move_no_cursor_xp_or_badge(client, youth, psycho
     data = sheet(client, youth)
     assert data["progress"]["xp"] == 0
     assert not any(badge["earned"] for badge in data["progress"]["badges"])
-    assert data["identity"]["clan"] is None
+    assert data["identity"]["archetype"] is None
     # Ils restent sur sa fiche, avec leur origine.
     assert {t["origin"] for t in data["talents"]["validated"]} == {"youth"}
     assert len(data["talents"]["validated"]) == 3

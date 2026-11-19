@@ -993,36 +993,43 @@ def test_a_verdict_that_is_not_text_is_refused(client, youth, value):
     assert response.status_code == 400 and response.get_json()["error"]["code"] == "invalid_field"
 
 
-def test_the_youth_clan_does_not_name_its_cursor(client, youth, psychologist):
+YOUTH_ARCHETYPE = {"id", "name", "motto", "description", "emoji", "quality"}
+
+
+def test_the_youth_archetype_never_names_its_cursor_pole_or_value(client, youth, psychologist):
     _, result = finish_onboarding(client, youth)
-    assert result["clan"] and "trait" not in result["clan"]
-    assert "trait" not in sheet(client, youth)["identity"]["clan"]
-    overview = client.get(f"/api/backoffice/youths/{youth_id(client, youth)}/game", headers=psychologist)
-    assert overview.get_json()["clan"]["trait"].startswith("riasec_")
+    assert set(result["archetype"]) == YOUTH_ARCHETYPE
+    assert set(sheet(client, youth)["identity"]["archetype"]) == YOUTH_ARCHETYPE
+    # La psychologue, elle, voit le curseur, le pôle et la valeur qui l'ont désigné.
+    psy = overview(client, psychologist, youth)["archetype"]
+    assert (psy["trait"], psy["pole"], psy["value"]) == ("conscientiousness", "high", 100.0)
 
 
-def test_a_game_that_changes_the_clan_says_so(client, youth, catalog):
+def test_a_game_that_changes_the_archetype_says_so(client, youth, catalog):
     _, onboarding = finish_onboarding(client, youth)
-    first = onboarding["clan"]
-    assert first and onboarding["previous_clan"] is None
-    first_trait = next(clan["trait"] for clan in catalog.clans if clan["id"] == first["id"])
-    target = next(clan for clan in catalog.clans if clan["id"] != first["id"])
+    first = onboarding["archetype"]
+    # Les réponses du quiz comptent dès qu'elles sont données : sa fin révèle, sans « changement ».
+    assert first["id"] == "charpente" and onboarding["previous_archetype"] is None
+    # Une partie qui ne le change pas n'annonce rien.
+    assert play_questionnaire(client, youth, {"e1": 3, "c1": 5})["previous_archetype"] is None
+
+    # Ouverture tout en haut, organisation tirée vers le bas : l'ouverture devient le plus marqué.
     items = [
         {"id": f"{key}{i}", "type": "likert", "prompt": f"Phrase {key}{i}", "trait": trait, "keyed": keyed}
-        for key, trait, keyed in (("up", target["trait"], "+"), ("down", first_trait, "-"))
+        for key, trait, keyed in (("up", "openness", "+"), ("down", "conscientiousness", "-"))
         for i in range(8)
     ]
-    catalog.instruments["fixture_clan"] = {
-        "id": "fixture_clan", "version": 1, "order": 50, "kind": "questionnaire", "tier": "custom",
-        "title": "Clan fictif", "tagline": "Pour tester", "icon": "compass", "duration_min": 1,
+    catalog.instruments["fixture_archetype"] = {
+        "id": "fixture_archetype", "version": 1, "order": 50, "kind": "questionnaire", "tier": "custom",
+        "title": "Archétype fictif", "tagline": "Pour tester", "icon": "compass", "duration_min": 1,
         "xp": 10, "min_answers": 1, "scale": {"min": 1, "max": 5}, "items": items,
     }
-    run_id = start(client, youth, "fixture_clan")["run"]["id"]
+    run_id = start(client, youth, "fixture_archetype")["run"]["id"]
     for item in items:
         assert answer(client, youth, run_id, item["id"], 5).status_code == 200
     result = complete(client, youth, run_id).get_json()
-    assert result["clan"]["id"] == target["id"]
-    assert result["previous_clan"] == {k: v for k, v in first.items()}
-    assert "trait" not in result["previous_clan"]
+    assert result["archetype"]["id"] == "horizon"
+    assert result["previous_archetype"] == first
+    assert set(result["previous_archetype"]) == YOUTH_ARCHETYPE
     # Redemander le résultat d'une partie finie n'annonce plus de changement.
-    assert complete(client, youth, run_id).get_json()["previous_clan"] is None
+    assert complete(client, youth, run_id).get_json()["previous_archetype"] is None
