@@ -175,8 +175,13 @@ def archetype_for(cursors: dict[str, dict]) -> dict | None:
     best, distance = None, -1.0
     for trait_id in cat.archetype_traits():
         value = cursors[trait_id]["value"]
-        if value is not None and abs(value - 50) > distance:
-            best, distance = trait_id, abs(value - 50)
+        if value is None:
+            continue
+        # Les valeurs sont arrondies au dixième (scoring._weighted) : l'écart aussi, sinon 64,1 et
+        # 35,9 ne seraient pas à égalité en virgule flottante et l'ordre des curseurs ne jouerait plus.
+        gap = round(abs(value - 50), 1)
+        if gap > distance:
+            best, distance = trait_id, gap
     if best is None:
         return None
     if distance <= BALANCED_MARGIN:

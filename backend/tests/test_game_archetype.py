@@ -46,14 +46,21 @@ def overview(client, psychologist, youth) -> dict:
         # À égalité, l'ordre de traits/10_personality.json départage.
         ({"extraversion": 30, "agreeableness": 70}, "lanterne"),
         ({"openness": 80, "emotional_stability": 20}, "flamme"),
+        # Aussi avec des dixièmes, dont les écarts ne tombent pas juste en virgule flottante :
+        # 64,1 - 50 et 50 - 35,9 font tous deux 14,1.
+        ({"extraversion": 64.1, "agreeableness": 35.9}, "etincelle"),
+        ({"extraversion": 35.6, "agreeableness": 64.4}, "lanterne"),
+        ({"conscientiousness": 64.1, "openness": 35.9}, "charpente"),
         # Jusqu'à 8 points du milieu, le curseur est « Entre les deux » : archétype équilibré.
         ({"extraversion": 58}, "cameleon"),
         ({"extraversion": 42, "openness": 55}, "cameleon"),
         ({"conscientiousness": 50}, "cameleon"),
-        # À 9 points, son pôle compte.
+        # Au-delà, son pôle compte, dès le dixième suivant.
         ({"extraversion": 59}, "etincelle"),
         ({"extraversion": 41}, "lanterne"),
         ({"emotional_stability": 59, "openness": 42}, "roc"),
+        ({"extraversion": 58.1}, "etincelle"),
+        ({"extraversion": 41.9}, "lanterne"),
     ],
 )
 def test_the_most_marked_personality_cursor_gives_the_archetype(app, values, expected):
