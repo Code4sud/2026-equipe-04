@@ -11,6 +11,7 @@
   "xp": 150,
   "replayable": false,
   "min_answers": 3,
+  "unlocks_after": 2,
   "source_ids": ["fixture_source"],
   "source_note": "Questions fictives",
   "chapters": [

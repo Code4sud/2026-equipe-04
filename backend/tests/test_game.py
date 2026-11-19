@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -144,11 +145,99 @@ def test_completion_needs_enough_answers_and_gives_an_archetype_and_xp(client, y
     assert client.post("/api/me/game/instruments/onboarding/runs", headers=youth).status_code == 409
 
 
-def test_games_unlock_after_onboarding(client, youth):
-    response = client.post("/api/me/game/instruments/fixture_questionnaire/runs", headers=youth)
-    assert response.status_code == 409 and response.get_json()["error"]["code"] == "locked"
-    finish_onboarding(client, youth)
-    start(client, youth, "fixture_questionnaire")
+def skip(client, headers, run_id, item_id):
+    return client.put(
+        f"/api/me/game/runs/{run_id}/answers/{item_id}", json={"skipped": True}, headers=headers
+    )
+
+
+def game_entry(client, headers, instrument_id):
+    instruments = client.get("/api/me/game", headers=headers).get_json()["instruments"]
+    return next(item for item in instruments if item["id"] == instrument_id)
+
+
+def start_game(client, headers, instrument_id="fixture_questionnaire"):
+    return client.post(f"/api/me/game/instruments/{instrument_id}/runs", headers=headers)
+
+
+def test_the_first_quiz_questions_unlock_the_games_even_all_skipped(client, youth):
+    # Le quiz de test débloque les jeux qui l'exigent après 2 questions vues (unlocks_after).
+    assert game_entry(client, youth, "onboarding")["unlocks_after"] == 2
+    assert game_entry(client, youth, "fixture_questionnaire")["unlocks_after"] is None
+    assert start_game(client, youth).get_json()["error"]["code"] == "locked"
+
+    run_id = start(client, youth)["run"]["id"]
+    assert skip(client, youth, run_id, "agenda").status_code == 200
+    refused = start_game(client, youth)
+    assert refused.status_code == 409
+    assert refused.get_json()["error"] == {
+        "code": "locked",
+        "message": "Ce jeu se débloque après les 2 premières questions du quiz d’arrivée.",
+    }
+    assert game_entry(client, youth, "fixture_questionnaire")["locked"] is True
+    assert game_entry(client, youth, "fixture_span")["locked"] is True
+
+    # Passer compte comme voir : deux questions passées suffisent.
+    assert skip(client, youth, run_id, "groupe").status_code == 200
+    assert game_entry(client, youth, "fixture_questionnaire")["locked"] is False
+    assert game_entry(client, youth, "fixture_span")["locked"] is False
+    assert start_game(client, youth).status_code == 201
+    assert start_game(client, youth, "fixture_span").status_code == 201
+    # Le quiz n'est ni fini ni en pause : l'arrivée y renvoie toujours, comme avant.
+    status = client.get("/api/me/game", headers=youth).get_json()
+    assert status["must_onboard"] is True
+    assert next(item for item in status["instruments"] if item["id"] == "onboarding")["locked"] is False
+
+
+def test_the_finished_quiz_unlocks_the_games_below_the_threshold(app, client, youth):
+    app.extensions["game_catalog"].instruments["onboarding"]["unlocks_after"] = 5
+    run_id = start(client, youth)["run"]["id"]
+    for item_id, value in [("couleur", "jaune"), ("groupe", "a"), ("scooter", "b")]:
+        assert answer(client, youth, run_id, item_id, value).status_code == 200
+    assert skip(client, youth, run_id, "agenda").status_code == 200
+    refused = start_game(client, youth)
+    assert refused.get_json()["error"]["message"] == (
+        "Ce jeu se débloque après les 5 premières questions du quiz d’arrivée."
+    )
+    # 4 questions vues sur les 5 du seuil, mais le quiz est terminé : les jeux sont débloqués.
+    assert complete(client, youth, run_id).status_code == 200
+    assert game_entry(client, youth, "fixture_questionnaire")["locked"] is False
+    assert start_game(client, youth).status_code == 201
+
+
+def test_without_a_threshold_only_the_finished_quiz_unlocks_the_games(app, client, youth):
+    del app.extensions["game_catalog"].instruments["onboarding"]["unlocks_after"]
+    assert game_entry(client, youth, "onboarding")["unlocks_after"] is None
+    run_id = start(client, youth)["run"]["id"]
+    assert start(client, youth)["instrument"]["unlocks_after"] is None
+    for item_id, value in [
+        ("couleur", "jaune"), ("passion", {"text": "Skate"}), ("groupe", "c"), ("scooter", "a"), ("agenda", 4),
+    ]:
+        assert answer(client, youth, run_id, item_id, value).status_code == 200
+    refused = start_game(client, youth)
+    assert refused.status_code == 409
+    assert refused.get_json()["error"]["message"] == "Ce jeu se débloque après le quiz d'arrivée."
+    assert game_entry(client, youth, "fixture_questionnaire")["locked"] is True
+    assert complete(client, youth, run_id).status_code == 200
+    assert game_entry(client, youth, "fixture_questionnaire")["locked"] is False
+    assert start_game(client, youth).status_code == 201
+
+
+def test_a_one_question_threshold_reads_well(app, client, youth):
+    app.extensions["game_catalog"].instruments["onboarding"]["unlocks_after"] = 1
+    start(client, youth)
+    assert start_game(client, youth).get_json()["error"]["message"] == (
+        "Ce jeu se débloque après la première question du quiz d’arrivée."
+    )
+
+
+def test_run_payload_tells_the_player_the_threshold(client, youth):
+    run_id = start(client, youth)["run"]["id"]
+    assert start(client, youth)["instrument"]["unlocks_after"] == 2
+    for item_id in ("agenda", "groupe"):
+        skip(client, youth, run_id, item_id)
+    assert start(client, youth, "fixture_span")["instrument"]["unlocks_after"] is None
+    assert start(client, youth, "fixture_questionnaire")["instrument"]["unlocks_after"] is None
 
 
 def test_psychologist_sees_cursors_as_percentages(client, youth, psychologist):
@@ -330,3 +419,36 @@ def test_catalog_rejects_unknown_trait(tmp_path):
     )
     with pytest.raises(ContentError):
         Catalog(overlays=[tmp_path])
+
+
+def overlay_instrument(tmp_path, name: str, **changes) -> Path:
+    """Copie d'un instrument de test, modifiée, dans un dossier de contenu qui l'emporte."""
+    data = json.loads((FIXTURES / "instruments" / f"{name}.json").read_text(encoding="utf-8"))
+    data.update(changes)
+    folder = tmp_path / "instruments"
+    folder.mkdir(exist_ok=True)
+    (folder / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return tmp_path
+
+
+@pytest.mark.parametrize("value", [1, 5])
+def test_catalog_accepts_a_threshold_within_the_questions(tmp_path, value):
+    catalog = Catalog(overlays=[FIXTURES, overlay_instrument(tmp_path, "onboarding", unlocks_after=value)])
+    assert catalog.instruments["onboarding"]["unlocks_after"] == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [0, -1, 6, 2.5, "2", True, None, [2]],
+    ids=["zero", "negative", "more_than_items", "decimal", "text", "boolean", "null", "list"],
+)
+def test_catalog_rejects_a_threshold_outside_the_questions(tmp_path, value):
+    folder = overlay_instrument(tmp_path, "onboarding", unlocks_after=value)
+    with pytest.raises(ContentError, match=r"onboarding : « unlocks_after » doit être un nombre entier"):
+        Catalog(overlays=[FIXTURES, folder])
+
+
+def test_catalog_rejects_a_threshold_on_a_game_without_questions(tmp_path):
+    folder = overlay_instrument(tmp_path, "fixture_span", unlocks_after=1)
+    with pytest.raises(ContentError, match=r"fixture_span : « unlocks_after » demande"):
+        Catalog(overlays=[FIXTURES, folder])

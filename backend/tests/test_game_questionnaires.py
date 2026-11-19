@@ -308,12 +308,22 @@ def play(client, headers, instrument_id, value):
     return run_id, response.get_json()
 
 
-def test_mirror_is_locked_until_the_quiz_then_scores_each_scale(
+def test_mirror_unlocks_with_the_first_quiz_questions_then_scores_each_scale(
     play_catalog, client, youth, psychologist
 ):
-    response = client.post("/api/me/game/instruments/miroir/runs", headers=youth)
-    assert response.status_code == 409
-    finish_onboarding(client, youth)
+    def open_mirror():
+        return client.post("/api/me/game/instruments/miroir/runs", headers=youth)
+
+    assert open_mirror().status_code == 409
+    # Le quiz de test débloque les jeux après 2 questions vues : il n'a pas besoin d'être fini.
+    quiz_run = start(client, youth)["run"]["id"]
+    assert answer(client, youth, quiz_run, "scooter", "a").status_code == 200
+    assert open_mirror().status_code == 409
+    skipped = client.put(
+        f"/api/me/game/runs/{quiz_run}/answers/agenda", json={"skipped": True}, headers=youth
+    )
+    assert skipped.status_code == 200
+    assert open_mirror().status_code == 201
 
     run_id, result = play(client, youth, "miroir", 5)
     # Les points par réponse arrivent pendant la partie, la fin de partie ajoute ceux du jeu.

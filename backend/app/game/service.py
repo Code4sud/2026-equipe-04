@@ -384,8 +384,33 @@ def _has_completed(youth_id: uuid.UUID, instrument_id: str) -> bool:
     ) is not None
 
 
-def _is_locked(instrument: dict, completed: set[str]) -> bool:
-    return any(required not in completed for required in instrument.get("requires", []))
+def _satisfied_requirements(runs: list[GameRun]) -> set[str]:
+    """Instruments qui ne retiennent plus les jeux qui les exigent : une partie terminée, ou une
+    partie qui a vu au moins `unlocks_after` questions, passées comprises, quand l'instrument en
+    fixe un. Seule règle de déblocage : le départ d'une partie et l'état des jeux la suivent."""
+    cat = catalog()
+    satisfied: set[str] = set()
+    for run in runs:
+        if run.status == GameRunStatus.COMPLETED:
+            satisfied.add(run.instrument_id)
+            continue
+        threshold = cat.instruments.get(run.instrument_id, {}).get("unlocks_after")
+        if threshold is not None and len(run.answers) >= threshold:
+            satisfied.add(run.instrument_id)
+    return satisfied
+
+
+def _is_locked(instrument: dict, satisfied: set[str]) -> bool:
+    return any(required not in satisfied for required in instrument.get("requires", []))
+
+
+def _locked_message(instrument: dict, satisfied: set[str]) -> str:
+    required = next(r for r in instrument.get("requires", []) if r not in satisfied)
+    threshold = catalog().instruments.get(required, {}).get("unlocks_after")
+    if threshold is None:
+        return "Ce jeu se débloque après le quiz d'arrivée."
+    questions = "la première question" if threshold == 1 else f"les {threshold} premières questions"
+    return f"Ce jeu se débloque après {questions} du quiz d’arrivée."
 
 
 def _lock_run(run_id: uuid.UUID) -> GameRun | None:
@@ -396,9 +421,9 @@ def _lock_run(run_id: uuid.UUID) -> GameRun | None:
 def start_run(user: User, instrument_id: str) -> tuple[dict, bool]:
     instrument = _instrument_or_404(instrument_id)
     data = load_youth(user.id)
-    completed = {r.instrument_id for r in data.runs if r.status == GameRunStatus.COMPLETED}
-    if _is_locked(instrument, completed):
-        raise ApiError(409, "locked", "Ce jeu se débloque après le quiz d'arrivée.")
+    satisfied = _satisfied_requirements(data.runs)
+    if _is_locked(instrument, satisfied):
+        raise ApiError(409, "locked", _locked_message(instrument, satisfied))
 
     created = False
     run = _open_run(user.id, instrument_id)
@@ -739,6 +764,7 @@ def game_status(user: User) -> dict:
         r.instrument_id: r.completed_at for r in data.runs if r.status == GameRunStatus.COMPLETED
     }
     open_runs = {r.instrument_id: r for r in data.runs if r.status == GameRunStatus.IN_PROGRESS}
+    satisfied = _satisfied_requirements(data.runs)
 
     instruments = []
     for instrument in cat.ordered_instruments():
@@ -756,7 +782,9 @@ def game_status(user: User) -> dict:
                 "xp": instrument["xp"],
                 "source_note": instrument.get("source_note"),
                 "state": state,
-                "locked": _is_locked(instrument, set(completed)),
+                "locked": _is_locked(instrument, satisfied),
+                # Questions de cet instrument qui débloquent les jeux qui l'exigent (None : la fin).
+                "unlocks_after": instrument.get("unlocks_after"),
                 "replayable": instrument.get("replayable", True),
                 "answered": sum(1 for a in run.answers if not a.skipped) if run else 0,
                 # Questions vues, passées comprises : une partie où tout a été passé est commencée.

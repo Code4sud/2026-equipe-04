@@ -188,6 +188,8 @@ class Catalog:
             raise ContentError(f"{name} : source_ids obligatoire pour ce niveau de preuve")
         for source_id in source_ids:
             self._check_source(source_id, name)
+        if "unlocks_after" in instrument:
+            self._check_unlocks_after(instrument)
 
         if instrument["kind"] == "performance":
             from .performance import SCORERS
@@ -235,9 +237,24 @@ class Catalog:
             elif "fact" not in item:
                 raise ContentError(f"{where} : une question libre alimente forcément un détail")
 
+    def _check_unlocks_after(self, instrument: dict) -> None:
+        """Seuil facultatif : les jeux qui exigent cet instrument se débloquent dès que sa partie a vu
+        ce nombre de questions (répondues ou passées), sans attendre la fin."""
+        name, value = instrument["id"], instrument["unlocks_after"]
+        count = len(instrument.get("items", []))
+        if not count:
+            raise ContentError(f"{name} : « unlocks_after » demande un instrument avec des questions")
+        # bool est un int en Python : true ne doit pas passer pour 1.
+        if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= count:
+            raise ContentError(
+                f"{name} : « unlocks_after » doit être un nombre entier de questions, de 1 à {count}"
+            )
+
     def public_instrument(self, instrument: dict) -> dict:
         """Ce que voit le jeune : jamais les clés de cotation ni les curseurs visés."""
         public = {k: instrument[k] for k in PUBLIC_INSTRUMENT_FIELDS if k in instrument}
+        # Questions à voir avant de débloquer les jeux qui l'exigent ; None : il faut le terminer.
+        public["unlocks_after"] = instrument.get("unlocks_after")
         if instrument["kind"] == "performance":
             settings = instrument["performance"]
             public["performance"] = {k: v for k, v in settings.items() if k not in {"trait", "weight"}}

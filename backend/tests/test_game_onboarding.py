@@ -56,6 +56,15 @@ def test_quiz_settings_match_the_onboarding_contract(quiz):
     assert set(quiz["source_ids"]) == QUIZ_SOURCES
 
 
+def test_the_first_series_of_ten_unlocks_every_mini_game(catalog, quiz):
+    # Demande de l'équipe : les 10 premières questions vues, une série, débloquent les mini-jeux.
+    assert quiz["unlocks_after"] == 10
+    games = [instrument for instrument in catalog.instruments.values() if instrument["id"] != "onboarding"]
+    assert len(games) >= 7
+    for game in games:
+        assert game.get("requires") == ["onboarding"], game["id"]
+
+
 def test_fifty_items_in_five_chapters_of_ten(quiz):
     items = quiz["items"]
     assert len(items) == 50
@@ -280,6 +289,33 @@ def test_full_quiz_reveals_an_archetype_and_levels_up(client):
     status = client.get("/api/me/game", headers=youth).get_json()
     assert status["must_onboard"] is False
     assert client.post("/api/me/game/instruments/onboarding/runs", headers=youth).status_code == 409
+
+
+def test_ten_questions_seen_unlock_the_mini_games_before_the_end(client):
+    youth = register(client)
+    started = client.post("/api/me/game/instruments/onboarding/runs", headers=youth).get_json()
+    run_id, items = started["run"]["id"], started["instrument"]["items"]
+    assert started["instrument"]["unlocks_after"] == 10
+
+    def see(item, body):
+        response = client.put(f"/api/me/game/runs/{run_id}/answers/{item['id']}", json=body, headers=youth)
+        assert response.status_code == 200, response.get_json()
+
+    def mini_games():
+        instruments = client.get("/api/me/game", headers=youth).get_json()["instruments"]
+        return {item["id"]: item["locked"] for item in instruments if item["id"] != "onboarding"}
+
+    for item in items[:9]:
+        see(item, {"value": first_answer(item)})
+    assert set(mini_games().values()) == {True}
+    refused = client.post("/api/me/game/instruments/corsi/runs", headers=youth)
+    assert refused.status_code == 409
+    assert refused.get_json()["error"]["message"] == (
+        "Ce jeu se débloque après les 10 premières questions du quiz d’arrivée."
+    )
+    see(items[9], {"skipped": True})
+    assert set(mini_games().values()) == {False}
+    assert client.post("/api/me/game/instruments/corsi/runs", headers=youth).status_code == 201
 
 
 def test_skipping_is_allowed_down_to_the_minimum(client):

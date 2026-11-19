@@ -53,6 +53,11 @@ export interface PublicInstrument {
   scale?: LikertScale;
   chapters?: Chapter[];
   min_answers?: number;
+  /**
+   * Questions vues (répondues ou passées) qui débloquent les jeux exigeant cet instrument ;
+   * null : il faut le terminer.
+   */
+  unlocks_after: number | null;
   items?: GameItem[];
   performance?: Record<string, unknown> & { scorer: string };
 }
@@ -111,7 +116,13 @@ export interface InstrumentSummary {
   xp: number;
   source_note?: string | null;
   state: 'new' | 'in_progress' | 'completed';
+  /** Décidé par le serveur : un prérequis ni terminé ni assez avancé (voir `unlocks_after`). */
   locked: boolean;
+  /**
+   * Questions vues (répondues ou passées) de cet instrument qui débloquent les jeux qui l'exigent ;
+   * null : il faut le terminer.
+   */
+  unlocks_after: number | null;
   replayable: boolean;
   answered: number;
   /** Questions vues dans la partie en cours, passées comprises (`answered` ne compte que les réponses). */
