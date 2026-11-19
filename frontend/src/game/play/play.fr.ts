@@ -54,6 +54,9 @@ export const playFr = {
     archetypeBefore: (name: string) => `Avant : ${name}`,
     archetypeHint:
       'Ton archétype suit le trait de caractère qui ressort le plus de tes réponses : il peut changer quand tu joues.',
+    /** Le Caméléon : aucun trait ne ressort, l'indice ne peut pas dire que l'archétype en suit un. */
+    archetypeHintBalanced:
+      'Aucun trait de caractère ne ressort nettement de tes réponses pour l’instant : ton archétype peut changer quand tu joues.',
     highlights: 'Ce qui ressort de tes jeux',
     views: {
       personality: 'Ton caractère',

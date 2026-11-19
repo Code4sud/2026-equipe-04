@@ -21,6 +21,9 @@ export const sheetFr = {
     // Les talents gardés avec Néo font aussi bouger les curseurs de caractère (skill_signals.json).
     archetypeNote:
       'Il suit le trait de caractère qui ressort le plus de tes réponses : il peut évoluer au fil de tes jeux et de tes talents.',
+    /** Le Caméléon : aucun trait ne ressort, la note ne peut pas dire qu'il en suit un. */
+    archetypeNoteBalanced:
+      'Aucun trait de caractère ne ressort nettement de tes réponses pour l’instant : ton archétype peut évoluer au fil de tes jeux et de tes talents.',
     level: 'Niv.',
     levelFull: (level: number) => `Niveau ${level}`,
     xp: (xp: number, next: number) => `${xp} / ${next} XP`,

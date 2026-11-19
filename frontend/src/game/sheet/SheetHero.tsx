@@ -1,4 +1,5 @@
 import { ArchetypeBadge, ArchetypeQuality } from '../archetype/ArchetypeBadge';
+import { isBalancedArchetype } from '../archetype/balanced';
 import { frenchSpacing } from '../components/frenchSpacing';
 import type { CharacterSheet } from '../types';
 import { Seal } from './glyphs';
@@ -73,7 +74,9 @@ export function SheetHero({ sheet }: { sheet: CharacterSheet }) {
       {archetype && (
         <p className="sheet-hero__description">
           {frenchSpacing(typo(archetype.description))}{' '}
-          <span className="sheet-hero__note">{frenchSpacing(t.archetypeNote)}</span>
+          <span className="sheet-hero__note">
+            {frenchSpacing(isBalancedArchetype(archetype) ? t.archetypeNoteBalanced : t.archetypeNote)}
+          </span>
         </p>
       )}
     </header>

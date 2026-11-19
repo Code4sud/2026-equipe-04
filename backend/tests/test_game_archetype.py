@@ -199,6 +199,14 @@ def test_the_backoffice_explains_the_margin_the_server_uses():
     assert text.count(f"plus de {BALANCED_MARGIN} points du milieu") >= 2
 
 
+def test_the_front_knows_which_archetype_is_balanced():
+    # Pour Le Caméléon, la fiche et la fin de partie ne disent pas que l'archétype suit un trait de
+    # caractère : l'identifiant que le front reconnaît doit rester celui de archetypes.json.
+    balanced = Catalog().archetype(None, BALANCED_POLE)["id"]
+    text = (GAME_FRONT / "archetype" / "balanced.ts").read_text(encoding="utf-8")
+    assert f"BALANCED_ARCHETYPE_ID = '{balanced}';" in text
+
+
 # --- Contenu ---
 
 

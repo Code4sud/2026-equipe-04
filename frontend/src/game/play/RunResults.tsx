@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gameApi } from '../api';
 import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
+import { isBalancedArchetype } from '../archetype/balanced';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { gameEmoji } from '../hub/gameEmoji';
 import { NeoSlot } from '../hub/NeoSlot';
@@ -222,7 +223,9 @@ function ArchetypeChange({ result }: { result: RunResult }) {
       <h2 id="play-archetype-title">{t.result.archetypeTitle}</h2>
       <ArchetypeBadge archetype={archetype} size="medium" caption />
       <p className="play-archetype__before">{frenchSpacing(t.result.archetypeBefore(previous.name))}</p>
-      <p className="play-panel__hint">{frenchSpacing(t.result.archetypeHint)}</p>
+      <p className="play-panel__hint">
+        {frenchSpacing(isBalancedArchetype(archetype) ? t.result.archetypeHintBalanced : t.result.archetypeHint)}
+      </p>
     </section>
   );
 }
