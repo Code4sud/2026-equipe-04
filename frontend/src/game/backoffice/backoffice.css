@@ -754,6 +754,44 @@
   font-style: italic;
 }
 
+/* Choix ou échelle proposés au jeune, à la suite, sa réponse mise en avant */
+.bog-offered {
+  margin-top: 0.125rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+
+.bog-offered__item {
+  display: inline;
+}
+
+/* Le séparateur reste hors de la réponse mise en avant. */
+.bog-offered__item + .bog-offered__item::before {
+  content: ' · ';
+}
+
+.bog-offered__label.is-chosen {
+  padding: 0.0625rem var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-accent-text);
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+  box-decoration-break: clone;
+}
+
+/* Les libellés d'une échelle sont courts : chacun reste d'un bloc. */
+.bog-offered--scale .bog-offered__label {
+  white-space: nowrap;
+}
+
+.bog-offered__position {
+  margin-right: 0.25em;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+
 .bog-signal-list {
   display: grid;
   gap: 0.125rem;
@@ -984,11 +1022,12 @@
   }
 
   .bog-items .bog-col-question {
-    width: 27%;
+    width: 24%;
   }
 
+  /* Assez large pour la réponse et les choix proposés au jeune. */
   .bog-items .bog-col-answer {
-    width: 19%;
+    width: 24%;
   }
 
   .bog-col-time {
@@ -996,7 +1035,7 @@
   }
 
   .bog-col-signals {
-    width: 19%;
+    width: 17%;
   }
 
   .bog-col-trial {
@@ -1101,6 +1140,7 @@
   .bog-tier,
   .bog-verdict,
   .bog-flag,
+  .bog-offered__label,
   .bog-detail-row > td,
   .bog-chapter th {
     -webkit-print-color-adjust: exact;

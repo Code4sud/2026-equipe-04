@@ -188,7 +188,10 @@ export const bo = {
   run: {
     tier: 'Niveau de preuve',
     tierWeight: (weight: string) => `poids ${weight} dans les curseurs`,
-    likertValue: (value: number) => `valeur ${value}`,
+    offered: 'Choix proposés',
+    scale: 'Échelle proposée',
+    chosen: '(choisi)',
+    scaleRange: (value: string, min: string, max: string) => `${value} sur une échelle de ${min} à ${max}`,
     scoring: 'Cotation',
     median: 'Temps de réponse médian',
     counting: 'Prise en compte',
