@@ -405,6 +405,108 @@
   min-height: 0;
 }
 
+/* Fond de la discussion : sous tout le contenu, rien d'autre n'a besoin de z-index. */
+.chat-backdrop {
+  /* Centre de Néo : les collines se calent dessous. Recalculé quand Néo se tient en grand. */
+  --chat-backdrop-mascot-x: 205px;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--color-bg);
+  pointer-events: none;
+}
+
+.chat-backdrop svg {
+  position: absolute;
+  overflow: visible;
+}
+
+.chat-backdrop__topo,
+.chat-backdrop__phone {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Les trois calques du grand écran : le téléphone a son propre dessin. */
+.chat-backdrop__wide {
+  display: none;
+}
+
+.chat-backdrop__contour {
+  fill: none;
+  stroke: var(--color-backdrop-contour);
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+}
+
+.chat-backdrop__contour--index {
+  stroke-width: 2.4;
+}
+
+/* Néo se tient au tiers gauche du dessin des collines (x = 280 sur 840). */
+.chat-backdrop__hills {
+  bottom: 0;
+  left: calc(var(--chat-backdrop-mascot-x) - 280px);
+  width: 840px;
+  height: auto;
+  aspect-ratio: 840 / 360;
+}
+
+.chat-backdrop__hill-far {
+  fill: var(--color-backdrop-hill-far);
+}
+
+.chat-backdrop__hill-near {
+  fill: var(--color-backdrop-hill-near);
+}
+
+.chat-backdrop__snow {
+  fill: var(--color-backdrop-snow);
+}
+
+.chat-backdrop__trail {
+  top: 0;
+  right: 0;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 420 / 1000;
+}
+
+.chat-backdrop__paws {
+  fill: var(--color-backdrop-paw);
+}
+
+.chat-backdrop__glow-in {
+  stop-color: var(--color-backdrop-glow);
+  stop-opacity: 0.55;
+}
+
+.chat-backdrop__glow-out {
+  stop-color: var(--color-backdrop-glow);
+  stop-opacity: 0;
+}
+
+.chat-backdrop__spark {
+  fill: var(--color-backdrop-spark);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chat-backdrop-twinkle 4.5s ease-in-out infinite;
+}
+
+@keyframes chat-backdrop-twinkle {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+}
+
 .chat-head,
 .chat__column,
 .composer {
@@ -1185,6 +1287,14 @@ mark {
     padding-top: var(--space-2);
   }
 
+  .chat-backdrop__wide {
+    display: block;
+  }
+
+  .chat-backdrop__phone {
+    display: none;
+  }
+
   .talent-count {
     margin-right: 0;
   }
@@ -1271,7 +1381,13 @@ mark {
 /* Grand écran : Néo se tient en grand, en bas à gauche, sans déplacer la discussion. */
 @media (min-width: 68rem) {
   .chat {
+    /* Largeur de Néo, reprise par le fond pour poser les collines sous ses pieds. */
+    --chat-stage-width: min(var(--mascot-stage-width), calc((100% - var(--width-content)) / 2 - var(--space-6)));
     position: relative;
+  }
+
+  .chat-backdrop {
+    --chat-backdrop-mascot-x: calc(var(--space-4) + var(--chat-stage-width) / 2);
   }
 
   .chat__stage {
@@ -1279,7 +1395,7 @@ mark {
     bottom: 0;
     left: var(--space-4);
     z-index: 0;
-    width: min(var(--mascot-stage-width), calc((100% - var(--width-content)) / 2 - var(--space-6)));
+    width: var(--chat-stage-width);
     max-height: min(var(--mascot-stage-height), 80%);
     aspect-ratio: 5 / 8;
     pointer-events: none;

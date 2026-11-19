@@ -20,6 +20,7 @@ import type {
   SafetyInfo,
   Skill,
 } from '../../api/types';
+import { ChatBackdrop } from '../../components/ChatBackdrop';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { SendIcon, TalentStar } from '../../components/Icons';
 import { SafetyCard } from '../../components/SafetyCard';
@@ -421,6 +422,7 @@ export function ChatPage() {
 
   return (
     <section className="chat" aria-label={fr.chat.title}>
+      <ChatBackdrop />
       {wide && (
         <div className="chat__stage">
           <Mascot ref={mascotRef} mood={mascotMood} framing="full" className="mascot--stage" />

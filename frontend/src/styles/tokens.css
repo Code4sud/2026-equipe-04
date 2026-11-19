@@ -54,6 +54,15 @@
   --color-danger-bg: #fce2dc;
   --color-focus: #a8520f;
 
+  /* Fond de la discussion : carte topo, collines sous Néo et piste jusqu'à l'étincelle */
+  --color-backdrop-contour: #f1e2cc;
+  --color-backdrop-hill-far: #fae9d3;
+  --color-backdrop-hill-near: #f6ddbd;
+  --color-backdrop-snow: #fffcf6;
+  --color-backdrop-paw: #e58434;
+  --color-backdrop-spark: #f7931e;
+  --color-backdrop-glow: #ffc46e;
+
   /* Typographie */
   --font-heading: 'Baloo 2', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
   --font-body: 'Figtree', 'Helvetica Neue', 'Segoe UI', system-ui, sans-serif;
@@ -132,5 +141,13 @@
   --color-danger: #f28a7e;
   --color-danger-bg: #46221e;
   --color-focus: #ffa466;
+  /* Relief recalé sur le fond sombre de l'app, pour garder le même contraste que la maquette. */
+  --color-backdrop-contour: #37271b;
+  --color-backdrop-hill-far: #2b1e14;
+  --color-backdrop-hill-near: #332318;
+  --color-backdrop-snow: #422f21;
+  --color-backdrop-paw: #c96a24;
+  --color-backdrop-spark: #ff9f3d;
+  --color-backdrop-glow: #b5591a;
   --shadow-card: 0 1px 0 rgb(0 0 0 / 0.3), 0 10px 24px -12px rgb(0 0 0 / 0.7);
 }
