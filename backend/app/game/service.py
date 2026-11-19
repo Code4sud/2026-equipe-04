@@ -3,6 +3,10 @@
 Le jeune accepte à l'inscription que ses données soient transmises au Centre des Possibles
 et à sa psychologue : tout ce qui est joué ici lui est visible, modifications comprises
 (voir events.py).
+
+Une partie se modifie toujours sous verrou (SELECT ... FOR UPDATE sur la partie) : une réponse
+ne peut pas arriver dans une partie déjà terminée, et deux envois de la même réponse donnent
+le même résultat qu'un seul.
 """
 from __future__ import annotations
 
@@ -38,6 +42,7 @@ from .scoring import (
     MAX_TEXT_FACT,
     TIER_WEIGHTS,
     InvalidAnswer,
+    ScoredAnswer,
     UnsafeText,
     aggregate,
     clean_text,
@@ -284,8 +289,26 @@ def _open_run(youth_id: uuid.UUID, instrument_id: str) -> GameRun | None:
     )
 
 
+def _has_completed(youth_id: uuid.UUID, instrument_id: str) -> bool:
+    """Lu en base au moment de l'appel, pas dans une liste chargée plus tôt."""
+    return db.session.scalar(
+        select(GameRun.id)
+        .where(
+            GameRun.youth_id == youth_id,
+            GameRun.instrument_id == instrument_id,
+            GameRun.status == GameRunStatus.COMPLETED,
+        )
+        .limit(1)
+    ) is not None
+
+
 def _is_locked(instrument: dict, completed: set[str]) -> bool:
     return any(required not in completed for required in instrument.get("requires", []))
+
+
+def _lock_run(run_id: uuid.UUID) -> GameRun | None:
+    """Verrouille la partie jusqu'à la fin de la transaction et la relit depuis la base."""
+    return db.session.get(GameRun, run_id, with_for_update=True, populate_existing=True)
 
 
 def start_run(user: User, instrument_id: str) -> tuple[dict, bool]:
@@ -297,8 +320,13 @@ def start_run(user: User, instrument_id: str) -> tuple[dict, bool]:
 
     created = False
     run = _open_run(user.id, instrument_id)
+    if run is not None:
+        # Reprise : la partie a pu se terminer entre-temps dans un autre onglet.
+        run = _lock_run(run.id)
+        if run is not None and run.status != GameRunStatus.IN_PROGRESS:
+            run = None
     if run is None:
-        if instrument_id in completed and not instrument.get("replayable", True):
+        if not instrument.get("replayable", True) and _has_completed(user.id, instrument_id):
             raise ApiError(409, "already_completed", "Tu as déjà terminé ce jeu.")
         run = GameRun(
             youth_id=user.id, instrument_id=instrument_id, instrument_version=instrument["version"]
@@ -328,8 +356,9 @@ def run_payload(run: GameRun, instrument: dict) -> dict:
     }
 
 
-def own_run(user: User, run_id: uuid.UUID) -> tuple[GameRun, dict]:
-    run = db.session.get(GameRun, run_id)
+def own_run(user: User, run_id: uuid.UUID, lock: bool = False) -> tuple[GameRun, dict]:
+    """La partie du jeune ; avec `lock`, verrouillée et relue avant toute modification."""
+    run = _lock_run(run_id) if lock else db.session.get(GameRun, run_id)
     if run is None or run.youth_id != user.id:
         raise ApiError(404, "not_found", "Partie introuvable.")
     return run, _instrument_or_404(run.instrument_id)
@@ -355,7 +384,7 @@ def _scale_snapshot(instrument: dict, item: dict) -> dict | None:
 
 def _save_fact(user: User, instrument: dict, item: dict, fact: tuple[str, str, str]) -> None:
     key, label, value = fact
-    row = db.session.get(GameFact, (user.id, key))
+    row = db.session.get(GameFact, (user.id, key), with_for_update=True, populate_existing=True)
     if row is None:
         db.session.add(
             GameFact(
@@ -377,52 +406,76 @@ def _save_fact(user: User, instrument: dict, item: dict, fact: tuple[str, str, s
     row.updated_at = utcnow()
 
 
+def _store_answer(
+    user: User,
+    run: GameRun,
+    instrument: dict,
+    item: dict,
+    scored: ScoredAnswer | None,
+    response_ms: int | None,
+) -> bool:
+    """Enregistre la réponse (ou le passage, si `scored` vaut None) et ce qu'elle change.
+
+    Rien n'est envoyé en base avant le commit : une réponse ou un détail créé entre-temps par
+    une autre requête lève donc l'IntegrityError au commit, là où save_answer la rattrape.
+    Renvoie True pour une première réponse à cette question dans la partie.
+    """
+    skipped = scored is None
+    with db.session.no_autoflush:
+        answer = next((a for a in run.answers if a.item_id == item["id"]), None)
+        previous = None if answer is None or answer.skipped else {"label": answer.label, "value": answer.value}
+        if answer is None:
+            answer = GameAnswer(run=run, item_id=item["id"])
+            db.session.add(answer)
+        answer.position = instrument["items"].index(item)
+        answer.prompt = item["prompt"]
+        answer.skipped = skipped
+        answer.value = None if skipped else scored.value
+        answer.label = None if skipped else scored.label
+        answer.signals = [] if skipped else scored.signals
+        answer.response_ms = response_ms
+        answer.answered_at = utcnow()
+
+        subject = events.answer_subject(run.id, item["id"])
+        if not skipped:
+            if scored.fact:
+                _save_fact(user, instrument, item, scored.fact)
+            if previous is not None and previous["value"] != scored.value:
+                after = {"label": scored.label, "value": scored.value}
+                events.log(user.id, events.ANSWER_CHANGED, subject, previous, after)
+    return previous is None
+
+
 def save_answer(user: User, run_id: uuid.UUID, item_id: str, body: dict) -> dict:
-    run, instrument = own_run(user, run_id)
+    run, instrument = own_run(user, run_id, lock=True)
     _require_open(run)
-    cat = catalog()
-    item = cat.item(instrument, item_id)
+    item = catalog().item(instrument, item_id)
     if item is None:
         raise ApiError(404, "not_found", "Question introuvable.")
 
-    skipped = body.get("skipped") is True
-    value, label, signals, fact = None, None, [], None
-    if not skipped:
+    scored = None
+    if body.get("skipped") is not True:
         try:
             scored = score_answer(instrument, item, body.get("value"))
         except InvalidAnswer as error:
             raise ApiError(400, "invalid_answer", str(error)) from error
-        value, label, signals, fact = scored.value, scored.label, scored.signals, scored.fact
+    response_ms = _clean_response_ms(body.get("response_ms"))
 
-    answer = next((a for a in run.answers if a.item_id == item_id), None)
-    first_time = answer is None or answer.skipped
-    # Une réponse déjà donnée qui change : la psychologue pourra en parler avec le jeune.
-    if not first_time and not skipped and answer.value != value:
-        events.log(
-            user.id,
-            events.ANSWER_CHANGED,
-            events.answer_subject(run.id, item_id),
-            {"label": answer.label, "value": answer.value},
-            {"label": label, "value": value},
-        )
-    if answer is None:
-        answer = GameAnswer(
-            run=run,
-            item_id=item_id,
-            position=instrument["items"].index(item),
-            prompt=item["prompt"],
-        )
-        db.session.add(answer)
-    answer.value, answer.label, answer.skipped, answer.signals = value, label, skipped, signals
-    answer.response_ms = _clean_response_ms(body.get("response_ms"))
-    answer.answered_at = utcnow()
-    if fact:
-        _save_fact(user, instrument, item, fact)
     try:
+        first_time = _store_answer(user, run, instrument, item, scored, response_ms)
         db.session.commit()
-    except IntegrityError as error:  # Double envoi : la première réponse est déjà enregistrée.
+    except IntegrityError:
+        # Double envoi : l'autre requête a créé cette réponse (ou ce détail) entre-temps.
+        # On relit sous verrou et on applique celle-ci comme une modification : la dernière gagne.
         db.session.rollback()
-        raise ApiError(409, "already_answered", "Réponse déjà enregistrée.") from error
+        run, instrument = own_run(user, run_id, lock=True)
+        _require_open(run)
+        try:
+            first_time = _store_answer(user, run, instrument, item, scored, response_ms)
+            db.session.commit()
+        except IntegrityError as error:
+            db.session.rollback()
+            raise ApiError(409, "answer_conflict", "Réponse en cours d’enregistrement, réessaie.") from error
 
     is_first_run = db.session.scalar(
         select(GameRun.id)
@@ -432,12 +485,12 @@ def save_answer(user: User, run_id: uuid.UUID, item_id: str, body: dict) -> dict
     ) == run.id
     return {
         "run": run_dict(run, instrument),
-        "xp_gained": XP_PER_ANSWER if first_time and not skipped and is_first_run else 0,
+        "xp_gained": XP_PER_ANSWER if first_time and scored is not None and is_first_run else 0,
     }
 
 
 def pause_run(user: User, run_id: uuid.UUID) -> dict:
-    run, instrument = own_run(user, run_id)
+    run, instrument = own_run(user, run_id, lock=True)
     _require_open(run)
     run.paused_at = utcnow()
     db.session.commit()
@@ -457,7 +510,7 @@ def _highlights(cursors: dict[str, dict], feedback: dict[str, str], limit: int =
 
 
 def complete_run(user: User, run_id: uuid.UUID, body: dict) -> dict:
-    run, instrument = own_run(user, run_id)
+    run, instrument = own_run(user, run_id, lock=True)
     before = progress(load_youth(user.id))
     if run.status == GameRunStatus.COMPLETED:
         return _result(user, run, instrument, before)
@@ -699,7 +752,7 @@ def character_sheet(user: User) -> dict:
 
 
 def update_fact(user: User, key: str, body: dict) -> dict:
-    fact = db.session.get(GameFact, (user.id, key))
+    fact = db.session.get(GameFact, (user.id, key), with_for_update=True, populate_existing=True)
     if fact is None:
         raise ApiError(404, "not_found", "Détail introuvable.")
     value = None

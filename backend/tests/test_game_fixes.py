@@ -8,19 +8,22 @@ import json
 import random
 import re
 import uuid
+from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from sqlalchemy import event, update
 from test_game import answer, complete, finish_onboarding, start, youth_id
 
+from app.errors import ApiError
 from app.extensions import db
 from app.game import events
 from app.game import service as game
 from app.game.catalog import Catalog
 from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text
-from app.models import GameEvent, iso, utcnow
+from app.models import GameAnswer, GameEvent, GameFact, GameRun, GameRunStatus, User, iso, utcnow
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
@@ -118,6 +121,39 @@ def skip(client, youth, run_id, item_id):
 def raw(client, method, url, headers, text):
     """Envoie un JSON tel quel (NaN, 1e400, \\u0000...), que json.dumps ne produirait pas."""
     return client.open(url, method=method, data=text, headers={**headers, "Content-Type": "application/json"})
+
+
+@contextmanager
+def written_by_another_request(statement):
+    """Une autre requête écrit `statement` juste avant la première écriture de celle-ci."""
+    fired: list[bool] = []
+
+    def before_flush(_session, _context, _instances):
+        if not fired:
+            fired.append(True)
+            with db.engine.begin() as connection:
+                connection.execute(statement)
+
+    event.listen(db.session, "before_flush", before_flush)
+    try:
+        yield fired
+    finally:
+        event.remove(db.session, "before_flush", before_flush)
+
+
+def answer_row(run_id: str, item_id: str, value, label: str):
+    return GameAnswer.__table__.insert().values(
+        id=uuid.uuid4(),
+        run_id=uuid.UUID(run_id),
+        item_id=item_id,
+        position=0,
+        prompt="Envoi précédent",
+        value=value,
+        label=label,
+        skipped=False,
+        signals=[],
+        answered_at=utcnow(),
+    )
 
 
 # --- 2. La fiche ne montre que des points forts ---
@@ -307,6 +343,115 @@ def test_game_requests_are_capped_at_256_kb(app, client, youth):
     assert small.status_code == 200, small.get_json()
     assert answer(client, youth, run_id, "groupe", "a").status_code == 200
     assert app.config.get("MAX_CONTENT_LENGTH") is None
+
+
+# --- 8. Modifications d'une partie sous verrou ---
+
+
+def test_a_double_put_updates_the_answer_instead_of_failing(client, youth, psychologist):
+    run_id = start(client, youth)["run"]["id"]
+    with written_by_another_request(answer_row(run_id, "groupe", "a", "J'invite tout le monde")) as fired:
+        response = answer(client, youth, run_id, "groupe", "c")
+    assert fired and response.status_code == 200, response.get_json()
+    assert response.get_json()["xp_gained"] == 0  # L'autre envoi a déjà compté la réponse.
+    assert start(client, youth)["answers"] == [{"item_id": "groupe", "value": "c", "skipped": False}]
+    changed = overview(client, psychologist, youth)["events"][0]
+    assert changed["kind"] == "answer_changed" and changed["before"]["value"] == "a"
+    assert changed["after"] == {"label": "Je préfère un truc au calme", "value": "c"}
+
+
+def test_a_fact_question_sent_twice_does_not_crash(client, youth):
+    run_id = start(client, youth)["run"]["id"]
+    with written_by_another_request(answer_row(run_id, "couleur", "bleu", "Bleu")) as fired:
+        response = answer(client, youth, run_id, "couleur", "jaune")
+    assert fired and response.status_code == 200, response.get_json()
+    assert {key: fact["value"] for key, fact in facts_of(client, youth).items()} == {"couleur_preferee": "Jaune"}
+
+
+def test_a_fact_created_meanwhile_by_another_game_is_updated(client, youth, psychologist):
+    run_id = start(client, youth)["run"]["id"]
+    other_game = GameFact.__table__.insert().values(
+        youth_id=uuid.UUID(youth_id(client, youth)),
+        key="couleur_preferee",
+        label="Couleur préférée",
+        value="Vert",
+        original_value="Vert",
+        source_instrument_id="fixture_echo",
+        source_item_id="couleur",
+        edited=False,
+        hidden=False,
+        updated_at=utcnow(),
+    )
+    with written_by_another_request(other_game) as fired:
+        response = answer(client, youth, run_id, "couleur", "jaune")
+    assert fired and response.status_code == 200, response.get_json()
+    fact = next(f for f in overview(client, psychologist, youth)["facts"] if f["key"] == "couleur_preferee")
+    assert fact["value"] == "Jaune" and fact["source_instrument_id"] == "onboarding"
+
+
+def test_a_run_completed_meanwhile_refuses_answers_and_is_not_scored_twice(app, client, youth):
+    run_id = start(client, youth)["run"]["id"]
+    for item_id, value in [("groupe", "a"), ("scooter", "a"), ("agenda", 4)]:
+        answer(client, youth, run_id, item_id, value)
+    with app.app_context():
+        user = db.session.get(User, uuid.UUID(youth_id(client, youth)))
+        stale = db.session.get(GameRun, uuid.UUID(run_id))
+        assert stale.status == GameRunStatus.IN_PROGRESS  # Copie gardée par cette requête.
+        # Une autre requête termine la partie pendant ce temps.
+        with db.engine.begin() as connection:
+            connection.execute(
+                update(GameRun.__table__)
+                .where(GameRun.__table__.c.id == stale.id)
+                .values(status=GameRunStatus.COMPLETED, completed_at=utcnow())
+            )
+        for action in (
+            lambda: game.save_answer(user, stale.id, "couleur", {"value": "jaune"}),
+            lambda: game.pause_run(user, stale.id),
+        ):
+            with pytest.raises(ApiError) as caught:
+                action()
+            assert caught.value.code == "run_closed"
+            db.session.rollback()
+        result = game.complete_run(user, stale.id, {})
+        assert result["run"]["status"] == "completed"
+        # La partie n'est pas notée une deuxième fois par-dessus l'autre requête.
+        assert db.session.get(GameRun, stale.id).metrics == {}
+
+
+def test_every_run_change_takes_the_run_lock(app, client, youth, monkeypatch):
+    locked: list[uuid.UUID] = []
+    real_lock = game._lock_run
+
+    def spy(run_id):
+        locked.append(run_id)
+        return real_lock(run_id)
+
+    monkeypatch.setattr(game, "_lock_run", spy)
+    run_id = start(client, youth)["run"]["id"]
+    assert locked == []  # Nouvelle partie : rien à verrouiller.
+    steps = [
+        lambda: client.post(f"/api/me/game/runs/{run_id}/pause", headers=youth),
+        lambda: client.post("/api/me/game/instruments/onboarding/runs", headers=youth),
+        lambda: answer(client, youth, run_id, "groupe", "a"),
+        lambda: answer(client, youth, run_id, "scooter", "a"),
+        lambda: answer(client, youth, run_id, "agenda", 4),
+        lambda: complete(client, youth, run_id),
+    ]
+    for count, step in enumerate(steps, start=1):
+        assert step().status_code in {200, 201}
+        assert len(locked) == count and str(locked[-1]) == run_id
+
+    seen: dict = {}
+    with app.app_context():
+        real_get = db.session.get
+
+        def get(entity, ident, **kwargs):
+            seen.update(kwargs)
+            return real_get(entity, ident, **kwargs)
+
+        monkeypatch.setattr(db.session, "get", get)
+        real_lock(uuid.UUID(run_id))
+    assert seen == {"with_for_update": True, "populate_existing": True}
 
 
 # --- 9. Champs demandés par le backoffice ---
