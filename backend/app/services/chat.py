@@ -70,6 +70,15 @@ REVEAL_SCHEMA = {
 
 
 @dataclass(frozen=True)
+class RevealedTalent:
+    """Talent annoncé par Néo dans sa réponse, enregistré tout de suite pour le jeune."""
+
+    name: str
+    quote: str
+    message_id: str
+
+
+@dataclass(frozen=True)
 class ReplyPlan:
     kind: str = "model"
     fixed_text: str | None = None
@@ -287,12 +296,15 @@ class ChatService:
                 return _fresh_reply(options, said, turn)
         return _fresh_reply(texts["sans_citation"], said, turn)
 
-    def prepared_reply(self, plan: ReplyPlan) -> tuple[str | None, str]:
-        """Texte déjà prêt pour ce tour (ou None) et type de réponse pour l'interface."""
+    def prepared_reply(self, plan: ReplyPlan) -> tuple[str | None, str, RevealedTalent | None]:
+        """Texte déjà prêt pour ce tour (ou None), type de réponse et talent révélé."""
         if plan.fixed_text is not None:
-            return plan.fixed_text, plan.kind
+            return plan.fixed_text, plan.kind, None
         revealed = self._reveal(plan) if plan.reveal_from else None
-        return revealed, "reveal" if revealed else "model"
+        if revealed is None:
+            return None, "model", None
+        text, talent = revealed
+        return text, "reveal", talent
 
     def model_reply(self, plan: ReplyPlan) -> str:
         """Fait écrire le modèle, en refusant qu'il répète ce qui vient d'être dit."""
@@ -391,7 +403,7 @@ class ChatService:
             return None
         return None if _is_repetition(reply, plan.previous_replies) else reply
 
-    def _reveal(self, plan: ReplyPlan) -> str | None:
+    def _reveal(self, plan: ReplyPlan) -> tuple[str, RevealedTalent] | None:
         """Compose la révélation d'une compétence à partir d'une citation vérifiée.
 
         Le modèle propose la citation et le savoir-faire, le code écrit la phrase. Si le
@@ -420,8 +432,9 @@ class ChatService:
             return None
         if name_key(match.quote) in plan.companion_text:
             return None
+        talent = RevealedTalent(skill[0].upper() + skill[1:], match.quote, match.message_id)
         skill = skill[0].lower() + skill[1:]
-        return plan.reveal_formula.format(citation=match.quote, savoir_faire=skill)
+        return plan.reveal_formula.format(citation=match.quote, savoir_faire=skill), talent
 
     def _llm_messages(
         self, transcript: dict, settings: dict, in_crisis: bool, turn: int

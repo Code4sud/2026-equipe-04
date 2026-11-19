@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..errors import LLMError, StorageError
 from ..extensions import db
-from ..models import EXTRACTION_LEASE, Conversation, Skill, SkillAction, utcnow
+from ..models import EXTRACTION_LEASE, Conversation, Skill, SkillAction, SkillStatus, utcnow
 from .chat import FLAG_CRISIS
 from .guardrails import find_quote, name_key
 
@@ -200,7 +200,38 @@ class ExtractionService:
             category=category if category in CATEGORIES else "savoir_faire",
             description=description,
             source_quote=match.quote,
+            # Néo épingle directement ce qu'il trouve : le jeune peut le retirer ensuite.
+            status=SkillStatus.VALIDATED,
         )
+
+    def save_revealed(self, conversation: Conversation, talent) -> Skill | None:
+        """Enregistre le talent que Néo vient d'annoncer dans la discussion."""
+        key = name_key(talent.name)
+        exists = db.session.scalar(
+            select(Skill.id).where(Skill.youth_id == conversation.youth_id, Skill.name_key == key)
+        )
+        if exists or not key:
+            return None
+        skill = Skill(
+            youth_id=conversation.youth_id,
+            conversation_id=conversation.id,
+            source_message_id=talent.message_id,
+            name=talent.name[:80],
+            name_key=key,
+            category="savoir_faire",
+            description="",
+            source_quote=talent.quote,
+            status=SkillStatus.VALIDATED,
+        )
+        try:
+            with db.session.begin_nested():
+                skill.record(SkillAction.PROPOSED)
+                db.session.add(skill)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return None
+        return skill
 
     @staticmethod
     def _user_prompt(candidates: list[dict], known_names: list[str]) -> str:

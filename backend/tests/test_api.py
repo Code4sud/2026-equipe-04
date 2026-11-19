@@ -120,11 +120,11 @@ def test_closed_conversation_refuses_messages_and_a_new_one_can_start(client, yo
     assert open_conversation(client, youth) != conversation_id
 
 
-def test_extraction_keeps_the_youth_exact_words_as_pending(client, youth, llm):
+def test_extraction_pins_the_talent_with_the_youth_exact_words(client, youth, llm):
     llm.proposals = [{**GOOD_PROPOSAL, "citation": "JE TESTE pièce par pièce jusqu'a trouver la panne"}]
     _, skills = extract(client, youth)
     assert len(skills) == 1
-    assert skills[0]["status"] == "pending"
+    assert skills[0]["status"] == "validated"
     assert skills[0]["quote"] == "je teste pièce par pièce jusqu'à trouver la panne"
 
 
@@ -527,3 +527,24 @@ def test_psychologist_sees_every_talent_with_the_youth_choices(client, youth, ps
 def test_youth_cannot_add_a_duplicate_talent(client, youth):
     assert client.post("/api/me/skills", json={"name": "Cuisiner"}, headers=youth).status_code == 201
     assert client.post("/api/me/skills", json={"name": "cuisiner"}, headers=youth).status_code == 409
+
+
+def test_revealed_talent_is_pinned_right_away_and_shown_to_the_psychologist(client, youth, psychologist, llm):
+    llm.reveal = {"citation": "règle aussi les freins", "savoir_faire": "entretenir un vélo"}
+    conversation_id = open_conversation(client, youth)
+    events = [send(client, youth, conversation_id, text) for text in REVEAL_TURNS]
+    talent = dict(events[-1])["done"]["talent"]
+    assert talent["name"] == "Entretenir un vélo"
+    assert talent["status"] == "validated"
+    assert talent["origin"] == "ai"
+    assert "règle aussi les freins" in talent["quote"].lower()
+    assert all(dict(turn)["done"]["talent"] is None for turn in events[:-1])
+
+    skills = client.get("/api/me/skills", headers=youth).get_json()["skills"]
+    assert [skill["name"] for skill in skills] == ["Entretenir un vélo"]
+
+    youth_id = client.get("/api/auth/me", headers=youth).get_json()["user"]["id"]
+    detail = client.get(f"/api/backoffice/youths/{youth_id}", headers=psychologist).get_json()
+    pinned = detail["skills"][0]
+    assert [event["action"] for event in pinned["history"]] == ["proposed"]
+    assert pinned["to_discuss"] is False

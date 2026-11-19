@@ -139,7 +139,7 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         yield _sse("safety", service("guardrails").crisis_card)
 
     # Détresse et sujets sensibles reçoivent un texte relu, jamais une génération libre.
-    prepared, kind = chat.prepared_reply(plan)
+    prepared, kind, revealed = chat.prepared_reply(plan)
     yield _sse("reply", {"kind": kind})
     if prepared is not None:
         source = _word_by_word(prepared, current_app.config["PREPARED_REPLY_WORD_DELAY"])
@@ -177,6 +177,10 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         return
 
     conversation = db.session.get(Conversation, conversation_id)
+    talent = None
+    if revealed is not None:
+        saved = service("extraction").save_revealed(conversation, revealed)
+        talent = saved.to_dict() if saved else None
     scheduled = service("extraction").maybe_schedule(conversation)
     pending = db.session.scalar(
         select(func.count())
@@ -188,6 +192,7 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         {
             "assistant_message": public_message(assistant_message),
             "pending_skills": pending,
+            "talent": talent,
             "extracting": scheduled or conversation.is_extracting,
         },
     )

@@ -17,7 +17,6 @@ import type {
   ReplyKind,
   SafetyInfo,
   Skill,
-  SkillStatus,
 } from '../../api/types';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { SendIcon, TalentStar } from '../../components/Icons';
@@ -43,17 +42,7 @@ function localMessage(id: string, content: string): Message {
   return { id, role: 'user', content, created_at: new Date().toISOString(), flags: [] };
 }
 
-function FoundTalent({
-  talent,
-  remaining,
-  busy,
-  onDecide,
-}: {
-  talent: Skill;
-  remaining: number;
-  busy: boolean;
-  onDecide: (status: SkillStatus) => void;
-}) {
+function FoundTalent({ talent, onClose }: { talent: Skill; onClose: () => void }) {
   return (
     <section className="found" aria-label={fr.found.title}>
       <div className="found__top">
@@ -63,34 +52,19 @@ function FoundTalent({
       <p className="found__name">{talent.name}</p>
       <blockquote className="found__quote">« {talent.quote} »</blockquote>
       <div className="actions">
-        <button
-          type="button"
-          className="button button--small button--keep"
-          disabled={busy}
-          onClick={() => onDecide('validated')}
-        >
-          {fr.found.keep}
-        </button>
-        <button
-          type="button"
-          className="button button--small"
-          disabled={busy}
-          onClick={() => onDecide('rejected')}
-        >
-          {fr.found.reject}
+        <button type="button" className="button button--small button--keep" onClick={onClose}>
+          {fr.found.great}
         </button>
       </div>
-      {remaining > 0 && (
-        <Link to="/jeune/carte" className="text-link">
-          {fr.found.more(remaining)}
-        </Link>
-      )}
     </section>
   );
 }
 
 export function ChatPage() {
-  const { talents, reload: reloadTalents, update: updateTalent } = useTalents({ analyseOnOpen: false });
+  const { talents, reload: reloadTalents } = useTalents({ analyseOnOpen: false });
+  // Talent que Néo vient d'épingler : sa carte reste affichée jusqu'au « Super ».
+  const [found, setFound] = useState<Skill | null>(null);
+  const seenTalentsRef = useRef<Set<string> | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [safety, setSafety] = useState<SafetyInfo | null>(null);
@@ -99,7 +73,6 @@ export function ChatPage() {
   const [reply, setReply] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
-  const [deciding, setDeciding] = useState(false);
   const [talentNote, setTalentNote] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [sendError, setSendError] = useState<SendError | null>(null);
@@ -113,10 +86,6 @@ export function ChatPage() {
   const lastLaughRef = useRef(0);
   const impressedRef = useRef(false);
 
-  const pending = (talents ?? []).filter((talent) => talent.status === 'pending');
-  const found = pending
-    .filter((talent) => talent.conversation_id === conversation?.id)
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
   const keptCount = (talents ?? []).filter((talent) => talent.status === 'validated').length;
   const visibleTalentId = reply === null ? found?.id : undefined;
 
@@ -171,6 +140,16 @@ export function ChatPage() {
     // Une seule fois par discussion, pas à chaque nouveau message.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
+
+  // Les talents déjà là à l'ouverture ne sont pas réannoncés ; ceux trouvés ensuite, si.
+  useEffect(() => {
+    if (!talents) return;
+    const seen = seenTalentsRef.current;
+    seenTalentsRef.current = new Set(talents.map((talent) => talent.id));
+    if (!seen) return;
+    const fresh = talents.find((talent) => !seen.has(talent.id) && talent.origin === 'ai');
+    if (fresh) setFound((current) => current ?? fresh);
+  }, [talents]);
 
   // Un talent repéré : Néo le détecte (sauf s'il vient de l'annoncer), puis sort sa carte.
   useEffect(() => {
@@ -252,6 +231,11 @@ export function ChatPage() {
           setMessages((all) => [...all, event.data.assistant_message]);
           setReply(null);
           laughAlong(sentText);
+          if (event.data.talent) {
+            const talent = event.data.talent;
+            seenTalentsRef.current?.add(talent.id);
+            setFound(talent);
+          }
           void reloadTalents();
           break;
         case 'error':
@@ -314,19 +298,10 @@ export function ChatPage() {
     }
   }
 
-  async function decide(talent: Skill, status: SkillStatus) {
-    setDeciding(true);
-    setTalentNote(null);
-    try {
-      await updateTalent(talent.id, { status });
-      setTalentNote(status === 'validated' ? fr.found.kept : fr.found.rejected);
-      if (status === 'validated') mascotRef.current?.perform('cardKeep', 'cheer');
-      else mascotRef.current?.perform('cardDrop', 'shrug');
-    } catch (error) {
-      setTalentNote(errorMessage(error));
-    } finally {
-      setDeciding(false);
-    }
+  function celebrate() {
+    setFound(null);
+    setTalentNote(fr.found.kept);
+    mascotRef.current?.perform('cardKeep', 'cheer');
   }
 
   async function startNewConversation() {
@@ -405,12 +380,7 @@ export function ChatPage() {
             ))}
           {safety && <SafetyCard info={safety} />}
           {found && reply === null && (
-            <FoundTalent
-              talent={found}
-              remaining={pending.length - 1}
-              busy={deciding}
-              onDecide={(status) => void decide(found, status)}
-            />
+            <FoundTalent talent={found} onClose={celebrate} />
           )}
           {talentNote && (
             <p className="chat__note" role="status">

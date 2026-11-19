@@ -76,6 +76,7 @@ export const fr = {
     title: 'J’ai trouvé un talent !',
     keep: 'C’est moi',
     reject: 'Pas moi',
+    great: 'Super',
     kept: 'C’est épinglé sur ta carte.',
     rejected: 'Noté, je l’enlève de ta carte.',
     more: (count: number) => `Encore ${count} à regarder sur ta carte`,

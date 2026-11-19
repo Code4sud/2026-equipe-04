@@ -122,6 +122,6 @@ export type ChatEvent =
   | { type: 'delta'; data: { text: string } }
   | {
       type: 'done';
-      data: { assistant_message: Message; pending_skills: number; extracting: boolean };
+      data: { assistant_message: Message; pending_skills: number; talent: Skill | null; extracting: boolean };
     }
   | { type: 'error'; data: { code: string } };
