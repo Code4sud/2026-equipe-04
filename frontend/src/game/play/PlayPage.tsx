@@ -17,6 +17,8 @@ const HUB_PATH = '/jeune/jeux';
 interface Found {
   game: InstrumentSummary;
   shared: boolean | null;
+  /** Questions du quiz d’arrivée qui débloquent les jeux ; null : il faut le finir. */
+  unlocksAfter: number | null;
 }
 
 function Message({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
@@ -55,8 +57,9 @@ export default function PlayPage() {
       try {
         const status = await gameApi.status(signal);
         const game = status.instruments.find((entry) => entry.id === instrumentId);
+        const unlocksAfter = status.instruments.find((entry) => entry.id === QUIZ_ID)?.unlocks_after ?? null;
         // Le jeune accepte à l'inscription que la psychologue voie ses réponses : on le rappelle.
-        if (game) setFound({ game, shared: true });
+        if (game) setFound({ game, shared: true, unlocksAfter });
         else setMissing(true);
       } catch (caught) {
         if (!signal?.aborted) setError(errorMessage(caught));
@@ -75,14 +78,14 @@ export default function PlayPage() {
   if (missing) return <Message title={t.notFound} />;
   if (!found) return <Loading />;
 
-  const { game, shared } = found;
+  const { game, shared, unlocksAfter } = found;
   // Le quiz d’arrivée a son propre écran (consentement, séries de 10, archétype).
   if (game.id === QUIZ_ID) return <Navigate to={QUIZ_PATH} replace />;
   if (game.locked) {
     return (
       <Message
         title={t.locked.title}
-        text={t.locked.text}
+        text={unlocksAfter === null ? t.locked.text : t.locked.textAfter(unlocksAfter)}
         action={
           <Link to={QUIZ_PATH} className="button button--primary">
             {t.locked.quiz}

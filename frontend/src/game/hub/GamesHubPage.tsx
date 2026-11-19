@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
+import { frenchSpacing } from '../components/frenchSpacing';
 import { SERIES_SIZE } from '../quiz/quizLogic';
 import type { Badge, GameStatus, InstrumentSummary } from '../types';
 import { gameEmoji } from './gameEmoji';
@@ -38,13 +39,24 @@ function ClockIcon() {
   );
 }
 
-function StateChip({ state, game }: { state: CardState; game: InstrumentSummary }) {
+/** `unlocksAfter` : questions du quiz qui débloquent les jeux ; null, il faut le finir. */
+function StateChip({
+  state,
+  game,
+  unlocksAfter,
+}: {
+  state: CardState;
+  game: InstrumentSummary;
+  unlocksAfter: number | null;
+}) {
   if (state === 'locked') {
     return (
       <span className="hub-chip hub-chip--locked">
         <span aria-hidden="true">🔒</span>
-        <span aria-hidden="true">{t.card.locked}</span>
-        <span className="visually-hidden">{t.card.lockedLabel}</span>
+        <span aria-hidden="true">{unlocksAfter === null ? t.card.locked : t.card.lockedAfter(unlocksAfter)}</span>
+        <span className="visually-hidden">
+          {unlocksAfter === null ? t.card.lockedLabel : t.card.lockedAfterLabel(unlocksAfter)}
+        </span>
       </span>
     );
   }
@@ -73,7 +85,15 @@ function StateChip({ state, game }: { state: CardState; game: InstrumentSummary 
 }
 
 /** `quizPending` : le quiz d’arrivée est rappelé plus haut, pas besoin de le redire ici. */
-function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending: boolean }) {
+function GameCard({
+  game,
+  quizPending,
+  unlocksAfter,
+}: {
+  game: InstrumentSummary;
+  quizPending: boolean;
+  unlocksAfter: number | null;
+}) {
   const state = cardState(game);
   const cta = state === 'progress' ? t.card.resume : state === 'done' ? t.card.replay : t.card.play;
   const canPlay = state !== 'locked' && (state !== 'done' || game.replayable);
@@ -90,7 +110,7 @@ function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending:
           <h3 id={titleId} className="hub-card__title">
             {game.title}
           </h3>
-          <StateChip state={state} game={game} />
+          <StateChip state={state} game={game} unlocksAfter={unlocksAfter} />
         </div>
         <p className="hub-card__tagline">{game.tagline}</p>
         {state === 'progress' && game.total > 0 && (
@@ -135,7 +155,7 @@ function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending:
         </div>
         {state === 'locked' && !quizPending && (
           <p className="hub-card__lock">
-            {t.card.lockedHint}{' '}
+            {unlocksAfter === null ? t.card.lockedHint : t.card.lockedAfterHint(unlocksAfter)}{' '}
             <Link to={QUIZ_PATH} className="hub-card__quiz-link">
               {t.card.toQuiz}
             </Link>
@@ -144,6 +164,17 @@ function GameCard({ game, quizPending }: { game: InstrumentSummary; quizPending:
       </div>
     </li>
   );
+}
+
+/**
+ * Ce que débloque le quiz pas encore fini : sans seuil, les jeux à la fin ; avec un seuil, les
+ * mini-jeux après ses premières questions vues, passées comprises (même règle que le serveur).
+ */
+function unlockHint(quiz: InstrumentSummary, started: boolean) {
+  if (quiz.unlocks_after === null) return t.quiz.hint;
+  const left = quiz.unlocks_after - quiz.seen;
+  if (left <= 0) return t.quiz.unlocked;
+  return started ? t.quiz.unlockLeft(left) : t.quiz.unlockFirst(quiz.unlocks_after);
 }
 
 function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
@@ -172,7 +203,9 @@ function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
           </>
         )}
         <p className="hub-quiz__hint">
-          {started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} {t.quiz.hint}
+          {frenchSpacing(
+            `${started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} ${unlockHint(quiz, started)}`,
+          )}
         </p>
         {/* « Continuer » seul ne dit pas quoi : comme les cartes de jeu, le lien renvoie au titre. */}
         <Link
@@ -237,6 +270,7 @@ export default function GamesHubPage() {
     status.instruments.find((game) => game.kind === 'quiz');
   const games = status.instruments.filter((game) => game !== quiz);
   const quizPending = quiz !== undefined && quiz.completed_count === 0;
+  const unlocksAfter = quiz?.unlocks_after ?? null;
   const earned = progress.badges.filter((badge) => badge.earned).length;
 
   return (
@@ -267,7 +301,7 @@ export default function GamesHubPage() {
           ) : (
             <ul className="hub-grid">
               {games.map((game) => (
-                <GameCard key={game.id} game={game} quizPending={quizPending} />
+                <GameCard key={game.id} game={game} quizPending={quizPending} unlocksAfter={unlocksAfter} />
               ))}
             </ul>
           )}

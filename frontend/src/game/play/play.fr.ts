@@ -1,5 +1,7 @@
 /** Textes du déroulé d’un questionnaire et de son écran de résultat. */
 const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
+/** « les 10 premières questions », « la première question ». */
+const firstQuestions = (count: number) => plural(count, 'la première question', `les ${count} premières questions`);
 
 export const playFr = {
   backToHub: 'Retour aux jeux',
@@ -85,6 +87,8 @@ export const playFr = {
   locked: {
     title: 'Ce jeu est encore verrouillé',
     text: 'Il se débloque quand tu as terminé le quiz d’arrivée.',
+    /** Avec un seuil (`unlocks_after` du quiz) : ses premières questions suffisent. */
+    textAfter: (count: number) => `Il se débloque après ${firstQuestions(count)} du quiz d’arrivée.`,
     quiz: 'Faire le quiz',
   },
   notFound: 'Ce jeu n’existe pas, ou plus.',

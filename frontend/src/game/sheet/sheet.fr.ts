@@ -41,6 +41,12 @@ export const sheetFr = {
       `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}`,
     quizResumeText: (size: number) =>
       `Tu continues par séries de ${size} questions. Ton archétype se révèle à la fin.`,
+    /** Mini-jeux encore verrouillés : `count` questions vues les débloquent, comme sur le hub. */
+    quizUnlock: (count: number) =>
+      `Réponds à ${count} ${plural(count, 'question', 'questions')} pour débloquer les mini-jeux.`,
+    /** Questions vues qui manquent encore, passées comprises. */
+    quizUnlockLeft: (left: number) =>
+      `Encore ${left} ${plural(left, 'question', 'questions')} pour débloquer les mini-jeux.`,
     quizStart: 'Commencer le quiz',
     quizResume: 'Continuer',
     gamesTitle: 'Les mini-jeux',

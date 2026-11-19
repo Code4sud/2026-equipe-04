@@ -35,6 +35,14 @@ function questFor(status: GameStatus | null): Quest | null {
   return null;
 }
 
+/** Le quiz débloque les mini-jeux après ses premières questions vues : combien en manque-t-il ? */
+function unlockText(quest: Quest, quiz: InstrumentSummary | undefined) {
+  if (quest === 'games' || !quiz || quiz.unlocks_after === null) return null;
+  const left = quiz.unlocks_after - quiz.seen;
+  if (left <= 0) return null;
+  return quest === 'quiz-resume' ? t.quest.quizUnlockLeft(left) : t.quest.quizUnlock(quiz.unlocks_after);
+}
+
 function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | undefined }) {
   const isQuiz = quest !== 'games';
   const text =
@@ -43,6 +51,7 @@ function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | un
       : quest === 'quiz-start'
         ? t.quest.quizText(quiz?.total ?? 0, SERIES_SIZE)
         : t.quest.gamesText;
+  const unlock = unlockText(quest, quiz);
   return (
     <section className="sheet-quest" aria-labelledby="sheet-quest-title">
       <NeoAvatar mood="happy" still className="neo-slot" />
@@ -54,7 +63,7 @@ function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | un
         {quest === 'quiz-resume' && quiz && (
           <p className="sheet-quest__count">{t.quest.quizProgress(quiz.answered, quiz.total)}</p>
         )}
-        <p>{text}</p>
+        <p>{unlock ? `${text} ${unlock}` : text}</p>
         {/* « Continuer » seul ne dit pas quoi : le lien du quiz renvoie au titre de la quête. */}
         <Link
           to={isQuiz ? '/jeune/quiz' : '/jeune/jeux'}
