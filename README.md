@@ -23,7 +23,7 @@ L'application s'ouvre sur http://localhost:8080. Le script affiche les comptes d
 | `backend`   | API Flask, migrations et données de démo au démarrage            | http://localhost:5001/api |
 | `postgres`  | Comptes, métadonnées des conversations, compétences              | `localhost:5432`          |
 | `seaweedfs` | Texte des conversations, via son API S3 (bucket `conversations`) | http://localhost:8333     |
-| `ollama`    | Modèle `mistral-nemo`, téléchargé au premier démarrage                | http://localhost:11435    |
+| `ollama`    | Modèle `gemma4:12b`, téléchargé au premier démarrage                  | http://localhost:11435    |
 
 Sur Mac, `./run.sh` utilise l'Ollama installé sur la machine s'il tourne, car Docker n'accède pas à la puce graphique. Sans lui, prévoyez au moins 12 Go de mémoire pour Docker, et des réponses nettement plus lentes.
 
@@ -77,6 +77,10 @@ Pour créer un compte psychologue : `docker compose exec backend flask create-us
 - Chaque compétence cite un extrait réel des messages du jeune : le code vérifie la citation et écarte celles qu'il ne retrouve pas.
 - Aucune déduction sur la santé, l'origine, la famille ou la religion. Un récit peut évoquer un proche, mais le nom et la description de la compétence n'en parlent pas.
 - Un message de détresse affiche des contacts d'aide et reçoit une réponse relue, jamais générée par le modèle.
+- Sexe, actes illégaux, violence ou haine : Truffe répond « Je ne peux pas parler de ce sujet » et propose un autre sujet. Ces messages ne sont jamais analysés.
+- Un jeune qui confie subir des violences n'est jamais renvoyé : Truffe l'oriente vers le 119, le 116 006, le 3018 ou le 17, et la psychologue voit le message signalé.
+
+Fonctionnement de l'IA, choix du modèle et mesures : [`docs/ia.md`](docs/ia.md).
 
 Limites actuelles : tous les comptes psychologues voient tous les jeunes, et il n'y a pas encore de suppression de compte ni de limitation des tentatives de connexion. À traiter avant d'utiliser de vraies données.
 
