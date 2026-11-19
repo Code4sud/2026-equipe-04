@@ -64,9 +64,7 @@ export function Attributes({ attributes }: { attributes: SheetAttribute[] }) {
               </div>
               <h4 className="sheet-attr__label">
                 {typo(attribute.label)}
-                <span className="visually-hidden">
-                  {known ? ` : ${attribute.score} sur 20` : ` : ${t.unknown}`}
-                </span>
+                <span className="visually-hidden">{t.spokenScore(attribute.score)}</span>
               </h4>
               <p className="sheet-attr__description">{typo(attribute.description)}</p>
               {!known && !noneKnown && <RevealHint reveal={attribute.reveal_with ?? null} />}

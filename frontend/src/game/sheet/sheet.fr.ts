@@ -44,7 +44,6 @@ export const sheetFr = {
     emptyCta: 'Aller au quiz',
     edit: (label: string) => `Modifier ${quote(label)}`,
     edited: 'modifié par toi',
-    swatch: (value: string) => `Pastille ${value}`,
     save: 'Enregistrer',
     cancel: 'Annuler',
     hide: 'Masquer de ma fiche',
@@ -71,9 +70,9 @@ export const sheetFr = {
   attributes: {
     title: 'Attributs',
     intro: 'De 8 à 20. Ils montrent tes forces, jamais une note.',
-    unknown: 'À découvrir',
-    score: (label: string, score: number) => `${label} : ${score} sur 20`,
-    unknownLabel: (label: string) => `${label} : encore secret`,
+    /** Lu après le nom de l'attribut par les lecteurs d'écran. */
+    spokenScore: (score: number | null) =>
+      score === null ? `${nbsp}: à découvrir` : `${nbsp}: ${score} sur 20`,
     play: (title: string) => `Joue à ${quote(title)} pour le découvrir`,
     finish: (title: string) => `Finis ${quote(title)} pour le découvrir`,
     later: 'Tes prochains jeux et talents le révéleront.',
@@ -93,7 +92,6 @@ export const sheetFr = {
     no: 'Pas moi',
     verdictFor: (label: string) => `Ton avis sur ${quote(label)}`,
     pair: (low: string, high: string) => `${low} ou ${high}`,
-    balanced: 'Entre les deux',
     leaning: (low: string, high: string, label: string | null) =>
       !label || label === 'Entre les deux'
         ? `Entre ${low} et ${high} : tu es entre les deux.`

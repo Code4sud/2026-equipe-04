@@ -24,10 +24,10 @@ export function starPath(cx: number, cy: number, outer: number, inner = outer * 
 
 export const GLYPHS: Record<string, GlyphPath[]> = {
   // Clans et attributs
+  // Marteau penché : manche vers le bas à gauche, tête effilée d'un côté.
   hammer: [
-    { d: 'M5.5 4h13A1.5 1.5 0 0 1 20 5.5V8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 8V5.5A1.5 1.5 0 0 1 5.5 4z' },
-    { d: 'M8.5 4v5.5' },
-    { d: 'M10.75 9.5h2.5v9.75a1.25 1.25 0 0 1-2.5 0z' },
+    { d: 'M11.3 4.2l9.3 7.7-3.1 3.1-7.7-9.3z' },
+    { d: 'M4.3 17.9l7.8-7.8 1.8 1.8-7.8 7.8a1.27 1.27 0 0 1-1.8-1.8z' },
   ],
   compass: [
     { d: circle(12, 12, 8.5) },

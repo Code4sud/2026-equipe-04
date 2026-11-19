@@ -153,6 +153,7 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
   const editButtons = useRef(new Map<string, HTMLButtonElement>());
   const hiddenSummary = useRef<HTMLElement>(null);
   const [focusAfter, setFocusAfter] = useState<{ key: string } | 'hidden' | null>(null);
+  const [showError, setShowError] = useState<string | null>(null);
   const baseId = useId();
   const ordered = orderFacts(facts);
   const visible = ordered.filter((fact) => !fact.hidden);
@@ -184,17 +185,23 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
   }
 
   async function show(fact: GameFact) {
+    setShowError(null);
     try {
       await onChange(fact.key, { hidden: false });
       announce(t.shown(fact.label));
       setFocusAfter({ key: fact.key });
     } catch (caught) {
-      announce(errorMessage(caught));
+      setShowError(errorMessage(caught));
     }
   }
 
   return (
-    <SheetBox id="sheet-identity" title={t.title} intro={facts.length ? t.intro : undefined} className="sheet-area--identity">
+    <SheetBox
+      id="sheet-identity"
+      title={t.title}
+      intro={facts.length ? t.intro : undefined}
+      className="sheet-area--identity"
+    >
       {facts.length === 0 && (
         <p className="sheet-empty">
           {t.empty}
@@ -273,6 +280,11 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
               </li>
             ))}
           </ul>
+          {showError && (
+            <p className="form-error" role="alert">
+              {showError}
+            </p>
+          )}
         </details>
       )}
     </SheetBox>

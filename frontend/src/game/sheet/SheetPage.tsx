@@ -74,16 +74,17 @@ export default function SheetPage() {
 
   const load = useCallback(async (signal?: AbortSignal) => {
     setError(null);
-    // L'état des jeux sert seulement à proposer la prochaine quête : son échec ne bloque rien.
-    const nextStatus = gameApi.status(signal).catch(() => null);
     try {
-      setSheet(await gameApi.sheet(signal));
+      // L'état des jeux sert seulement à proposer la prochaine quête : son échec ne bloque rien.
+      const [nextSheet, nextStatus] = await Promise.all([
+        gameApi.sheet(signal),
+        gameApi.status(signal).catch(() => null),
+      ]);
+      setStatus(nextStatus);
+      setSheet(nextSheet);
     } catch (caught) {
       if (!signal?.aborted) setError(errorMessage(caught));
-      return;
     }
-    const resolved = await nextStatus;
-    if (!signal?.aborted) setStatus(resolved);
   }, []);
 
   useEffect(() => {
