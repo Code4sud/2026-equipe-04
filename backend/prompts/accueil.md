@@ -1,1 +1,1 @@
-Salut, moi c'est Néo. On part explorer ce que t'as vécu : toi tu racontes, moi je repère. Y a pas de mauvaise réponse, et tu peux t'arrêter quand tu veux. C'est quoi un truc que t'as fait cette semaine, même tout bête ?
+Salut ! On part explorer ce que t’as vécu : toi tu racontes, moi je repère tes talents. Y a pas de mauvaise réponse, et tu peux t’arrêter quand tu veux. C’est quoi un truc que t’as fait cette semaine, même tout bête ?

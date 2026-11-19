@@ -7,6 +7,9 @@ FPS=30; bpy.context.scene.render.fps=FPS
 bones=sorted(arm.bones,key=lambda b:len(b.parent_recursive)); PAR={b.name:b.parent.name if b.parent else None for b in bones}
 RP={b.name:b.head_local.copy() for b in bones}; RT={b.name:b.tail_local.copy() for b in bones}; RQ={b.name:b.matrix_local.to_quaternion() for b in bones}
 ID=Q()
+FING=[f for f in('index','middle','ring','pinky') if f+'1.L' in PAR]
+SH_OLD=V((.215,-.165,.165)); SH=RP['upperarm.L'].copy(); KA=((RP['hand.L']-RP['upperarm.L']).length)/.40
+def RT(v): v=V(v); return SH+(v-SH_OLD)*KA
 E=lambda x=0,y=0,z=0:Euler((rad(x),rad(y),rad(z)),'XYZ').to_quaternion()
 mq=lambda q:Q((q.w,q.x,-q.y,-q.z)); mv=lambda v:V((-v[0],v[1],v[2]))
 S1=lambda u,n=1,p=0:sin(2*pi*(n*u+p))
@@ -41,8 +44,8 @@ class P:
         s.r(b+'.L',ql); s.r(b+'.R',mq(qr if qr is not None else ql))
 def fingers(p,side,curl,thumb=None,spread=0):
     m=(lambda q:q) if side=='L' else mq
-    for i,f in enumerate(('index','middle','pinky')):
-        c=curl[i] if isinstance(curl,(tuple,list)) else curl
+    for i,f in enumerate(FING):
+        c=curl[min(i,len(curl)-1)] if isinstance(curl,(tuple,list)) else curl
         p.r(f'{f}1.{side}',m(E(0,c,spread*(1-i)))); p.r(f'{f}2.{side}',m(E(0,c*1.05,0)))
     if thumb is not None:
         p.r(f'thumb1.{side}',m(thumb[0])); p.r(f'thumb2.{side}',m(thumb[1]))
@@ -75,7 +78,7 @@ def solve(p):
         L[f'foot.{s_}']=q.inverted()@fq; fk(f'foot.{s_}')
     for s,(Tf,pole,hq) in p.arm.items():
         M=(lambda v:V(v)) if s=='L' else mv
-        T=M(Tf(Wp,Wq,M) if callable(Tf) else Tf); q=ik(f'upperarm.{s}',f'forearm.{s}',f'hand.{s}',T,M(pole))
+        T=M(Tf(Wp,Wq,M) if callable(Tf) else RT(Tf)); q=ik(f'upperarm.{s}',f'forearm.{s}',f'hand.{s}',T,M(pole))
         h=hq if s=='L' else mq(hq); L[f'hand.{s}']=q.inverted()@h; fk(f'hand.{s}')
     for n in pend:
         if n not in Wq: fk(n)
@@ -97,7 +100,7 @@ def sm(t): t=max(0,min(1,t)); return t*t*(3-2*t)
 def lerp(a,b,t):
     if isinstance(a,Q): return a.slerp(b,t)
     if callable(a) or callable(b):
-        return lambda W,R,M:(lambda x,y:tuple(x[i]+(y[i]-x[i])*t for i in range(3)))(a(W,R,M) if callable(a) else a,b(W,R,M) if callable(b) else b)
+        return lambda W,R,M:(lambda x,y:tuple(x[i]+(y[i]-x[i])*t for i in range(3)))(a(W,R,M) if callable(a) else RT(a),b(W,R,M) if callable(b) else RT(b))
     if isinstance(a,(tuple,list,V)): return tuple(a[i]+(b[i]-a[i])*t for i in range(len(a)))
     return a+(b-a)*t
 def K(u,pts):
@@ -118,7 +121,7 @@ PACK=((.315,.05,.03),(1,-.2,.25),frame((-.15,.85,-.4),(0,0,1)))
 def thumbs(p,s='R'):
     fingers(p,s,72,thumb=(E(0,0,-52),E(0,0,6)))
     m=(lambda q:q) if s=='L' else mq
-    for f in('index','middle','pinky'): p.r(f'{f}2.{s}',m(E(0,12,0)))
+    for f in FING: p.r(f'{f}2.{s}',m(E(0,12,0)))
 def openh(p,s,c=-12,sp=6): fingers(p,s,c,thumb=(E(0,0,10),E(0,0,5)),spread=sp)
 def pinch(p,s='R'): fingers(p,s,(28,34,40),thumb=(E(0,18,-18),E(0,14,0)))
 def face(p,u,T,sm_=.28,bl=(.2,.62)):
@@ -182,7 +185,7 @@ def pas_mal(u,T,p):
     n=bump(u,.48,0,.07)+bump(u,.62,0,.07); p.hip=V((0,.018*b,0)); p.r('spine',E(-4*b)); p.r('chest',E(-3*b)); p.r('head',E(-4*b+6*n,0,3*e))
     t,po,h=A0(); p.arm['R']=tuple(lerp(a,c,e) for a,c in zip((t,po,h),((.27,-.39,.00),(.95,.1,-.55),THUMB)))
     fingers(p,'R',60*e,thumb=(E(0,0,-52*e),E(0,0,6*e))); p.arm['L']=(t,po,h); p.m['eyes_smile']=.2+.2*e; p.m['blink']=blink(u,T,(.34,)); p.m['mouth_wide']=.12*e
-GX,GY,GZ=30,-.055,-.185
+GX,GY,GZ=30,-.06,-.215
 def detection(u,T,p):
     common(p,u,T,tail=.5,ears=.7); g=K(u,[(0,0),(.17,0),(.31,1),(.81,1),(.94,0),(1,0)]); ha=K(u,[(0,0),(.12,1),(.34,1),(.46,0),(.72,0),(.78,1),(.94,1),(1,0)])
     lean=K(u,[(.25,0),(.4,1),(.76,1),(.9,0)]); scan=S1((u-.36)/.42,1)*lean
@@ -207,14 +210,14 @@ def carte_poser(u,T,p):
         global _REL
         if _REL is None:
             q_=P(); carte_poser(.3999,T,q_); solve(q_); _REL=q_.cardpos.copy()
-        f=sm((u-.4)/.2); fl=V((_REL.x-.02,_REL.y,-.935)); f2=f*f
+        f=sm((u-.4)/.2); fl=V((_REL.x-.02,_REL.y,-.94)); f2=f*f
         p.card={'pos':tuple(_REL.lerp(fl,f2)),'q':down.slerp(flat,f)}
     else: p.card={'q':lerp(_cardq(1),down,sm(u/.34))}
     p.m['card_show']=K(u,[(.74,1),(.92,0)]); pinch(p,'R'); p.r('head',E(1,0,-4+8*K(u,[(.45,0),(.7,1)]))); p.m['eyes_smile']=.3; p.m['mouth_wide']=K(u,[(0,.3),(.5,.12),(.8,.28),(1,0)]); p.m['blink']=blink(u,T,(.6,))
 def calme(u,T,p):
     common(p,u,T,tail=.15,ears=.15,breath=0); b=S1(u,2,.25); p.hip=V((0,.03,-.50)); p.r('hips',E(-7)); p.r('spine',E(4+.8*b)); p.r('chest',E(4+1.6*b)); p.r('neck',E(3)); p.r('head',E(7+1.2*b,0,1.5*S1(u,1)))
     p.both('clavicle',E(0,-1.5*b,0)); p.r('tail1',E(58,0,18))
-    for s in 'LR': p.foot[s]=((.215,-.50,-.76),(.55,-.55,-.15),ID)
+    for s in 'LR': p.foot[s]=(tuple(RP['foot.L']+V((.065,-.36,0))),(.55,-.55,-.15),ID)
     for s in 'LR': p.arm[s]=((.25,-.43+.004*b,-.53+.006*b),(.95,.2,.05),frame((-.15,-.55,-.82),(-.6,-.55,.3)))
     p.m['blink']=.42+.08*S1(u,2,.1); p.m['eyes_smile']=.25
 def bras(u,T,p):
@@ -233,7 +236,7 @@ def encourage(u,T,p):
     p.arm['R']=(tg,(.95,.1,-.55),frame((-.34,-.92,.12),(.05,-.05,1)))
     p.r('clavicle.R',mq(E(0,-4,3)))
     fingers(p,'R',94,thumb=(E(0,0,-52),E(0,0,6)))
-    for f in('index','middle','pinky'): p.r(f'{f}2.R',mq(E(0,12,0)))
+    for f in FING: p.r(f'{f}2.R',mq(E(0,12,0)))
     p.arm['L']=((.355,-.15,-.13+.004*b),(1,.5,.05),frame((-.55,-.25,-.8),(.1,-1,0))); fingers(p,'L',48,thumb=(E(0,18,-10),E(0,14,0)))
     p.m['mouth_wide']=.92+.05*b; p.m['eyes_smile']=.78; p.m['blink']=blink(u,T,(.42,)); p.eye=(-.003,.002)
 def rigole(u,T,p):

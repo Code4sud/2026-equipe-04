@@ -30,7 +30,7 @@ function Message({ title, text, action }: { title: string; text?: string; action
       </div>
       <div className="play-stage">
         <div className="play-hero">
-          <NeoSlot mood="thinking" />
+          <NeoSlot mood="thinking" still />
           <h1>{title}</h1>
           {text && <p className="play-hero__tagline">{text}</p>}
         </div>

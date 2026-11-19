@@ -63,7 +63,7 @@ export const sheetFr = {
   talents: {
     title: 'Talents',
     count: (count: number) => `${count} ${plural(count, 'gardé', 'gardés')}`,
-    intro: 'Repérés dans ce que tu racontes, gardés par toi.',
+    intro: 'Repérés avec Néo ou ajoutés par toi.',
     empty: 'Pas encore de talent gardé. Raconte un truc que t’as fait, même tout bête : Néo t’aide à repérer ce que tu sais faire.',
     emptyCta: 'Raconter à Néo',
     pending: (count: number) =>

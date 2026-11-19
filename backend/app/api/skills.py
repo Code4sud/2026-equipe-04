@@ -67,7 +67,7 @@ def add_my_skill():
     """Le jeune ajoute un talent que Néo n'a pas vu."""
     data = json_body()
     name = text_field(data, "name", "Le nom", 3, 80)
-    description = str(data.get("description") or "").strip()[:300]
+    description = str(data.get("description") or "").replace("\x00", "").strip()[:300]
     skill = Skill(
         youth_id=g.user.id,
         origin=SkillOrigin.YOUTH,

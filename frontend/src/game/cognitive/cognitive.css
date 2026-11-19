@@ -125,24 +125,14 @@
 
 .cog-neo .neo-slot,
 .cog-overlay .neo-slot {
-  display: grid;
-  flex: none;
-  place-items: center;
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 50%;
   background: var(--color-accent-soft);
   box-shadow: var(--shadow-card);
-  font-size: 1.75rem;
-  line-height: 1;
 }
 
-.cog-neo .neo-slot::after,
-.cog-overlay .neo-slot::after {
-  content: '🦊';
-}
-
-.cog-neo .neo-slot[data-mood='cheer'] {
+.cog-neo .neo-slot[data-live='false'][data-mood='cheer'] {
   animation: cog-hop 0.5s ease;
 }
 

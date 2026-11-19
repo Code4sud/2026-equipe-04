@@ -206,9 +206,12 @@ export interface SheetAttribute {
 export interface SheetTalent {
   id: string;
   name: string;
+  /** Catégorie de Néo ; un talent ajouté par le jeune n'a que la catégorie par défaut. */
   category: string;
   description: string;
   quote: string;
+  /** « ai » : repéré par Néo, compte pour les curseurs et l'XP ; « youth » : ajouté par le jeune. */
+  origin?: 'ai' | 'youth';
 }
 
 export interface CharacterSheet {

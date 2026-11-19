@@ -16,6 +16,9 @@ from ..errors import ApiError
 from ..extensions import db
 from ..models import (
     Conversation,
+    GameAnswer,
+    GameEvent,
+    GameRun,
     Role,
     Skill,
     SkillAction,
@@ -88,10 +91,39 @@ def list_youths():
         )
     }
 
+    # Le quiz, les jeux, les choix du jeune sur ses talents et ses modifications dans le jeu
+    # comptent aussi comme activité : un jeune qui ne fait que jouer n'est pas « inactif ».
+    other_activity: dict[uuid.UUID, list] = defaultdict(list)
+    for query in (
+        select(GameRun.youth_id, func.max(GameRun.started_at)).group_by(GameRun.youth_id),
+        select(GameRun.youth_id, func.max(GameRun.completed_at)).group_by(GameRun.youth_id),
+        select(GameRun.youth_id, func.max(GameAnswer.answered_at))
+        .join(GameAnswer, GameAnswer.run_id == GameRun.id)
+        .group_by(GameRun.youth_id),
+        select(GameEvent.youth_id, func.max(GameEvent.created_at)).group_by(GameEvent.youth_id),
+        select(SkillEvent.youth_id, func.max(SkillEvent.created_at))
+        .where(SkillEvent.actor == SkillOrigin.YOUTH)
+        .group_by(SkillEvent.youth_id),
+    ):
+        for youth_id, at in db.session.execute(query):
+            if at is not None:
+                other_activity[youth_id].append(as_utc(at))
+
+    # Avis donnés ou modifications faites dans le jeu : chaque détail, curseur ou réponse une fois.
+    game_changes = dict(
+        db.session.execute(
+            select(GameEvent.youth_id, func.count(func.distinct(GameEvent.subject))).group_by(
+                GameEvent.youth_id
+            )
+        ).all()
+    )
+
     items = []
     for user, profile in youths:
         counts = skill_counts.get(user.id, {})
-        conversation_count, last_at = activity.get(user.id, (0, None))
+        conversation_count, chat_at = activity.get(user.id, (0, None))
+        moments = [as_utc(chat_at)] if chat_at else []
+        last_at = max([*moments, *other_activity.get(user.id, [])], default=None)
         items.append(
             {
                 "id": str(user.id),
@@ -103,7 +135,8 @@ def list_youths():
                 "pending_skills": counts.get(SkillStatus.PENDING.value, 0),
                 "rejected_skills": counts.get(SkillStatus.REJECTED.value, 0),
                 "skills_to_discuss": decisions.get(user.id, 0),
-                "_sort": as_utc(last_at).timestamp() if last_at else 0,
+                "game_changes": game_changes.get(user.id, 0),
+                "_sort": last_at.timestamp() if last_at else 0,
             }
         )
     items.sort(key=lambda item: item.pop("_sort"), reverse=True)

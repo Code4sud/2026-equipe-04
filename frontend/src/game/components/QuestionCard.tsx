@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gameFr } from '../content.fr';
+import { NEO_STILLS } from '../neo/NeoAvatar';
 import type { AnswerValue, GameItem, ItemOption, LikertScale } from '../types';
 import { frenchSpacing } from './frenchSpacing';
 import './QuestionCard.css';
 
 const t = gameFr.question;
+const FOX = '\u{1F98A}';
 /** Au-delà, une option est trop longue pour tenir dans une grille de pastilles. */
 const SHORT_LABEL = 24;
 
@@ -47,7 +49,8 @@ function OptionContent({ option }: { option: ItemOption }) {
       ) : (
         option.emoji && (
           <span className="question__emoji" aria-hidden="true">
-            {option.emoji}
+            {/* Le renard de l'app, c'est Néo : son portrait plutôt que l'emoji. */}
+            {option.emoji === FOX ? <img className="question__neo" src={NEO_STILLS.happy} alt="" /> : option.emoji}
           </span>
         )
       )}

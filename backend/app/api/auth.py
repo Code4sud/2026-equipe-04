@@ -65,7 +65,8 @@ def login():
     data = json_body()
     email = str(data.get("email", "")).strip().lower()
     password = str(data.get("password", ""))
-    user = db.session.scalar(select(User).where(User.email == email))
+    # Un caractère NUL ferait échouer la requête SQL : ce n'est de toute façon pas un compte.
+    user = None if "\x00" in email else db.session.scalar(select(User).where(User.email == email))
     valid = check_password_hash(user.password_hash if user else _DUMMY_HASH, password)
     if user is None or not valid or not user.is_active:
         raise ApiError(401, "invalid_credentials", "E-mail ou mot de passe incorrect.")

@@ -29,9 +29,11 @@ export function Talents({ talents }: { talents: CharacterSheet['talents'] }) {
               <TalentStar />
               <div className="sheet-talent__text">
                 <h4 className="sheet-talent__name">{talent.name}</h4>
-                <p className="sheet-talent__category">
-                  {fr.map.categories[talent.category] ?? talent.category}
-                </p>
+                {talent.origin !== 'youth' && (
+                  <p className="sheet-talent__category">
+                    {fr.map.categories[talent.category] ?? talent.category}
+                  </p>
+                )}
                 {talent.quote && <p className="sheet-talent__quote">{quote(talent.quote)}</p>}
               </div>
             </li>

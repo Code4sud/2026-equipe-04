@@ -1267,3 +1267,45 @@ mark {
 .add-talent__open {
   justify-self: start;
 }
+
+/* Grand écran : Néo se tient en grand, en bas à gauche, sans déplacer la discussion. */
+@media (min-width: 68rem) {
+  .chat {
+    position: relative;
+  }
+
+  .chat__stage {
+    position: absolute;
+    bottom: 0;
+    left: var(--space-4);
+    z-index: 0;
+    width: min(var(--mascot-stage-width), calc((100% - var(--width-content)) / 2 - var(--space-6)));
+    max-height: min(var(--mascot-stage-height), 80%);
+    aspect-ratio: 5 / 8;
+    pointer-events: none;
+  }
+
+  .chat__stage::before {
+    position: absolute;
+    right: 12%;
+    bottom: var(--space-3);
+    left: 12%;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    content: '';
+  }
+
+  .mascot--stage {
+    position: absolute;
+    inset: 0;
+  }
+
+  .chat-head--solo {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .chat-head--solo .chat-head__notice {
+    grid-column: 1 / -1;
+  }
+}

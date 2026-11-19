@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { NeoAvatar, type NeoMood } from '../neo/NeoAvatar';
 import type { PublicInstrument } from '../types';
 import { cogFr } from './cognitive.fr';
 import { useKeys } from './hooks';
@@ -12,14 +13,20 @@ export function frenchSpacing(text: string): string {
   return text.replace(/ ([:;!?])/g, '\u00a0$1');
 }
 
-export type NeoMood = 'happy' | 'thinking' | 'cheer' | 'wave';
+export type { NeoMood };
 
-/** Emplacement de Néo : l'intégration remplace cette pastille par le renard en 3D. */
-export function NeoSlot({ mood }: { mood: NeoMood }) {
-  return <div className="neo-slot" data-mood={mood} aria-hidden="true" />;
+/**
+ * Néo dans les jeux chronométrés. En image fixe par défaut : pendant les essais, une animation
+ * 3D distrairait et prendrait du temps de calcul au moment où l'on mesure les réactions.
+ */
+export function NeoSlot({ mood, still = true }: { mood: NeoMood; still?: boolean }) {
+  return <NeoAvatar mood={mood} still={still} className="neo-slot" />;
 }
 
-/** Néo et sa bulle. La bulle reste montée d'un essai à l'autre pour être annoncée. */
+/**
+ * Néo et sa bulle. La bulle reste montée d'un essai à l'autre pour être annoncée.
+ * En grand (présentation, « Prêt ? », bilan), Néo est en 3D ; en petit, pendant les essais, fixe.
+ */
 export function NeoSays({
   mood,
   children,
@@ -33,7 +40,7 @@ export function NeoSays({
 }) {
   return (
     <div className={big ? 'cog-neo cog-neo--big' : 'cog-neo'}>
-      <NeoSlot mood={mood} />
+      <NeoSlot mood={mood} still={!big} />
       <p className="cog-says" aria-live={live ? 'polite' : undefined}>
         {typeof children === 'string' ? frenchSpacing(children) : children}
       </p>

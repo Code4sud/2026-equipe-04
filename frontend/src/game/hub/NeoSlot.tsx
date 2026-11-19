@@ -1,8 +1,9 @@
+import { NeoAvatar, type NeoMood } from '../neo/NeoAvatar';
 import './common.css';
 
-export type NeoMood = 'happy' | 'thinking' | 'cheer' | 'wave';
+export type { NeoMood };
 
-/** Place de Néo : l’intégration remplace cette pastille par le renard 3D. */
-export function NeoSlot({ mood }: { mood: NeoMood }) {
-  return <div className="neo-slot" data-mood={mood} aria-hidden="true" />;
+/** Néo dans le hub et les écrans de partie : en 3D, sauf `still` (chargements, messages). */
+export function NeoSlot({ mood, still = false }: { mood: NeoMood; still?: boolean }) {
+  return <NeoAvatar mood={mood} still={still} className="neo-slot" />;
 }

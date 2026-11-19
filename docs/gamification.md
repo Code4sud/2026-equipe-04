@@ -73,7 +73,7 @@ Augmenter `version` dès qu'une question est renommée, retirée, ou change de t
 | `translated` | Test validé, traduction maison non validée | Items d'un test validé, traduits par l'équipe sans étude de la traduction | 0,75 |
 | `adapted` | Inspiré de travaux publiés, non validé | Questions écrites par l'équipe à partir d'une théorie ou d'un test publiés | 0,5 |
 | `custom` | Indicateur maison | Indicateur créé pour le projet | 0,5 |
-| `talent` | Talent validé par le jeune | Talent validé par le jeune dans la discussion | 0,25 |
+| `talent` | Talent validé par le jeune | Talent repéré par Néo dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même sur sa carte n'a que la catégorie par défaut : il reste sur sa carte et dans le backoffice, mais ne compte ni dans les curseurs, ni dans l'XP, ni dans les badges | 0,25 |
 
 Une traduction maison d'un test validé prend le niveau `translated`, et `adaptation` dit qu'elle n'est pas validée. Citer une théorie (Holland, par exemple) justifie « inspiré de », jamais « test validé ».
 
@@ -81,7 +81,7 @@ Un signal (option d'un choix, ou partie d'une question Likert) peut porter son p
 
 Le backoffice montre le libellé envoyé par l'API (`TIER_LABELS` dans `service.py`) ; sa copie dans `frontend/src/game/backoffice/` (libellés, poids, ordre) sert à la légende et à la page Sources, et `tests/test_game_tiers.py` vérifie qu'elle reste identique.
 
-Chaque signal enregistré garde le niveau et le poids de sa réponse : changer le niveau d'un instrument ne réécrit pas les parties terminées. Les versions 2 du Grand Tri, du Miroir et du quiz corrigent leurs niveaux sans migration de données, car la migration `0002` qui crée les tables du jeu n'est encore ni fusionnée ni déployée : une base de développement qui contient des parties des versions 1 se recrée (volume Postgres neuf) plutôt que de se migrer.
+Chaque signal enregistré garde le niveau et le poids de sa réponse : changer le niveau d'un instrument ne réécrit pas les parties terminées. Les versions 2 du Grand Tri, du Miroir et du quiz ont été livrées avant toute base réelle : aucune partie de version 1 n'existe hors des bases de test. Désormais, un changement de version qui touche des parties déjà jouées demande une migration de données.
 
 ## Calcul
 
@@ -150,4 +150,4 @@ Comptes dans `backend/scripts/dev_game.py`.
 
 ## Intégration
 
-La migration `0002` (`down_revision = '0001'`) n'est appliquée nulle part : elle est modifiée sur place tant qu'elle n'est pas fusionnée. La migration `talent_history` de la branche `feat/talent-map` part elle aussi de `0001`. À la fusion dans `feat/talent-map`, mettre `down_revision = 'talent_history'` dans `0002` (ou ajouter une révision de fusion avec `flask db merge`), sinon `flask db upgrade` échoue avec deux têtes de migration.
+Le jeu (`0002`, tables `game_*`) et l'historique des talents (`talent_history`, table `skill_events`) partent tous deux de `0001`. La révision vide `0003_fusion_jeu_et_historique` les réunit sur la branche `feat/integration`. Ces trois migrations sont désormais figées : tout changement de schéma est une nouvelle révision au-dessus de `0003` (`flask db migrate`). `talent_history` utilise `gen_random_uuid()` : les migrations ne passent que sur Postgres, les tests créent leurs tables avec `create_all` sur SQLite.

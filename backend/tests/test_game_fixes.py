@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import io
 import json
+import os
 import random
 import re
 import uuid
@@ -40,6 +41,12 @@ from app.models import (
 )
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
+# Sur Postgres, le verrou de la partie empêche la course que ces tests simulent avec une seconde
+# connexion dans le même fil : ils s'y bloqueraient au lieu d'échouer.
+SIMULATED_RACE = pytest.mark.skipif(
+    os.environ.get("TEST_DATABASE_URL", "").startswith("postgresql"),
+    reason="course simulée impossible sous le verrou de ligne de Postgres",
+)
 FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
 COGNITIVE = ("corsi", "digit_span", "stroop", "logic")
 
@@ -709,6 +716,7 @@ def test_game_requests_are_capped_at_256_kb(app, client, youth):
 # --- 8. Modifications d'une partie sous verrou ---
 
 
+@SIMULATED_RACE
 def test_a_double_put_updates_the_answer_instead_of_failing(client, youth, psychologist):
     run_id = start(client, youth)["run"]["id"]
     with written_by_another_request(answer_row(run_id, "groupe", "a", "J'invite tout le monde")) as fired:
@@ -721,6 +729,7 @@ def test_a_double_put_updates_the_answer_instead_of_failing(client, youth, psych
     assert changed["after"] == {"label": "Je préfère un truc au calme", "value": "c"}
 
 
+@SIMULATED_RACE
 def test_a_fact_question_sent_twice_does_not_crash(client, youth):
     run_id = start(client, youth)["run"]["id"]
     with written_by_another_request(answer_row(run_id, "couleur", "bleu", "Bleu")) as fired:

@@ -95,6 +95,8 @@ export interface YouthSummary {
   pending_skills: number;
   rejected_skills: number;
   skills_to_discuss: number;
+  /** Curseurs jugés et détails, réponses modifiés dans le quiz et les jeux (un par sujet). */
+  game_changes?: number;
 }
 
 export interface YouthDetail {

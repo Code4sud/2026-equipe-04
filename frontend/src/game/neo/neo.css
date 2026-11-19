@@ -1,0 +1,39 @@
+/*
+ * Néo dans les jeux : un médaillon, la pose fixe dedans, puis la 3D par-dessus quand elle est
+ * prête. Chaque écran règle la taille et le fond du médaillon (.hub .neo-slot, .quiz .neo-slot...).
+ */
+.neo-avatar {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 6rem;
+  height: 6rem;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  /* Le médaillon reste rond même quand la 3D dépasse pendant un geste. */
+  isolation: isolate;
+}
+
+.neo-avatar .neo-avatar__still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  transition: opacity 300ms ease-out;
+}
+
+/*
+ * La pose fixe est un recadrage de la vue « portrait » (400 px sur 512, à partir de x = 56) :
+ * la 3D reprend le même cadre, sans saut quand elle remplace l'image.
+ */
+.neo-avatar .neo-avatar__live {
+  position: absolute;
+  inset: 0 -14% -28%;
+}
+
+.neo-avatar:has(.neo-avatar__live[data-ready='true']) .neo-avatar__still {
+  opacity: 0;
+}

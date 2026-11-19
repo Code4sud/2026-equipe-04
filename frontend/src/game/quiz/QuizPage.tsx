@@ -36,7 +36,7 @@ export default function QuizPage() {
     <main className="quiz">
       {mode === 'checking' && (
         <div className="quiz-screen quiz-screen--center" role="status">
-          <NeoSlot mood="thinking" />
+          <NeoSlot mood="thinking" still />
           <p>{quizFr.loading}</p>
         </div>
       )}
