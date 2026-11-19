@@ -27,10 +27,18 @@ export interface RunPlayerOptions {
 
 const NOTHING_YET: RunStart = { answered: 0, seen: 0, seenIds: new Set() };
 
-/** Questions dans l'ordre où la partie les pose. */
+/**
+ * Questions dans l'ordre où la partie les pose. Tirées au hasard, celles déjà vues à l'ouverture
+ * passent devant, dans l'ordre tiré : la séance avance sans en sauter, et « Retour » remonte
+ * toujours vers la question d'avant dans la séance, puis vers les séances précédentes, même si la
+ * partie a été commencée dans un autre ordre (contenu d'une autre version, partie plus ancienne).
+ */
 function orderOf(payload: RunPayload, shuffle: boolean): GameItem[] {
   const items = payload.instrument.items ?? [];
-  return shuffle ? seededShuffle(items, payload.run.id) : items;
+  if (!shuffle) return items;
+  const drawn = seededShuffle(items, payload.run.id);
+  const seen = new Set(payload.answers.map((answer) => answer.item_id));
+  return [...drawn.filter((item) => seen.has(item.id)), ...drawn.filter((item) => !seen.has(item.id))];
 }
 
 /**
