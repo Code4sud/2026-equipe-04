@@ -125,6 +125,8 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const toReveal = Math.max(unseen, missing);
   const pendingCount = items.filter((item) => isPending(item, answers)).length;
   const xp = startedWith.answered * XP_PER_ANSWER + player.xpGained;
+  // Questions vues (passées comprises) qui débloquent les mini-jeux ; null : il faut finir le quiz.
+  const unlocksAfter = instrument.unlocks_after ?? null;
   const laterButton = (label: string) => (
     <button type="button" className="link-button" disabled={pausing} onClick={() => void leave(LATER_PATH)}>
       {pausing ? t.question.pausing : label}
@@ -173,6 +175,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
             <span aria-hidden="true">🎲</span>
             {t.welcome.series(SERIES_SIZE)}
           </li>
+          {unlocksAfter !== null && (
+            <li className="quiz-rules__unlock">
+              <span aria-hidden="true">🎮</span>
+              {t.welcome.unlock(unlocksAfter, SERIES_SIZE)}
+            </li>
+          )}
           <li>
             <span aria-hidden="true">⏱️</span>
             {t.welcome.duration(seriesMinutes(instrument.duration_min, total))}
@@ -198,13 +206,14 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   // --- Reprise : une nouvelle série commence ---
   if (resumed && !welcomed && unseen > 0) {
+    const toUnlock = unlocksAfter === null ? 0 : Math.max(0, unlocksAfter - startedWith.seen);
     return (
       <div className="quiz-screen quiz-screen--center quiz-welcome">
         <NeoSlot mood="wave" />
         <p className="quiz-kicker">{t.resume.kicker}</p>
         <ScreenTitle>{frenchSpacing(t.resume.title)}</ScreenTitle>
         <p className="quiz-bubble">
-          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, toReveal, SERIES_SIZE))}
+          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, toReveal, SERIES_SIZE, toUnlock))}
         </p>
         {pauseAlert}
         <div className="quiz-actions">
@@ -277,11 +286,27 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     const unlessJustShown = (action: () => void) => () => {
       if (!player.justShown()) action();
     };
+    const next = Math.min(SERIES_SIZE, unseen);
+    const last = unseen <= SERIES_SIZE;
+    // Cette série a fait passer le seuil des mini-jeux (vues avant elle < seuil ≤ vues maintenant),
+    // même si une séance d'avant s'était arrêtée en cours de série. Les séries suivantes, et la revue
+    // des questions passées, qui n'a pas d'écran de série, ne l'annoncent pas.
+    const seenBefore = startedWith.seen + continued * SERIES_SIZE;
+    const seenNow = startedWith.seen + sitting.length;
+    const unlocked = unlocksAfter !== null && seenBefore < unlocksAfter && unlocksAfter <= seenNow;
     return (
       <div className="quiz-screen quiz-screen--center quiz-break">
         <NeoSlot mood="cheer" />
         <ScreenTitle>{frenchSpacing(t.series.title)}</ScreenTitle>
-        <p className="quiz-bubble">{frenchSpacing(t.series.text)}</p>
+        <p className="quiz-bubble">
+          {frenchSpacing(unlocked ? t.series.unlockedText(next, last) : t.series.text)}
+        </p>
+        {unlocked && (
+          <p className="quiz-unlocked">
+            <span aria-hidden="true">🎮</span>
+            {t.series.unlocked}
+          </p>
+        )}
         <div className="quiz-mystery">
           {/* L'archétype reste une surprise jusqu'à la révélation : le badge garde son « ? ». */}
           <ArchetypeBadge archetype={null} />
@@ -303,15 +328,16 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
               player.markShown();
             })}
           >
-            {t.series.more(Math.min(SERIES_SIZE, unseen), unseen <= SERIES_SIZE)}
+            {t.series.more(next, last)}
           </button>
+          {/* Comme « Je reprends plus tard » : réponses envoyées, partie en pause, puis les jeux. */}
           <button
             type="button"
             className="link-button"
             disabled={pausing}
             onClick={unlessJustShown(() => void leave(HUB_PATH))}
           >
-            {pausing ? t.question.pausing : t.series.later}
+            {pausing ? t.question.pausing : unlocked ? t.series.toGames : t.series.later}
           </button>
         </div>
       </div>
