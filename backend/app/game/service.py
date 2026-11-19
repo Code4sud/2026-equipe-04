@@ -30,14 +30,22 @@ from ..models import (
 from ..services import service
 from .catalog import Catalog
 from .discovery import reveal_with
-from .performance import SCORERS
-from .scoring import InvalidAnswer, aggregate, scale_scores, score_answer, signal
+from .performance import SCORERS, finite_ms
+from .scoring import (
+    MAX_TEXT_FACT,
+    InvalidAnswer,
+    UnsafeText,
+    aggregate,
+    clean_text,
+    scale_scores,
+    score_answer,
+    signal,
+)
 
 ONBOARDING_ID = "onboarding"
 XP_PER_ANSWER = 2
 XP_PER_TALENT = 25
 XP_REPLAY = 10
-MAX_RESPONSE_MS = 600_000
 BALANCED_MARGIN = 8
 TIER_LABELS = {
     "validated": "Test validé",
@@ -321,9 +329,8 @@ def _require_open(run: GameRun) -> None:
 
 
 def _clean_response_ms(value) -> int | None:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return None
-    return max(0, min(int(value), MAX_RESPONSE_MS))
+    """Temps de réponse envoyé par le navigateur ; ignoré s'il n'est pas un nombre fini."""
+    return finite_ms(value)
 
 
 def _save_fact(user: User, item: dict, fact: tuple[str, str, str]) -> None:
@@ -636,10 +643,13 @@ def update_fact(user: User, key: str, body: dict) -> dict:
     if fact is None:
         raise ApiError(404, "not_found", "Détail introuvable.")
     if "value" in body:
-        value = body["value"]
-        if not isinstance(value, str) or not value.strip() or len(value.strip()) > 120:
-            raise ApiError(400, "invalid_field", "Écris entre 1 et 120 caractères.")
-        fact.value, fact.edited = " ".join(value.split()), True
+        try:
+            value = clean_text(body["value"], MAX_TEXT_FACT)
+        except UnsafeText as error:
+            raise ApiError(400, "invalid_field", str(error)) from error
+        except InvalidAnswer as error:
+            raise ApiError(400, "invalid_field", f"Écris entre 1 et {MAX_TEXT_FACT} caractères.") from error
+        fact.value, fact.edited = value, True
     if "hidden" in body:
         if not isinstance(body["hidden"], bool):
             raise ApiError(400, "invalid_field", "hidden doit être vrai ou faux.")

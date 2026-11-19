@@ -38,11 +38,17 @@ def clamp_percent(value: float) -> float:
     return max(0.0, min(100.0, value))
 
 
-def response_time(trial: dict) -> int | None:
-    value = trial.get("rt_ms")
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+def finite_ms(value) -> int | None:
+    """Durée en millisecondes, ou None si elle n'est pas un nombre fini (NaN, Infinity, 1e400)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if isinstance(value, float) and not math.isfinite(value):
         return None
     return max(0, min(int(value), 600_000))
+
+
+def response_time(trial: dict) -> int | None:
+    return finite_ms(trial.get("rt_ms"))
 
 
 def check_trials(trials) -> list[dict]:

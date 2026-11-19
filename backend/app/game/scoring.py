@@ -6,16 +6,42 @@ de quiz inspirée de ce test.
 """
 from __future__ import annotations
 
+import unicodedata
 from dataclasses import dataclass
 
 from .catalog import Catalog, likert_parts
 
 TIER_WEIGHTS = {"validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25}
 MAX_TEXT_FACT = 120
+# Caractères de contrôle (sauf les espaces, remplacés avant) et moitiés de paire UTF-16 isolées :
+# Postgres les refuse, et ils n'ont rien à faire dans une réponse.
+FORBIDDEN_CATEGORIES = {"Cc", "Cs"}
 
 
 class InvalidAnswer(ValueError):
     pass
+
+
+class UnsafeText(InvalidAnswer):
+    """Le texte contient un caractère refusé."""
+
+
+def clean_text(value, maximum: int) -> str:
+    """Texte libre saisi par le jeune : espaces normalisés, entre 1 et `maximum` caractères.
+
+    Lève UnsafeText pour un caractère de contrôle ou une moitié de paire UTF-16 isolée,
+    InvalidAnswer pour un texte absent, vide ou trop long.
+    """
+    if not isinstance(value, str):
+        raise InvalidAnswer("Réponse vide.")
+    text = " ".join(value.split())
+    if any(unicodedata.category(char) in FORBIDDEN_CATEGORIES for char in text):
+        raise UnsafeText("Ce texte contient un caractère non autorisé.")
+    if not text:
+        raise InvalidAnswer("Réponse vide.")
+    if len(text) > maximum:
+        raise InvalidAnswer("Réponse trop longue.")
+    return text
 
 
 @dataclass
@@ -78,12 +104,7 @@ def _score_choice(instrument: dict, item: dict, value) -> ScoredAnswer:
 
 
 def _score_text(value) -> ScoredAnswer:
-    text = value.get("text") if isinstance(value, dict) else None
-    if not isinstance(text, str) or not text.strip():
-        raise InvalidAnswer("Réponse vide.")
-    text = " ".join(text.split())
-    if len(text) > MAX_TEXT_FACT:
-        raise InvalidAnswer("Réponse trop longue.")
+    text = clean_text(value.get("text") if isinstance(value, dict) else None, MAX_TEXT_FACT)
     return ScoredAnswer({"text": text}, text, [])
 
 
