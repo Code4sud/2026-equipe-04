@@ -147,6 +147,17 @@ def test_the_art_exhibition_cites_an_ipip_item_about_art(quiz):
     assert cited == ["weekend_expo"]
 
 
+# Options écrites après la version 1 : un nouveau sens prend un nouvel identifiant, pour qu'une
+# partie en cours ne recompte pas l'ancienne réponse « c » sous l'option mixte.
+REWRITTEN_OPTIONS = {"route_sortie": "c", "soir_telephone": "c"}
+
+
+def test_rewritten_options_never_reuse_an_old_id(quiz):
+    items = {item["id"]: item for item in quiz["items"]}
+    for item_id, retired in REWRITTEN_OPTIONS.items():
+        assert [option["id"] for option in items[item_id]["options"]] == ["a", "b", "d"], item_id
+        assert retired not in {option["id"] for option in items[item_id]["options"]}
+
 
 @pytest.mark.parametrize(
     ("traits", "minimum"), [(BIG_FIVE, 5), (INTERESTS, 4)], ids=["big_five", "interests"]

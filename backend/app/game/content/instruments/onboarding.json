@@ -241,7 +241,7 @@
       "options": [
         { "id": "a", "label": "Je motive tout le monde et je fixe le rendez-vous", "emoji": "📣", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_c", "value": 35 }] },
         { "id": "b", "label": "Je prépare l’itinéraire et les horaires, au détail près", "emoji": "🗓️", "signals": [{ "trait": "riasec_c", "value": 90 }, { "trait": "riasec_e", "value": 35 }] },
-        { "id": "c", "label": "Un peu des deux : je motive la bande et je vérifie les horaires", "emoji": "🤹", "signals": [{ "trait": "riasec_e", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
+        { "id": "d", "label": "Un peu des deux : je motive la bande et je vérifie les horaires", "emoji": "🤹", "signals": [{ "trait": "riasec_e", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
       ]
     },
 
@@ -428,7 +428,7 @@
       "options": [
         { "id": "a", "label": "Je fouille les réglages pour comprendre ce qui le ralentit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_c", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
         { "id": "b", "label": "Je fais le grand tri : photos, applis, dossiers, tout est rangé", "emoji": "🗃️", "signals": [{ "trait": "riasec_c", "value": 85 }, { "trait": "riasec_i", "value": 35 }] },
-        { "id": "c", "label": "Un peu des deux : je repère ce qui prend de la place, puis je range", "emoji": "🧹", "signals": [{ "trait": "riasec_i", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
+        { "id": "d", "label": "Un peu des deux : je repère ce qui prend de la place, puis je range", "emoji": "🧹", "signals": [{ "trait": "riasec_i", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
       ]
     },
     {
