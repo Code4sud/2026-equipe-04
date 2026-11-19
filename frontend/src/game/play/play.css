@@ -256,13 +256,15 @@
   line-height: var(--leading-snug);
 }
 
-/* Nouvel archétype : le badge au centre, l'ancien nommé dessous. */
+/* Nouvel archétype : le badge au centre, l'ancien nommé dessous. Titre et indice restent à gauche,
+   comme dans les autres panneaux de fin de partie. */
 .play-archetype {
   justify-items: center;
   text-align: center;
 }
 
-.play-archetype > h2 {
+.play-archetype > h2,
+.play-archetype > .play-panel__hint {
   justify-self: stretch;
   text-align: left;
 }
