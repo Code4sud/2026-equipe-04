@@ -16,9 +16,22 @@ export interface RunStart {
 
 const NOTHING_YET: RunStart = { answered: 0, seen: 0 };
 
+/** Dernière réponse donnée à une question et état de son enregistrement. */
+interface Save {
+  /** Numéro du dernier envoi demandé : le résultat d'un envoi plus ancien ne compte plus. */
+  seq: number;
+  /** Seule la dernière réponse est gardée : c'est elle qui repart après un échec. */
+  body: AnswerBody;
+  status: 'pending' | 'saved' | 'failed';
+  error: unknown;
+  /** Fin du dernier envoi en file : un envoi attend toujours le précédent pour la même question. */
+  queue: Promise<void>;
+}
+
 /**
  * Pilote une partie : reprise, réponse enregistrée à chaque question, retour, pause et fin.
- * L'écran avance sans attendre le réseau ; les envois ratés repartent avant la pause et la fin.
+ * L'écran avance sans attendre le réseau. Les envois d'une même question partent l'un après
+ * l'autre ; la pause et la fin attendent qu'ils soient tous arrivés et renvoient ceux qui ont échoué.
  */
 export function useRunPlayer(instrumentId: string) {
   const [payload, setPayload] = useState<RunPayload | null>(null);
@@ -31,7 +44,8 @@ export function useRunPlayer(instrumentId: string) {
   const [result, setResult] = useState<RunResult | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [startedWith, setStartedWith] = useState<RunStart>(NOTHING_YET);
-  const failed = useRef(new Map<string, AnswerBody>());
+  const saves = useRef(new Map<string, Save>());
+  const lastSeq = useRef(0);
   const shownAt = useRef(0);
 
   const fail = useCallback((caught: unknown) => {
@@ -71,45 +85,94 @@ export function useRunPlayer(instrumentId: string) {
   const current = items[index] ?? null;
   const runId = payload?.run.id;
 
-  const send = useCallback(
-    (itemId: string, body: AnswerBody) => {
-      if (!runId) return;
-      gameApi
-        .saveAnswer(runId, itemId, body)
-        .then(({ xp_gained }) => {
-          failed.current.delete(itemId);
-          setSaveFailed(failed.current.size > 0);
+  const refreshSaveFailed = useCallback(() => {
+    setSaveFailed([...saves.current.values()].some((save) => save.status === 'failed'));
+  }, []);
+
+  const deliver = useCallback(
+    async (run: string, itemId: string, save: Save, seq: number) => {
+      let resent = false;
+      // Si une réponse plus récente attend son tour, c'est elle qui partira : rien à envoyer.
+      while (save.seq === seq) {
+        try {
+          const { xp_gained } = await gameApi.saveAnswer(run, itemId, save.body);
+          // L'XP est acquise même si une réponse plus récente a remplacé celle-ci.
           setXpGained((total) => total + xp_gained);
-        })
-        .catch(() => {
-          failed.current.set(itemId, body);
-          setSaveFailed(true);
-        });
+          if (save.seq === seq) save.status = 'saved';
+          break;
+        } catch (caught) {
+          if (save.seq !== seq) break;
+          // Un envoi concurrent a créé la réponse juste avant : on renvoie une fois la dernière.
+          if (!resent && caught instanceof ApiError && caught.code === 'already_answered') {
+            resent = true;
+            continue;
+          }
+          save.status = 'failed';
+          save.error = caught;
+          break;
+        }
+      }
+      refreshSaveFailed();
     },
-    [runId],
+    [refreshSaveFailed],
   );
 
-  /** Renvoie les réponses dont l'envoi a échoué. Rejette si le réseau manque encore. */
-  const flush = useCallback(async () => {
-    if (!runId) return;
-    await Promise.all(
-      [...failed.current].map(async ([itemId, body]) => {
-        const { xp_gained } = await gameApi.saveAnswer(runId, itemId, body);
-        failed.current.delete(itemId);
-        setXpGained((total) => total + xp_gained);
-      }),
-    );
-    setSaveFailed(failed.current.size > 0);
-  }, [runId]);
+  /** Met la réponse en file : elle partira après l'envoi en cours pour cette question. */
+  const send = useCallback(
+    (run: string, itemId: string, body: AnswerBody) => {
+      lastSeq.current += 1;
+      const seq = lastSeq.current;
+      // Un seul objet par question : un envoi en cours voit ainsi qu'une réponse plus récente l'a remplacé.
+      const save: Save = saves.current.get(itemId) ?? {
+        seq,
+        body,
+        status: 'pending',
+        error: null,
+        queue: Promise.resolve(),
+      };
+      save.seq = seq;
+      save.body = body;
+      save.status = 'pending';
+      save.error = null;
+      saves.current.set(itemId, save);
+      save.queue = save.queue.then(() => deliver(run, itemId, save, seq));
+      refreshSaveFailed();
+    },
+    [deliver, refreshSaveFailed],
+  );
+
+  /** Attend la fin de chaque envoi, y compris ceux partis pendant l'attente. */
+  const drain = useCallback(async () => {
+    for (;;) {
+      const queues = [...saves.current.values()].map((save) => save.queue);
+      await Promise.all(queues);
+      if ([...saves.current.values()].every((save, position) => save.queue === queues[position])) return;
+    }
+  }, []);
+
+  /** Attend les envois en cours, renvoie une fois la dernière réponse de chaque question en échec. */
+  const settle = useCallback(
+    async (run: string) => {
+      await drain();
+      for (const [itemId, save] of saves.current) {
+        if (save.status === 'failed') send(run, itemId, save.body);
+      }
+      await drain();
+      const failed = [...saves.current.values()].find((save) => save.status === 'failed');
+      if (failed) throw failed.error;
+    },
+    [drain, send],
+  );
 
   const record = useCallback(
     (item: GameItem, value: AnswerValue, skipped: boolean) => {
+      if (!runId) return;
       const response_ms = Math.round(performance.now() - shownAt.current);
       setAnswers((all) => ({ ...all, [item.id]: { item_id: item.id, value, skipped } }));
-      send(item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
+      send(runId, item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
       setIndex((position) => position + 1);
     },
-    [send],
+    [runId, send],
   );
 
   const answer = useCallback(
@@ -131,9 +194,9 @@ export function useRunPlayer(instrumentId: string) {
   const pause = useCallback(async () => {
     if (!runId) return;
     // Une réponse encore en échec ne doit pas empêcher de faire une pause.
-    await flush().catch(() => undefined);
+    await settle(runId).catch(() => undefined);
     await gameApi.pauseRun(runId);
-  }, [runId, flush]);
+  }, [runId, settle]);
 
   const finish = useCallback(
     async (trials?: unknown[]) => {
@@ -142,7 +205,8 @@ export function useRunPlayer(instrumentId: string) {
       setError(null);
       setErrorCode(null);
       try {
-        await flush();
+        // Le serveur calcule le résultat sur les réponses reçues : toutes doivent être arrivées.
+        await settle(runId);
         const next = await gameApi.completeRun(runId, trials);
         setResult(next);
         return next;
@@ -153,7 +217,7 @@ export function useRunPlayer(instrumentId: string) {
         setFinishing(false);
       }
     },
-    [runId, flush, fail],
+    [runId, settle, fail],
   );
 
   const clearError = useCallback(() => {
