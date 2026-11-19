@@ -447,6 +447,19 @@ def _save_fact(user: User, instrument: dict, item: dict, fact: tuple[str, str, s
     row.updated_at = utcnow()
 
 
+def _retract_fact(user: User, instrument: dict, item: dict) -> dict | None:
+    """Le jeune passe une question de détail à laquelle il avait répondu : le détail venu de cette
+    réponse quitte sa fiche, sauf s'il l'avait lui-même corrigé. Renvoie le détail retiré."""
+    row = db.session.get(GameFact, (user.id, item["fact"]), with_for_update=True, populate_existing=True)
+    if row is None or row.edited:
+        return None
+    if (row.source_instrument_id, row.source_item_id) != (instrument["id"], item["id"]):
+        return None
+    removed = {"key": row.key, "label": row.label, "value": row.value}
+    db.session.delete(row)
+    return removed
+
+
 def _store_answer(
     user: User,
     run: GameRun,
@@ -485,6 +498,10 @@ def _store_answer(
             if previous is not None and previous["value"] != scored.value:
                 after = {"label": scored.label, "value": scored.value}
                 events.log(user.id, events.ANSWER_CHANGED, subject, previous, after)
+        elif previous is not None:
+            removed = _retract_fact(user, instrument, item) if "fact" in item else None
+            after = {"label": None, "value": None, "skipped": True, "fact_removed": removed}
+            events.log(user.id, events.ANSWER_RETRACTED, subject, previous, after)
     return previous is None
 
 

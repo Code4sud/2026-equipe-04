@@ -250,6 +250,51 @@ def test_unipolar_traits_never_show_a_low_value_whatever_their_group(client, you
     assert traits["extraversion"]["value"] == 10.0
 
 
+# --- 3. Passer une question de détail retire le détail ---
+
+
+def test_skipping_an_answered_fact_question_removes_its_fact(client, youth, psychologist):
+    run_id = start(client, youth)["run"]["id"]
+    answer(client, youth, run_id, "couleur", "jaune")
+    answer(client, youth, run_id, "passion", {"text": "Le skate"})
+    client.patch("/api/me/game/facts/passion", json={"value": "Le roller"}, headers=youth)
+    skip(client, youth, run_id, "couleur")
+    skip(client, youth, run_id, "passion")
+
+    facts = facts_of(client, youth)
+    # La couleur venait de la réponse retirée ; la passion corrigée par le jeune reste la sienne.
+    assert "couleur_preferee" not in facts and facts["passion"]["value"] == "Le roller"
+    retracted = [e for e in overview(client, psychologist, youth)["events"] if e["kind"] == "answer_retracted"]
+    assert [e["ref"]["item_id"] for e in retracted] == ["passion", "couleur"]
+    passion, couleur = retracted
+    assert couleur["subject"] == "Quiz d'arrivée (fictif) · Ta couleur préférée ?"
+    assert couleur["before"] == {"label": "Jaune", "value": "jaune"}
+    assert couleur["after"]["skipped"] is True
+    assert couleur["after"]["fact_removed"] == {
+        "key": "couleur_preferee", "label": "Couleur préférée", "value": "Jaune"
+    }
+    assert passion["after"]["fact_removed"] is None
+
+
+def test_skipping_a_question_never_answered_changes_nothing(client, youth, psychologist):
+    run_id = start(client, youth)["run"]["id"]
+    skip(client, youth, run_id, "couleur")
+    assert overview(client, psychologist, youth)["events"] == []
+
+
+def test_retraction_only_removes_a_fact_from_the_same_instrument_and_item(client, youth, catalog):
+    catalog.instruments["fixture_echo"] = copy.deepcopy(ECHO)
+    onboarding = start(client, youth)["run"]["id"]
+    answer(client, youth, onboarding, "couleur", "jaune")
+    echo = start(client, youth, "fixture_echo")["run"]["id"]
+    answer(client, youth, echo, "couleur", "bleu")
+    # Le détail vient maintenant de l'écho : passer la question du quiz ne le retire pas.
+    skip(client, youth, onboarding, "couleur")
+    assert facts_of(client, youth)["couleur_preferee"]["value"] == "Bleu"
+    skip(client, youth, echo, "couleur")
+    assert "couleur_preferee" not in facts_of(client, youth)
+
+
 # --- 4. Une partie commencée sur une ancienne version du contenu ---
 
 
