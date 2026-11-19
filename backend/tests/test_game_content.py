@@ -405,9 +405,10 @@ def test_every_scored_instrument_cites_a_real_source(catalog):
 
 
 def test_validated_items_point_to_their_original(catalog):
-    for instrument in catalog.instruments.values():
-        if instrument["tier"] != "validated":
-            continue
+    # Test validé, ou sa traduction maison : chaque item cite son original.
+    checked = [i for i in catalog.instruments.values() if i["tier"] in {"validated", "translated"}]
+    assert checked, "aucun instrument issu d'un test validé : ce test ne vérifierait rien"
+    for instrument in checked:
         for item in instrument["items"]:
             source = item.get("source") or {}
             assert source.get("ref") and source.get("original"), f"{instrument['id']}/{item['id']}"

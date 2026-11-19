@@ -96,7 +96,8 @@ function RunScores({ run, cursors }: { run: PsyRun; cursors: Cursors }) {
   return <span className="muted">{t.noScore}</span>;
 }
 
-function SignalList({ signals, cursors }: { signals: SignalRow[]; cursors: Cursors }) {
+/** `tier` : niveau de l'instrument ; un signal qui porte un autre niveau le montre à côté de lui. */
+function SignalList({ signals, cursors, tier }: { signals: SignalRow[]; cursors: Cursors; tier?: string }) {
   if (signals.length === 0) return <Missing label={r.noSignal} />;
   return (
     <ul className="plain-list bog-signal-list">
@@ -109,6 +110,12 @@ function SignalList({ signals, cursors }: { signals: SignalRow[]; cursors: Curso
           <li key={`${signal.trait}-${index}`}>
             {text}
             {signal.weight !== 1 && <span className="bog-weight"> ({bo.weight(formatNumber(signal.weight))})</span>}
+            {tier && signal.tier !== tier && (
+              <>
+                {' '}
+                <TierChip tier={signal.tier} />
+              </>
+            )}
           </li>
         );
       })}
@@ -311,7 +318,7 @@ function ItemTable({
                   {row.response_ms !== null ? formatDuration(row.response_ms) : <Missing />}
                 </td>
                 <td>
-                  <SignalList signals={row.signals} cursors={cursors} />
+                  <SignalList signals={row.signals} cursors={cursors} tier={instrument?.tier} />
                 </td>
                 <td>
                   <ItemSource

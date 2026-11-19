@@ -10,10 +10,11 @@ from test_game import answer, complete, finish_onboarding, start, youth_id
 from test_game_content import normalize, sensitive_patterns
 
 from app.game.catalog import Catalog
+from app.game.scoring import TIER_WEIGHTS, confidence
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 MINE = ("ton_style", "miroir", "grand_tri")
-MY_SOURCES = ("ipip_mini_ipip", "iip_riasec_markers", "mccrae_costa_1989")
+MY_SOURCES = ("ipip_mini_ipip", "mccrae_costa_1989")
 
 # Clé publiée du Mini-IPIP (https://ipip.ori.org/MiniIPIPKey.htm), dans l'ordre de passation
 # de Donnellan et al. (2006). N = Neuroticisme, I = Intellect/Imagination.
@@ -46,7 +47,15 @@ FACTOR_TO_TRAIT = {
     "N": "emotional_stability",
     "I": "openness",
 }
-RIASEC_TRAITS = {f"riasec_{letter}": letter.upper() for letter in "riasec"}
+# Curseur RIASEC → lettre et nom anglais du type de Holland (Holland, 1997).
+HOLLAND_TYPES = {
+    "riasec_r": ("R", "Realistic"),
+    "riasec_i": ("I", "Investigative"),
+    "riasec_a": ("A", "Artistic"),
+    "riasec_s": ("S", "Social"),
+    "riasec_e": ("E", "Enterprising"),
+    "riasec_c": ("C", "Conventional"),
+}
 MOOD_WORDS = re.compile(r"humeur|triste|cafard|deprim|blues|moral\b")
 TYPE_CODE = re.compile(r"\b[EI][NS][FT][JP]\b")
 
@@ -120,21 +129,85 @@ def test_mirror_keys_stay_balanced(catalog):
     assert all(a["trait"] != b["trait"] for a, b in zip(items, items[1:]))
 
 
-def test_grand_tri_uses_46_riasec_markers_alternating_types(catalog):
-    items = items_of(catalog, "grand_tri")
-    assert len(items) == 46
-    counts = Counter(item["trait"] for item in items)
-    assert counts == {"riasec_r": 8, "riasec_i": 8, "riasec_a": 8, "riasec_s": 6, "riasec_e": 8, "riasec_c": 8}
-    assert all(item["keyed"] == "+" for item in items)
-    assert all(a["trait"] != b["trait"] for a, b in zip(items, items[1:]))
-    refs = [item["source"]["ref"] for item in items]
-    assert len(set(refs)) == 46
-    for item in items:
-        assert item["source"]["ref"][0] == RIASEC_TRAITS[item["trait"]]
-        assert item["source"]["source_id"] == "iip_riasec_markers"
-    originals = {item["source"]["original"] for item in items}
-    assert "Help people with family-related problems" not in originals
-    assert "Help people who have problems with drugs or alcohol" not in originals
+def test_mirror_stability_items_weigh_half_and_less_than_the_quiz(catalog):
+    items = items_of(catalog, "miroir")
+    weights = {item["id"]: item.get("weight", 1) for item in items}
+    stability = {item["id"] for item in items if item["trait"] == "emotional_stability"}
+    assert stability == {"ipip09", "ipip14"}
+    assert {weights[item_id] for item_id in stability} == {0.5}
+    assert {weight for item_id, weight in weights.items() if item_id not in stability} == {1}
+    # Ce qu'annonce la note de cotation : seuls, les deux items restent en confiance faible, mais le
+    # quiz, joué avant le miroir, pèse déjà plus qu'eux sur ce curseur.
+    mirror = sum(weights[item_id] for item_id in stability) * TIER_WEIGHTS["translated"]
+    quiz_signals = [
+        signal
+        for item in items_of(catalog, "onboarding")
+        for signal in item.get("options", [{}])[0].get("signals", [])
+        if signal["trait"] == "emotional_stability"
+    ]
+    assert {signal.get("weight", 1) for signal in quiz_signals} == {1}
+    quiz = len(quiz_signals) * TIER_WEIGHTS["adapted"]
+    assert (mirror, confidence(mirror)) == (0.75, "low")
+    assert (quiz, confidence(quiz)) == (2.5, "medium")
+    note = catalog.instruments["miroir"]["scoring_note"]
+    assert "0,75" in note and "2,5" in note and "seuls" in note
+
+
+def test_mirror_source_says_why_the_published_french_adaptation_is_not_used(catalog):
+    note = catalog.sources["ipip_mini_ipip"]["note"]
+    assert "Laverdière" in note and "https://doi.org/10.1016/j.erap.2019.100512" in note
+
+
+def test_grand_tri_has_48_activities_alternating_the_six_types(catalog):
+    instrument = catalog.instruments["grand_tri"]
+    items = instrument["items"]
+    assert len(items) == 48
+    assert all(item["type"] == "likert" and item["keyed"] == "+" for item in items)
+    assert Counter(item["trait"] for item in items) == {trait: 8 for trait in HOLLAND_TYPES}
+    # Les six types reviennent toujours dans le même ordre : jamais deux fois le même d'affilée.
+    assert [item["trait"] for item in items] == list(HOLLAND_TYPES) * 8
+    assert len({item["id"] for item in items}) == len({item["prompt"] for item in items}) == 48
+    assert Counter(item["chapter"] for item in items) == {"etape1": 16, "etape2": 16, "etape3": 16}
+    scale = instrument["scale"]
+    assert (scale["min"], scale["max"], len(scale["labels"])) == (1, 5, 5)
+
+
+def test_grand_tri_activities_are_only_inspired_by_holland_types(catalog):
+    instrument = catalog.instruments["grand_tri"]
+    assert instrument["tier"] == "adapted"
+    assert instrument["source_ids"] == ["holland_riasec"]
+    for item in instrument["items"]:
+        letter, name = HOLLAND_TYPES[item["trait"]]
+        assert item["source"] == {
+            "source_id": "holland_riasec", "ref": f"Type {letter}", "original": name, "relation": "inspired"
+        }, item["id"]
+    holland = catalog.sources["holland_riasec"]
+    assert holland["validated"] is False
+    assert "Grand Tri" in holland["licence"] and "Grand Tri" in holland["adaptation"]
+
+
+def test_grand_tri_gives_every_type_the_same_footing(catalog):
+    """Sans norme, un type aux phrases plus longues ou plus étroites part avec un handicap."""
+    prompts = {trait: [] for trait in HOLLAND_TYPES}
+    for item in catalog.instruments["grand_tri"]["items"]:
+        prompts[item["trait"]].append(normalize(item["prompt"]))
+    words = [sum(len(p.split()) for p in found) / len(found) for found in prompts.values()]
+    assert max(words) - min(words) <= 1.5, words
+    # Holland : l'entreprenant vise aussi un gain économique, le conventionnel manie des chiffres.
+    selling = ("acheter", "client", "prix", "sponsor")
+    numbers = ("budget", "caisse", "monnaie")
+    assert sum(any(w in p for w in selling) for p in prompts["riasec_e"]) >= 3
+    assert sum(any(w in p for w in numbers) for p in prompts["riasec_c"]) >= 2
+    # La note de cotation prévient que les six scores ne se comparent pas comme un classement.
+    assert "pas comme un classement" in catalog.instruments["grand_tri"]["scoring_note"]
+
+
+def test_no_content_cites_the_riasec_markers_any_more(catalog):
+    assert "iip_riasec_markers" not in catalog.sources
+    for instrument in catalog.instruments.values():
+        assert "iip_riasec_markers" not in instrument.get("source_ids", []), instrument["id"]
+        for item in instrument.get("items", []):
+            assert (item.get("source") or {}).get("source_id") != "iip_riasec_markers", item["id"]
 
 
 def test_ton_style_is_a_balanced_custom_game_on_four_cursors(catalog):
@@ -158,16 +231,40 @@ def test_ton_style_is_a_balanced_custom_game_on_four_cursors(catalog):
     assert high_first == 10
 
 
-@pytest.mark.parametrize("instrument_id", ("miroir", "grand_tri"))
-def test_every_validated_item_keeps_its_original(catalog, instrument_id):
-    instrument = catalog.instruments[instrument_id]
-    assert instrument["tier"] == "validated"
-    for item in instrument["items"]:
-        source = item["source"]
-        assert source["source_id"] in instrument["source_ids"]
-        assert source["ref"] and source["original"].strip(), item["id"]
-        assert source["relation"] == "translated"
-        assert source["original"] != item["prompt"]
+# Duels de la version 1 réécrits depuis : une question qui change de sens change d'identifiant,
+# pour qu'une partie en cours ne garde pas une ancienne réponse sous la nouvelle question.
+TON_STYLE_RETIRED_IDS = {"s04", "s06", "s08", "s16", "s17", "s19", "s20"}
+
+
+def test_ton_style_never_reuses_the_id_of_a_rewritten_duel(catalog):
+    ids = {item["id"] for item in catalog.instruments["ton_style"]["items"]}
+    assert not ids & TON_STYLE_RETIRED_IDS
+    assert {f"{item_id}b" for item_id in TON_STYLE_RETIRED_IDS} <= ids
+
+
+TON_STYLE_CLAIM = (
+    "Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI "
+    "(énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de "
+    "l’OEJTS n’est reprise."
+)
+
+
+def test_ton_style_says_exactly_what_it_takes_from_the_mbti(catalog):
+    assert TON_STYLE_CLAIM in catalog.instruments["ton_style"]["scoring_note"]
+    assert TON_STYLE_CLAIM in catalog.sources["mccrae_costa_1989"]["adaptation"]
+
+
+def test_every_translated_item_keeps_its_original(catalog):
+    # Traduction maison d'un test validé : jamais présentée comme le test validé lui-même.
+    translated = [i for i in catalog.instruments.values() if i["tier"] == "translated"]
+    assert "miroir" in {instrument["id"] for instrument in translated}
+    for instrument in translated:
+        for item in instrument["items"]:
+            source = item["source"]
+            assert source["source_id"] in instrument["source_ids"]
+            assert source["ref"] and source["original"].strip(), item["id"]
+            assert source["relation"] == "translated"
+            assert source["original"] != item["prompt"]
 
 
 @pytest.mark.parametrize("source_id", MY_SOURCES)
@@ -234,7 +331,32 @@ def test_mirror_is_locked_until_the_quiz_then_scores_each_scale(
     assert first["source"]["original"] == "Am the life of the party."
     assert first["source"]["source"]["licence"].startswith("Domaine public")
     assert first["answer_label"] == "Tout à fait moi"
-    assert detail["instrument"]["tier_label"] == "Test validé"
+    assert detail["instrument"]["tier_label"] == "Test validé, traduction maison non validée"
+    # Le quiz de test ne touche pas ce curseur : seuls, les deux items du miroir (0,75 en tout)
+    # restent en confiance faible. Avec le vrai quiz, c'est lui qui la fait monter.
+    stability = client.get(f"{base}/traits/emotional_stability", headers=psychologist).get_json()
+    assert [(row["weight"], row["tier"]) for row in stability["signals"]] == [(0.5, "translated")] * 2
+    assert stability["cursor"]["confidence"] == "low"
+
+
+def test_grand_tri_scores_each_type_as_work_inspired_by_holland(
+    play_catalog, client, youth, psychologist
+):
+    finish_onboarding(client, youth)
+    run_id, _ = play(client, youth, "grand_tri", lambda item: 5 if item["trait"] == "riasec_a" else 1)
+    base = f"/api/backoffice/youths/{youth_id(client, youth)}/game"
+    detail = client.get(f"{base}/runs/{run_id}", headers=psychologist).get_json()
+    scales = detail["run"]["metrics"]["scales"]
+    assert scales["riasec_a"] == {"n": 8, "raw_sum": 40, "raw_min": 8, "raw_max": 40, "percent": 100.0}
+    assert scales["riasec_r"]["percent"] == 0.0
+    assert detail["instrument"]["tier_label"] == "Inspiré de travaux publiés, non validé"
+    first = detail["answers"][0]["source"]
+    assert (first["original"], first["relation"]) == ("Realistic", "inspired")
+    assert first["source"]["citation"].startswith("Holland, J. L. (1997)")
+    trail = client.get(f"{base}/traits/riasec_a", headers=psychologist).get_json()
+    rows = [row for row in trail["signals"] if row["instrument_id"] == "grand_tri"]
+    assert len(rows) == 8
+    assert all((row["value"], row["weight"], row["tier"]) == (100, 1, "adapted") for row in rows)
 
 
 def test_ton_style_feeds_big_five_cursors_with_half_weight(

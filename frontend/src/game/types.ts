@@ -1,7 +1,7 @@
 /** Contrat de l'API du jeu : voir backend/app/game/service.py et docs/gamification.md. */
 
 export type InstrumentKind = 'quiz' | 'questionnaire' | 'performance';
-export type Tier = 'validated' | 'adapted' | 'custom' | 'performance' | 'talent';
+export type Tier = 'validated' | 'translated' | 'adapted' | 'custom' | 'performance' | 'talent';
 export type Verdict = 'agree' | 'disagree';
 export type Confidence = 'none' | 'low' | 'medium' | 'high';
 

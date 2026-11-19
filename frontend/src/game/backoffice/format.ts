@@ -12,7 +12,7 @@ const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'shor
 const clock = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 /** Même ordre que la force de la preuve. */
-export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custom', 'talent'];
+export const TIER_ORDER: Tier[] = ['validated', 'performance', 'translated', 'adapted', 'custom', 'talent'];
 
 /**
  * Copies de secours de TIER_WEIGHTS et CONFIDENCE_THRESHOLDS (backend/app/game/scoring.py).
@@ -21,6 +21,7 @@ export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custo
 export const TIER_WEIGHTS: Record<Tier, number> = {
   validated: 1,
   performance: 1,
+  translated: 0.75,
   adapted: 0.5,
   custom: 0.5,
   talent: 0.25,
@@ -65,8 +66,9 @@ export function lowerFirst(text: string): string {
   return text.charAt(0).toLocaleLowerCase('fr-FR') + text.slice(1);
 }
 
-export function tierLabel(tier: string, fallback?: string): string {
-  return (bo.tiers as Record<string, string>)[tier] ?? fallback ?? tier;
+/** Libellé d'un niveau de preuve : celui que l'API envoie, sinon la copie du front (légende, méthode). */
+export function tierLabel(tier: string, label?: string): string {
+  return label ?? (bo.tiers as Record<string, string>)[tier] ?? tier;
 }
 
 /** Poids d'un niveau de preuve ; un niveau inconnu compte 0,5, comme côté serveur. */

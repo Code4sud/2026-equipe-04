@@ -8,7 +8,10 @@ from pathlib import Path
 DEFAULT_CONTENT_DIR = Path(__file__).resolve().parent / "content"
 
 KINDS = {"quiz", "questionnaire", "performance"}
-TIERS = {"validated", "adapted", "custom", "performance"}
+TIERS = {"validated", "translated", "adapted", "custom", "performance"}
+# Solidité de la preuve : un signal peut afficher un niveau plus faible que son instrument, jamais
+# plus fort (sinon une question maison pourrait se dire « Test validé »).
+TIER_STRENGTH = {"validated": 3, "performance": 3, "translated": 2, "adapted": 1, "custom": 0}
 ITEM_TYPES = {"likert", "choice", "text"}
 PUBLIC_ITEM_FIELDS = (
     "id", "type", "chapter", "prompt", "hint", "illustration",
@@ -92,11 +95,25 @@ class Catalog:
         if trait_id not in self.traits:
             raise ContentError(f"{where} : curseur inconnu « {trait_id} »")
 
-    def _check_signals(self, signals: list[dict], where: str) -> None:
+    def _check_signals(self, signals: list[dict], where: str, ceiling: str | None = None) -> None:
         for signal in signals:
             self._check_trait(signal["trait"], where)
             if not 0 <= signal["value"] <= 100:
                 raise ContentError(f"{where} : valeur hors de 0-100")
+            self._check_signal_tier(signal, where, ceiling)
+
+    def _check_signal_tier(self, signal: dict, where: str, ceiling: str | None) -> None:
+        """Un signal peut porter son propre niveau de preuve, qui remplace celui de l'instrument
+        (`ceiling`) à condition d'être moins solide ou aussi solide que lui."""
+        if "tier" not in signal:
+            return
+        tier = signal["tier"]
+        if tier not in TIERS:
+            raise ContentError(f"{where} : niveau de preuve inconnu « {tier} »")
+        if ceiling is not None and TIER_STRENGTH[tier] > TIER_STRENGTH[ceiling]:
+            raise ContentError(
+                f"{where} : niveau « {tier} » plus solide que celui de l'instrument (« {ceiling} »)"
+            )
 
     def _check_source(self, source_id: str, where: str) -> None:
         if source_id not in self.sources:
@@ -153,12 +170,13 @@ class Catalog:
                     self._check_trait(part["trait"], where)
                     if part.get("keyed", "+") not in {"+", "-"}:
                         raise ContentError(f"{where} : keyed invalide")
+                    self._check_signal_tier(part, where, instrument["tier"])
             elif item["type"] == "choice":
                 options = item.get("options", [])
                 if len(options) < 2 or len({o["id"] for o in options}) != len(options):
                     raise ContentError(f"{where} : options invalides")
                 for option in options:
-                    self._check_signals(option.get("signals", []), where)
+                    self._check_signals(option.get("signals", []), where, instrument["tier"])
             elif "fact" not in item:
                 raise ContentError(f"{where} : une question libre alimente forcément un détail")
 
@@ -190,5 +208,8 @@ def likert_parts(item: dict) -> list[dict]:
     if "traits" in item:
         return item["traits"]
     if "trait" in item:
-        return [{"trait": item["trait"], "keyed": item.get("keyed", "+"), "weight": item.get("weight", 1)}]
+        part = {"trait": item["trait"], "keyed": item.get("keyed", "+"), "weight": item.get("weight", 1)}
+        if "tier" in item:
+            part["tier"] = item["tier"]
+        return [part]
     return []

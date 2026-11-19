@@ -1,6 +1,6 @@
 {
   "id": "ton_style",
-  "version": 1,
+  "version": 2,
   "order": 10,
   "kind": "questionnaire",
   "tier": "custom",
@@ -14,7 +14,7 @@
   "min_answers": 12,
   "source_ids": ["mccrae_costa_1989"],
   "source_note": "Un jeu maison pour s’amuser, pas un test scientifique : il compte moins que les autres sur ta fiche.",
-  "scoring_note": "Indicateur maison (poids 0,5) écrit pour répondre à la demande d’un jeu « type MBTI » sans reprendre ni le nom, ni les items, ni les 16 types, ni les codes en 4 lettres du MBTI, qui n’est ni étalonné ni validé pour classer des personnes en types. 20 choix forcés en 4 étapes de 5. Chaque étape vise le facteur du Big Five qui recouvre un indice du MBTI selon McCrae & Costa (1989) : batterie → Extraversion (E-I), lunette → Ouverture (S-N), boussole → Agréabilité (T-F), sac à dos → Conscienciosité (J-P). Chaque choix envoie 75 (pôle haut) ou 25 (pôle bas) au curseur visé ; le pôle haut est en première position dans 10 questions sur 20. Aucun type n’est attribué : le jeune voit seulement de quel côté il penche sur chaque curseur. Ni validation psychométrique ni norme : à utiliser pour ouvrir la discussion.",
+  "scoring_note": "Indicateur maison (poids 0,5) écrit pour répondre à la demande d’un jeu « type MBTI » sans reprendre ni le nom, ni les 16 types, ni les codes en 4 lettres du MBTI, qui n’est ni étalonné ni validé pour classer des personnes en types. Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI (énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de l’OEJTS n’est reprise. 20 choix forcés en 4 étapes de 5. Chaque étape vise le facteur du Big Five qui recouvre un indice du MBTI selon McCrae & Costa (1989) : batterie → Extraversion (E-I), lunette → Ouverture (S-N), boussole → Agréabilité (T-F), sac à dos → Conscienciosité (J-P). Chaque choix envoie 75 (pôle haut) ou 25 (pôle bas) au curseur visé ; le pôle haut est en première position dans 10 questions sur 20. Aucun type n’est attribué : le jeune voit seulement de quel côté il penche sur chaque curseur. Ni validation psychométrique ni norme : à utiliser pour ouvrir la discussion.",
   "intro": "Vingt duels, zéro piège. À chaque fois, choisis ce qui te ressemble le plus, même si c’est serré. Ton style d’aventurier·ère tient en quatre outils : ta batterie, ta lunette, ta boussole et ton sac à dos.",
   "outro": "Ton style est prêt ! Aucun style ne vaut mieux qu’un autre : celui-là, c’est le tien. Va voir sur ta fiche si ça te ressemble.",
   "chapters": [
@@ -49,11 +49,11 @@
       ]
     },
     {
-      "id": "s04", "type": "choice", "chapter": "batterie", "prompt": "Pour avancer sur un projet, tu préfères…",
+      "id": "s04b", "type": "choice", "chapter": "batterie", "prompt": "Pour avancer sur un projet, tu as surtout besoin…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Batterie ↔ Extraversion (indice E-I)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Bosser seul·e, concentré·e", "emoji": "🧩", "signals": [{"trait": "extraversion", "value": 25}]},
-        {"id": "b", "label": "Bosser en équipe, ça bouge", "emoji": "👥", "signals": [{"trait": "extraversion", "value": 75}]}
+        {"id": "a", "label": "De calme, pour réfléchir sans être dérangé·e", "emoji": "🧩", "signals": [{"trait": "extraversion", "value": 25}]},
+        {"id": "b", "label": "De monde autour de toi, pour rebondir sur les idées", "emoji": "👥", "signals": [{"trait": "extraversion", "value": 75}]}
       ]
     },
     {
@@ -65,11 +65,11 @@
       ]
     },
     {
-      "id": "s06", "type": "choice", "chapter": "lunette", "prompt": "Pour apprendre un nouveau truc, tu préfères…",
+      "id": "s06b", "type": "choice", "chapter": "lunette", "prompt": "Ce qui te plaît dans une photo, c’est…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Essayer direct, les mains dedans", "emoji": "🔧", "signals": [{"trait": "openness", "value": 25}]},
-        {"id": "b", "label": "Comprendre d’abord l’idée derrière", "emoji": "💡", "signals": [{"trait": "openness", "value": 75}]}
+        {"id": "a", "label": "Tout ce qu’elle montre, dans le détail", "emoji": "🔍", "signals": [{"trait": "openness", "value": 25}]},
+        {"id": "b", "label": "Tout ce qu’elle laisse imaginer", "emoji": "💭", "signals": [{"trait": "openness", "value": 75}]}
       ]
     },
     {
@@ -81,11 +81,11 @@
       ]
     },
     {
-      "id": "s08", "type": "choice", "chapter": "lunette", "prompt": "Au snack, tu commandes…",
+      "id": "s08b", "type": "choice", "chapter": "lunette", "prompt": "Côté musique, tu…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Lunette ↔ Ouverture (indice S-N)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Ton classique, tu sais que c’est bon", "emoji": "🍔", "signals": [{"trait": "openness", "value": 25}]},
-        {"id": "b", "label": "Un truc que tu n’as jamais goûté", "emoji": "🌮", "signals": [{"trait": "openness", "value": 75}]}
+        {"id": "a", "label": "Remets surtout tes sons préférés", "emoji": "🔁", "signals": [{"trait": "openness", "value": 25}]},
+        {"id": "b", "label": "Cherches des artistes que tu ne connais pas encore", "emoji": "🧭", "signals": [{"trait": "openness", "value": 75}]}
       ]
     },
     {
@@ -145,19 +145,19 @@
       ]
     },
     {
-      "id": "s16", "type": "choice", "chapter": "sac", "prompt": "Pour un week-end, tu préfères…",
+      "id": "s16b", "type": "choice", "chapter": "sac", "prompt": "Tu te lances dans une vidéo, un dessin ou un meuble à toi. Tu…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Tout prévoir à l’avance", "emoji": "🗺️", "signals": [{"trait": "conscientiousness", "value": 75}]},
-        {"id": "b", "label": "Improviser sur place", "emoji": "🎲", "signals": [{"trait": "conscientiousness", "value": 25}]}
+        {"id": "a", "label": "Découpes le travail en étapes, avec une date de fin", "emoji": "🗓️", "signals": [{"trait": "conscientiousness", "value": 75}]},
+        {"id": "b", "label": "Avances quand l’inspiration est là", "emoji": "💡", "signals": [{"trait": "conscientiousness", "value": 25}]}
       ]
     },
     {
-      "id": "s17", "type": "choice", "chapter": "sac", "prompt": "Un truc à rendre dans une semaine, tu…",
+      "id": "s17b", "type": "choice", "chapter": "sac", "prompt": "Une tâche barbante t’attend. Tu…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Le fais à la dernière minute, ça te booste", "emoji": "⏳", "signals": [{"trait": "conscientiousness", "value": 25}]},
-        {"id": "b", "label": "T’y mets tout de suite", "emoji": "✅", "signals": [{"trait": "conscientiousness", "value": 75}]}
+        {"id": "a", "label": "La laisses de côté tant qu’elle peut attendre", "emoji": "⏳", "signals": [{"trait": "conscientiousness", "value": 25}]},
+        {"id": "b", "label": "T’en débarrasses avant de passer à autre chose", "emoji": "✅", "signals": [{"trait": "conscientiousness", "value": 75}]}
       ]
     },
     {
@@ -169,19 +169,19 @@
       ]
     },
     {
-      "id": "s19", "type": "choice", "chapter": "sac", "prompt": "Ta journée idéale…",
+      "id": "s19b", "type": "choice", "chapter": "sac", "prompt": "Une journée libre, tu…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Se décide au fil de l’eau", "emoji": "🌊", "signals": [{"trait": "conscientiousness", "value": 25}]},
-        {"id": "b", "label": "Suit un programme", "emoji": "📅", "signals": [{"trait": "conscientiousness", "value": 75}]}
+        {"id": "a", "label": "Choisis la suite quand une activité se termine", "emoji": "🎈", "signals": [{"trait": "conscientiousness", "value": 25}]},
+        {"id": "b", "label": "Fixes les grandes lignes dès le matin", "emoji": "🗺️", "signals": [{"trait": "conscientiousness", "value": 75}]}
       ]
     },
     {
-      "id": "s20", "type": "choice", "chapter": "sac", "prompt": "Quand tu as plein de choses à faire, tu…",
+      "id": "s20b", "type": "choice", "chapter": "sac", "prompt": "Pour un rendez-vous, tu…",
       "source": {"source_id": "mccrae_costa_1989", "ref": "Sac à dos ↔ Conscienciosité (indice J-P)", "relation": "inspired"},
       "options": [
-        {"id": "a", "label": "Fais une liste et tu coches", "emoji": "📝", "signals": [{"trait": "conscientiousness", "value": 75}]},
-        {"id": "b", "label": "Gardes tout en tête et tu fonces", "emoji": "🚀", "signals": [{"trait": "conscientiousness", "value": 25}]}
+        {"id": "a", "label": "Pars avec de la marge pour arriver en avance", "emoji": "⏰", "signals": [{"trait": "conscientiousness", "value": 75}]},
+        {"id": "b", "label": "Pars juste à temps, pour ne pas attendre sur place", "emoji": "🏃", "signals": [{"trait": "conscientiousness", "value": 25}]}
       ]
     }
   ]

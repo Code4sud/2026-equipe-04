@@ -416,13 +416,21 @@
   font-size: var(--text-2xs);
   font-weight: var(--weight-semibold);
   line-height: 1.6;
-  white-space: nowrap;
+  /* Un libellé long (« Test validé, traduction maison non validée ») passe à la ligne au lieu
+     de déborder sur la colonne voisine. */
+  white-space: normal;
 }
 
 .bog-tier--validated,
 .bog-tier--performance {
   border-color: var(--color-positive-mark);
   background: var(--color-positive-bg);
+  color: var(--color-positive);
+}
+
+/* Test validé mais traduction maison : même couleur, sans le fond plein. */
+.bog-tier--translated {
+  border-color: var(--color-positive-mark);
   color: var(--color-positive);
 }
 

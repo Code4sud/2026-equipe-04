@@ -20,6 +20,10 @@ MAX_TEXT_FACT = 120
 # Postgres les refuse, et ils n'ont rien à faire dans une réponse.
 FORBIDDEN_CATEGORIES = {"Cc", "Cs"}
 
+# Traduction maison d'un test validé, sans étude de la traduction : moins qu'un test validé,
+# plus qu'une question seulement inspirée de travaux publiés.
+TIER_WEIGHTS["translated"] = 0.75
+
 
 class InvalidAnswer(ValueError):
     pass
@@ -74,7 +78,7 @@ def _score_likert(instrument: dict, item: dict, value) -> ScoredAnswer:
             part["trait"],
             position if part.get("keyed", "+") == "+" else 100 - position,
             part.get("weight", 1),
-            instrument["tier"],
+            part.get("tier", instrument["tier"]),
         )
         for part in likert_parts(item)
     ]
@@ -99,7 +103,7 @@ def _score_choice(instrument: dict, item: dict, value) -> ScoredAnswer:
     ):
         raise InvalidAnswer("Choix inconnu.")
     signals = [
-        signal(s["trait"], s["value"], s.get("weight", 1), instrument["tier"])
+        signal(s["trait"], s["value"], s.get("weight", 1), s.get("tier", instrument["tier"]))
         for option_id in chosen
         for s in options[option_id].get("signals", [])
     ]

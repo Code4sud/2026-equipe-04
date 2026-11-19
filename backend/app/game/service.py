@@ -63,7 +63,8 @@ STRENGTH_FLOOR = 50
 ATTRIBUTE_MIN, ATTRIBUTE_MAX = 10, 20
 TIER_LABELS = {
     "validated": "Test validé",
-    "adapted": "Inspiré d'un test validé",
+    "translated": "Test validé, traduction maison non validée",
+    "adapted": "Inspiré de travaux publiés, non validé",
     "custom": "Indicateur maison",
     "performance": "Tâche cognitive publiée",
     "talent": "Talent validé par le jeune",

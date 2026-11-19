@@ -11,14 +11,24 @@
       "note": "Échelles IPIP de 10 items : alpha de .79 (conscienciosité) à .87 (extraversion) selon la table publiée par l'IPIP (https://ipip.ori.org/newBigFive5broadTable.htm). Ces valeurs concernent les échelles d'origine, pas ce quiz."
     },
     {
+      "id": "ipip_neo",
+      "title": "IPIP-NEO : échelles IPIP des facettes du NEO-PI-R, facette Intérêts artistiques",
+      "citation": "Goldberg, L. R. (1999). A broad-bandwidth, public domain, personality inventory measuring the lower-level facets of several five-factor models. In I. Mervielde, I. Deary, F. De Fruyt, & F. Ostendorf (Eds.), Personality Psychology in Europe (Vol. 7, pp. 7-28). Tilburg, The Netherlands: Tilburg University Press. Items : International Personality Item Pool, « The Items in Each of the Preliminary IPIP Scales Measuring Constructs Similar to Those in the NEO-PI-R », https://ipip.ori.org/newNEOKey.htm",
+      "url": "https://ipip.ori.org/newNEOKey.htm",
+      "licence": "Items IPIP dans le domaine public : copie, modification, traduction et tout usage autorisés sans demande de permission ni frais (ipip.ori.org). Aucun item n’est montré au jeune : la situation du quiz est une création originale du projet.",
+      "validated": false,
+      "adaptation": "Inspiration seulement (relation « inspired ») pour une seule situation, l’expo d’art abstrait : elle s’appuie sur un item de la facette O2 Intérêts artistiques, qui relève du facteur Ouverture, cité en anglais avec sa clé dans ref et original. Les 50 marqueurs Big Five de Goldberg (1992), source des autres situations de personnalité, n’ont aucun item sur l’art. Format en choix entre trois réactions, ni traduit ni validé : les qualités psychométriques de l’IPIP-NEO ne s’appliquent pas au quiz.",
+      "note": "Item « Do not enjoy going to art museums. » (clé -), qui figure dans la facette O2 Intérêts artistiques et dans l’échelle d’Ouverture en 10 items de l’IPIP-NEO (https://ipip.ori.org/newNEOKey.htm, consulté le 19/11/2026)."
+    },
+    {
       "id": "holland_riasec",
       "title": "Typologie RIASEC des intérêts professionnels de Holland",
       "citation": "Holland, J. L. (1997). Making vocational choices: A theory of vocational personalities and work environments (3rd ed.). Odessa, FL: Psychological Assessment Resources. ISBN 0-911907-27-0.",
       "url": "https://openlibrary.org/isbn/0911907270",
-      "licence": "Théorie publiée, citée sans reproduction. Aucun item du Self-Directed Search ni d'un autre questionnaire de Holland édité par PAR n'est repris : les situations du quiz sont des créations originales qui visent les six types R, I, A, S, E et C.",
+      "licence": "Théorie publiée, citée sans reproduction. Aucun item du Self-Directed Search ni d’un autre questionnaire de Holland édité par PAR n’est repris, pas plus que ceux du O*NET Interest Profiler ou des marqueurs RIASEC d’Armstrong, Allison & Rounds (2008) : les situations du quiz et les activités du Grand Tri sont des créations originales qui visent les six types R, I, A, S, E et C.",
       "validated": false,
-      "adaptation": "Situations originales en français, rattachées à un ou plusieurs types RIASEC (ref et original). La plupart sont des dilemmes entre deux types : l'option choisie monte un type et baisse l'autre, l'option mixte donne une valeur moyenne aux deux. Sans étalonnage : le quiz donne une tendance, pas un code Holland.",
-      "note": "Le clan révélé au jeune correspond à son curseur RIASEC le plus haut, tous jeux confondus."
+      "adaptation": "Situations et activités originales en français, rattachées à un ou plusieurs types RIASEC (ref et original). Dans le quiz, la plupart des situations sont des dilemmes entre deux types : l’option choisie monte un type et baisse l’autre, l’option mixte donne une valeur moyenne aux deux. Le Grand Tri propose 48 activités, 8 par type, notées de 1 à 5. Le livre expose une théorie, pas un test : sans validation ni étalonnage, ces jeux donnent une tendance, pas un code Holland.",
+      "note": "Le clan révélé au jeune correspond à son curseur RIASEC le plus haut, tous jeux et talents validés confondus."
     }
   ]
 }
