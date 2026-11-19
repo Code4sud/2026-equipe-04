@@ -96,6 +96,44 @@ def test_every_scored_item_is_a_sourced_situation(quiz, catalog):
         assert all(option.get("signals") for option in item["options"]), item["id"]
 
 
+# Facteur visé par un marqueur IPIP (début de `ref`) et types de Holland cités (`original`).
+IPIP_FACTORS = {
+    "Extraversion": "extraversion",
+    "Agréabilité": "agreeableness",
+    "Conscienciosité": "conscientiousness",
+    "Stabilité émotionnelle": "emotional_stability",
+    "Intellect ou imagination": "openness",
+}
+HOLLAND_TYPES = {
+    "Realistic": "riasec_r", "Investigative": "riasec_i", "Artistic": "riasec_a",
+    "Social": "riasec_s", "Enterprising": "riasec_e", "Conventional": "riasec_c",
+}
+
+
+def test_every_option_scores_what_its_source_cites(quiz):
+    for item in quiz["items"]:
+        source = item.get("source")
+        if not source:
+            continue
+        for option in item["options"]:
+            where = f"{item['id']}/{option['id']}"
+            traits = {signal["trait"] for signal in option["signals"]}
+            if source["source_id"] == "goldberg_big_five_markers":
+                assert IPIP_FACTORS[source["ref"].split(",")[0]] in traits, where
+                continue
+            cited = {HOLLAND_TYPES[name] for name in source["original"].split(" / ")}
+            # Seul l'indicateur maison d'intérêt numérique s'ajoute aux types cités.
+            assert traits <= cited | {"interest_digital"}, where
+            if len(cited) == 2:
+                # Dilemme : chaque option, la mixte comprise, situe le jeune sur les deux types.
+                assert cited <= traits, where
+
+
+def test_holland_source_says_how_the_clan_is_chosen(catalog):
+    # Le clan suit le curseur RIASEC le plus haut, talents validés compris (service.clan_for).
+    assert "tous jeux et talents validés confondus" in catalog.sources["holland_riasec"]["note"]
+
+
 @pytest.mark.parametrize(
     ("traits", "minimum"), [(BIG_FIVE, 5), (INTERESTS, 4)], ids=["big_five", "interests"]
 )
