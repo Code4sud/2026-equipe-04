@@ -1,0 +1,21 @@
+{
+  "id": "fixture_questionnaire",
+  "version": 1,
+  "order": 10,
+  "kind": "questionnaire",
+  "tier": "validated",
+  "title": "Questionnaire fictif",
+  "tagline": "Pour tester le parcours",
+  "icon": "mirror",
+  "duration_min": 2,
+  "xp": 80,
+  "requires": ["onboarding"],
+  "source_ids": ["fixture_source"],
+  "scoring_note": "Moyenne des items, clés inversées comprises.",
+  "scale": { "min": 1, "max": 5, "labels": ["Pas du tout", "Plutôt non", "Entre les deux", "Plutôt oui", "Tout à fait"] },
+  "items": [
+    { "id": "e1", "type": "likert", "prompt": "Je parle facilement à des inconnus.", "trait": "extraversion", "keyed": "+", "source": { "source_id": "fixture_source", "ref": "E1", "original": "Talk to a lot of different people at parties.", "relation": "translated" } },
+    { "id": "e2", "type": "likert", "prompt": "Je reste plutôt en retrait.", "trait": "extraversion", "keyed": "-", "source": { "source_id": "fixture_source", "ref": "E2", "original": "Keep in the background.", "relation": "translated" } },
+    { "id": "c1", "type": "likert", "prompt": "Je finis ce que je commence.", "trait": "conscientiousness", "keyed": "+", "source": { "source_id": "fixture_source", "ref": "C1", "original": "Follow a schedule.", "relation": "translated" } }
+  ]
+}

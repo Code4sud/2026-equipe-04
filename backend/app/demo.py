@@ -4,6 +4,16 @@ YOUTHS = [
     {
         "email_setting": "SEED_YOUTH_EMAIL",
         "display_name": "Sam",
+        "game": {
+            "skill": 0.9,
+            "facts": {"couleur_preferee": "Jaune", "passion": "Mécanique et jeux vidéo"},
+            "bias": {
+                "extraversion": 28, "agreeableness": 66, "conscientiousness": 74,
+                "emotional_stability": 62, "openness": 58, "riasec_r": 88, "riasec_i": 72,
+                "riasec_a": 34, "riasec_s": 58, "riasec_e": 36, "riasec_c": 64,
+                "interest_digital": 82,
+            },
+        },
         "messages": [
             ("user", "Rien."),
             ("assistant", "Pas de souci, on n'est pas pressés. Hier, tu as fait quoi de ta journée, même un truc banal ?"),
@@ -58,6 +68,11 @@ YOUTHS = [
     {
         "email": "noa@example.org",
         "display_name": "Noa",
+        "game": {
+            "skill": 0.8,
+            "facts": {"couleur_preferee": "Violet", "passion": "Montage vidéo"},
+            "bias": {"extraversion": 60, "openness": 80, "riasec_a": 90, "interest_digital": 75},
+        },
         "messages": [
             ("user", "Je fais des montages vidéo pour une chaîne de skate, je coupe, je mets la musique et je publie chaque semaine."),
             ("assistant", "Publier chaque semaine, ça demande de la régularité. Comment tu choisis ce que tu gardes au montage ?"),

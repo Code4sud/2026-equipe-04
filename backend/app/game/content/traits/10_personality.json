@@ -1,0 +1,45 @@
+{
+  "group": { "id": "personality", "label": "Personnalité", "youth_label": "Ton caractère", "order": 10 },
+  "traits": [
+    {
+      "id": "extraversion",
+      "kind": "bipolar",
+      "youth": { "low": "Réservé·e", "high": "Sociable" },
+      "psy": { "low": "Réservé", "high": "Sociable" },
+      "description": "Besoin de contacts et aisance dans les groupes.",
+      "reference": "Big Five, facteur Extraversion"
+    },
+    {
+      "id": "agreeableness",
+      "kind": "bipolar",
+      "youth": { "low": "Franc·he", "high": "Conciliant·e" },
+      "psy": { "low": "Direct", "high": "Conciliant" },
+      "description": "Manière de gérer les désaccords et d’aller vers les autres.",
+      "reference": "Big Five, facteur Agréabilité"
+    },
+    {
+      "id": "conscientiousness",
+      "kind": "bipolar",
+      "youth": { "low": "Spontané·e", "high": "Organisé·e" },
+      "psy": { "low": "Spontané", "high": "Organisé" },
+      "description": "Préférence pour l’improvisation ou pour le cadre et la méthode.",
+      "reference": "Big Five, facteur Conscienciosité"
+    },
+    {
+      "id": "emotional_stability",
+      "kind": "bipolar",
+      "youth": { "low": "Intense", "high": "Posé·e" },
+      "psy": { "low": "Réactif au stress", "high": "Calme sous pression" },
+      "description": "Réaction aux situations de pression du quotidien. Ne constitue jamais une indication de santé.",
+      "reference": "Big Five, facteur Stabilité émotionnelle"
+    },
+    {
+      "id": "openness",
+      "kind": "bipolar",
+      "youth": { "low": "Concret·e", "high": "Curieux·se" },
+      "psy": { "low": "Concret", "high": "Ouvert aux idées" },
+      "description": "Attrait pour le concret ou pour les idées et les nouveautés.",
+      "reference": "Big Five, facteur Ouverture"
+    }
+  ]
+}

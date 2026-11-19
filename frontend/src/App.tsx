@@ -3,6 +3,9 @@ import { AuthProvider } from './auth/AuthContext';
 import { HomeRedirect, PublicOnly, RequireRole } from './auth/guards';
 import { ThemeToggle } from './components/ThemeToggle';
 import { fr } from './content/fr';
+import { OnboardingGate } from './game/OnboardingGate';
+import { PsySourcesRoute } from './game/backoffice/routes';
+import { GamesHubRoute, PlayRoute, QuizRoute, SheetRoute } from './game/routes';
 import { BackofficeLayout } from './layouts/BackofficeLayout';
 import { YouthLayout } from './layouts/YouthLayout';
 import { AuthPage } from './pages/AuthPage';
@@ -28,12 +31,19 @@ export function App() {
           </Route>
 
           <Route element={<RequireRole roles={['youth']} />}>
-            <Route path="jeune" element={<YouthLayout />}>
-              <Route index element={<Navigate to="discussion" replace />} />
-              <Route path="discussion" element={<ChatPage />} />
-              <Route path="carte" element={<MapPage />} />
-              <Route path="competences" element={<Navigate to="/jeune/carte" replace />} />
-              <Route path="moi" element={<MePage />} />
+            {/* Plein écran, sans la barre de navigation. */}
+            <Route path="jeune/quiz" element={<QuizRoute />} />
+            <Route path="jeune/jeux/:instrumentId" element={<PlayRoute />} />
+            <Route element={<OnboardingGate />}>
+              <Route path="jeune" element={<YouthLayout />}>
+                <Route index element={<Navigate to="discussion" replace />} />
+                <Route path="discussion" element={<ChatPage />} />
+                <Route path="carte" element={<MapPage />} />
+                <Route path="competences" element={<Navigate to="/jeune/carte" replace />} />
+                <Route path="jeux" element={<GamesHubRoute />} />
+                <Route path="fiche" element={<SheetRoute />} />
+                <Route path="moi" element={<MePage />} />
+              </Route>
             </Route>
           </Route>
 
@@ -42,6 +52,7 @@ export function App() {
               <Route index element={<Navigate to="jeunes" replace />} />
               <Route path="jeunes" element={<YouthListPage />} />
               <Route path="jeunes/:youthId" element={<YouthDetailPage />} />
+              <Route path="sources" element={<PsySourcesRoute />} />
             </Route>
           </Route>
 

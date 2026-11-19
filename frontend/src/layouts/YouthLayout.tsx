@@ -3,6 +3,9 @@ import { Link, NavLink, Outlet, useOutletContext } from 'react-router-dom';
 import { api } from '../api/client';
 import { ChatIcon, MapIcon, PersonIcon, TalentStar } from '../components/Icons';
 import { fr } from '../content/fr';
+import { gameFr } from '../game/content.fr';
+import '../game/game.css';
+import { GamesIcon, SheetIcon } from '../game/icons';
 
 interface YouthContext {
   setPendingTalents: (count: number) => void;
@@ -44,6 +47,14 @@ export function YouthLayout() {
               <span className="visually-hidden">{fr.nav.pending(pendingTalents)}</span>
             </span>
           )}
+        </NavLink>
+        <NavLink to="/jeune/jeux" className="tabbar__link">
+          <GamesIcon />
+          {gameFr.nav.games}
+        </NavLink>
+        <NavLink to="/jeune/fiche" className="tabbar__link">
+          <SheetIcon />
+          {gameFr.nav.sheet}
         </NavLink>
         <NavLink to="/jeune/moi" className="tabbar__link">
           <PersonIcon />

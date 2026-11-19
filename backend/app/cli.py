@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash
 
 from .demo import YOUTHS
 from .extensions import db
+from .game.demo import seed_youth_game
 from .models import Conversation, Role, Skill, SkillAction, SkillOrigin, SkillStatus, User, YouthProfile, utcnow
 from .services import service
 from .services.guardrails import find_quote, name_key
@@ -129,4 +130,10 @@ def register_cli(app: Flask) -> None:
             if not _exists(email):
                 _seed_youth(data, email, youth_password)
         db.session.commit()
+        # À chaque lancement, chaque jeune de démo joue les jeux qu'il n'a pas encore commencés :
+        # un jeu livré depuis le dernier lancement apparaît aussi dans sa fiche.
+        for data in YOUTHS:
+            email = config[data["email_setting"]] if "email_setting" in data else data["email"]
+            user = db.session.scalar(select(User).where(User.email == email.lower()))
+            seed_youth_game(user, data["game"])
         click.echo("Données de démonstration prêtes.")

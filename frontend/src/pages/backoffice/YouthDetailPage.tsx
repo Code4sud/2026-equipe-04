@@ -7,6 +7,7 @@ import { formatDateTime, formatDay } from '../../components/format';
 import { Highlight } from '../../components/Highlight';
 import { CheckIcon, CrossIcon } from '../../components/Icons';
 import { fr } from '../../content/fr';
+import { YouthGameRoute } from '../../game/routes';
 
 const t = fr.backoffice;
 
@@ -220,6 +221,8 @@ export function YouthDetailPage() {
           </ul>
         )}
       </section>
+
+      <YouthGameRoute youthId={youth.id} />
     </div>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "savoir_faire": [{ "trait": "riasec_r", "value": 85 }],
+  "organisation": [{ "trait": "riasec_c", "value": 85 }, { "trait": "conscientiousness", "value": 75 }],
+  "relationnel": [{ "trait": "riasec_s", "value": 85 }],
+  "communication": [{ "trait": "riasec_e", "value": 70 }, { "trait": "extraversion", "value": 70 }],
+  "resolution_problemes": [{ "trait": "riasec_i", "value": 85 }],
+  "autonomie": [{ "trait": "riasec_e", "value": 70 }],
+  "creativite": [{ "trait": "riasec_a", "value": 85 }, { "trait": "openness", "value": 75 }],
+  "apprentissage": [{ "trait": "openness", "value": 75 }, { "trait": "riasec_i", "value": 70 }]
+}

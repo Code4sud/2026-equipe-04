@@ -10,9 +10,11 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -261,3 +263,133 @@ class SkillEvent(db.Model):
             "previous_name": self.previous_name,
             "at": iso(self.created_at),
         }
+
+
+class GameRunStatus(str, enum.Enum):
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+
+class GameRun(db.Model):
+    """Une partie d'un quiz, d'un questionnaire ou d'un jeu (voir app/game/)."""
+
+    __tablename__ = "game_runs"
+    __table_args__ = (
+        Index("ix_game_runs_youth_instrument", "youth_id", "instrument_id"),
+        Index(
+            "uq_game_runs_one_open_per_instrument",
+            "youth_id",
+            "instrument_id",
+            unique=True,
+            postgresql_where=text("status = 'in_progress'"),
+            sqlite_where=text("status = 'in_progress'"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    youth_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    instrument_id: Mapped[str] = mapped_column(String(60))
+    instrument_version: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[GameRunStatus] = mapped_column(
+        _enum(GameRunStatus), default=GameRunStatus.IN_PROGRESS
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Signaux calculés sur toute la partie (jeux chronométrés).
+    signals: Mapped[list] = mapped_column(JSON, default=list)
+    # Scores bruts par échelle et mesures du jeu, montrés à la psychologue.
+    metrics: Mapped[dict] = mapped_column(JSON, default=dict)
+
+    answers: Mapped[list["GameAnswer"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan", order_by="GameAnswer.position"
+    )
+
+
+class GameAnswer(db.Model):
+    """Réponse brute, avec le texte tel qu'il a été montré et ce qu'elle a apporté aux curseurs."""
+
+    __tablename__ = "game_answers"
+    __table_args__ = (UniqueConstraint("run_id", "item_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("game_runs.id", ondelete="CASCADE"), index=True
+    )
+    item_id: Mapped[str] = mapped_column(String(60))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    prompt: Mapped[str] = mapped_column(Text)
+    value: Mapped[object | None] = mapped_column(JSON)
+    label: Mapped[str | None] = mapped_column(Text)
+    skipped: Mapped[bool] = mapped_column(Boolean, default=False)
+    signals: Mapped[list] = mapped_column(JSON, default=list)
+    response_ms: Mapped[int | None] = mapped_column(Integer)
+    answered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Type et échelle de la question au moment de la réponse : une nouvelle version du contenu
+    # qui les change rend la réponse caduque (voir game/service.py, _reconcile).
+    item_type: Mapped[str | None] = mapped_column(String(20))
+    item_scale: Mapped[dict | None] = mapped_column(JSON)
+
+    run: Mapped[GameRun] = relationship(back_populates="answers")
+
+
+class GameFact(db.Model):
+    """Détail simple donné par le jeune (couleur préférée, passion...).
+
+    Le jeune peut le corriger ou le masquer de sa fiche ; la psychologue voit toujours
+    la réponse d'origine et la modification, pour pouvoir en parler avec lui.
+    """
+
+    __tablename__ = "game_facts"
+
+    youth_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(60), primary_key=True)
+    label: Mapped[str] = mapped_column(String(80))
+    value: Mapped[str] = mapped_column(String(160))
+    # Réponse donnée dans le jeu, avant toute correction par le jeune.
+    original_value: Mapped[str | None] = mapped_column(String(160))
+    # Question d'origine : un identifiant de question n'est unique que dans son instrument.
+    source_instrument_id: Mapped[str | None] = mapped_column(String(60))
+    source_item_id: Mapped[str | None] = mapped_column(String(60))
+    edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # Dernière correction de la valeur par le jeune (jamais touchée par le jeu ni par « masquer »).
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class TraitFeedback(db.Model):
+    """Le jeune dit s'il se reconnaît dans un curseur, tel qu'il était quand il a répondu."""
+
+    __tablename__ = "game_trait_feedback"
+
+    youth_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    trait_id: Mapped[str] = mapped_column(String(60), primary_key=True)
+    verdict: Mapped[str] = mapped_column(String(10))
+    # Libellé montré au jeune et valeur du curseur au moment du verdict, calculés par le serveur.
+    label_at_verdict: Mapped[str | None] = mapped_column(String(80))
+    value_at_verdict: Mapped[float | None] = mapped_column(Float)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class GameEvent(db.Model):
+    """Modification faite par le jeune (détail, verdict, réponse), pour la psychologue seulement.
+
+    `subject` désigne ce qui a changé (« fact:passion », « trait:extraversion »,
+    « answer:<partie>/<question> ») ; `before` et `after` gardent l'état avant et après.
+    """
+
+    __tablename__ = "game_events"
+    __table_args__ = (Index("ix_game_events_youth_created", "youth_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    youth_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(30))
+    subject: Mapped[str] = mapped_column(String(160))
+    before: Mapped[dict | None] = mapped_column(JSON)
+    after: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

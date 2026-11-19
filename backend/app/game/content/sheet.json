@@ -1,0 +1,33 @@
+{
+  "attributes": [
+    { "id": "audace", "label": "Audace", "description": "Oser aller vers les autres et se lancer.", "icon": "flame", "traits": [{ "trait": "extraversion" }, { "trait": "riasec_e" }, { "trait": "emotional_stability", "weight": 0.5 }] },
+    { "id": "creativite", "label": "Créativité", "description": "Imaginer ce qui n’existe pas encore.", "icon": "feather", "traits": [{ "trait": "riasec_a" }, { "trait": "openness" }] },
+    { "id": "logique", "label": "Logique", "description": "Comprendre comment ça marche et trouver la solution.", "icon": "compass", "traits": [{ "trait": "riasec_i" }, { "trait": "reasoning" }, { "trait": "working_memory", "weight": 0.5 }] },
+    { "id": "adresse", "label": "Adresse", "description": "Faire avec précision, à la main comme à l’œil.", "icon": "hammer", "traits": [{ "trait": "riasec_r" }, { "trait": "visuospatial_memory" }] },
+    { "id": "empathie", "label": "Empathie", "description": "Sentir ce dont les autres ont besoin.", "icon": "hands", "traits": [{ "trait": "riasec_s" }, { "trait": "agreeableness" }] },
+    { "id": "methode", "label": "Méthode", "description": "Tenir le cap jusqu’au bout.", "icon": "key", "traits": [{ "trait": "conscientiousness" }, { "trait": "riasec_c" }, { "trait": "attention_control", "weight": 0.5 }] }
+  ],
+  "level_titles": [
+    "Renardeau",
+    "Curieux·se",
+    "Explorateur·rice",
+    "Pisteur·se",
+    "Aventurier·ère",
+    "Cartographe",
+    "Guide des sentiers",
+    "Arpenteur·se",
+    "Boussole vivante",
+    "Légende du terrier"
+  ],
+  "badges": [
+    { "id": "premiers_pas", "label": "Premiers pas", "description": "Finir le quiz d’arrivée", "icon": "paw", "rule": { "type": "completed", "instrument": "onboarding" } },
+    { "id": "joueur", "label": "Dans le jeu", "description": "Terminer un premier mini-jeu", "icon": "dice", "rule": { "type": "completed_count", "count": 2 } },
+    { "id": "esprit_vif", "label": "Esprit vif", "description": "Terminer un jeu chronométré", "icon": "hourglass", "rule": { "type": "completed_count", "kind": "performance", "count": 1 } },
+    { "id": "collection", "label": "Grand tour", "description": "Terminer cinq jeux", "icon": "map", "rule": { "type": "completed_count", "count": 5 } },
+    { "id": "talent_1", "label": "Premier talent", "description": "Garder un talent sur ta carte", "icon": "star", "rule": { "type": "talents", "count": 1 } },
+    { "id": "talent_5", "label": "Sac à talents", "description": "Garder cinq talents sur ta carte", "icon": "stars", "rule": { "type": "talents", "count": 5 } },
+    { "id": "talent_10", "label": "Trésor caché", "description": "Garder dix talents sur ta carte", "icon": "chest", "rule": { "type": "talents", "count": 10 } },
+    { "id": "niveau_3", "label": "Bien lancé·e", "description": "Atteindre le niveau 3", "icon": "flag", "rule": { "type": "level", "count": 3 } },
+    { "id": "niveau_5", "label": "Vent en poupe", "description": "Atteindre le niveau 5", "icon": "sail", "rule": { "type": "level", "count": 5 } }
+  ]
+}

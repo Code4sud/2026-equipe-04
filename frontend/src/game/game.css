@@ -1,0 +1,81 @@
+/* Styles communs du jeu. Chaque écran garde les siens dans son dossier.
+   Uniquement les variables de tokens.css : le jaune reste réservé à ce qui parle du jeune. */
+
+.shell--youth .tabbar {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.game-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-4)
+    calc(var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.game-progress {
+  height: 0.625rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.game-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width 0.25s ease;
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.question__prompt {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+}
+
+.question__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.question__option {
+  min-height: 3.25rem;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.question__option:hover,
+.question__option[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.question__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-progress > span {
+    transition: none;
+  }
+}

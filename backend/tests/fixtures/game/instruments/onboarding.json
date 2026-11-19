@@ -1,0 +1,56 @@
+{
+  "id": "onboarding",
+  "version": 1,
+  "order": 0,
+  "kind": "quiz",
+  "tier": "adapted",
+  "title": "Quiz d'arrivée (fictif)",
+  "tagline": "Version courte pour le développement",
+  "icon": "paw",
+  "duration_min": 2,
+  "xp": 150,
+  "replayable": false,
+  "min_answers": 3,
+  "source_ids": ["fixture_source"],
+  "source_note": "Questions fictives",
+  "chapters": [
+    { "id": "matin", "title": "Le matin", "intro": "On commence doucement." },
+    { "id": "soir", "title": "Le soir", "intro": "La journée se termine." }
+  ],
+  "items": [
+    {
+      "id": "couleur", "type": "choice", "chapter": "matin", "prompt": "Ta couleur préférée ?",
+      "fact": "couleur_preferee", "fact_label": "Couleur préférée", "allow_text": true,
+      "options": [
+        { "id": "jaune", "label": "Jaune", "color": "#ffd166" },
+        { "id": "bleu", "label": "Bleu", "color": "#4d8fd6" }
+      ]
+    },
+    {
+      "id": "passion", "type": "text", "chapter": "matin", "prompt": "Ta passion du moment ?",
+      "fact": "passion", "fact_label": "Passion", "placeholder": "Jeux vidéo, skate..."
+    },
+    {
+      "id": "groupe", "type": "choice", "chapter": "matin", "prompt": "Une soirée s'organise. Tu fais quoi ?",
+      "source": { "source_id": "fixture_source", "ref": "E1", "original": "Am the life of the party.", "relation": "adapted" },
+      "options": [
+        { "id": "a", "label": "J'invite tout le monde", "signals": [{ "trait": "extraversion", "value": 90 }, { "trait": "riasec_e", "value": 75 }] },
+        { "id": "b", "label": "Je passe un moment", "signals": [{ "trait": "extraversion", "value": 50 }] },
+        { "id": "c", "label": "Je préfère un truc au calme", "signals": [{ "trait": "extraversion", "value": 10 }] }
+      ]
+    },
+    {
+      "id": "scooter", "type": "choice", "chapter": "soir", "prompt": "Le scooter d'un pote ne démarre plus.",
+      "options": [
+        { "id": "a", "label": "Je sors les outils", "signals": [{ "trait": "riasec_r", "value": 95 }] },
+        { "id": "b", "label": "Je cherche un tuto", "signals": [{ "trait": "riasec_i", "value": 80 }, { "trait": "interest_digital", "value": 70 }] },
+        { "id": "c", "label": "J'appelle quelqu'un qui s'y connaît", "signals": [{ "trait": "riasec_s", "value": 65 }] }
+      ]
+    },
+    {
+      "id": "agenda", "type": "likert", "chapter": "soir", "prompt": "Je prépare mes affaires la veille.",
+      "scale": { "min": 1, "max": 5, "labels": ["Jamais", "Rarement", "Parfois", "Souvent", "Toujours"] },
+      "trait": "conscientiousness", "keyed": "+"
+    }
+  ]
+}

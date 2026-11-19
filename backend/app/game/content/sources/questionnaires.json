@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "ipip_mini_ipip",
+      "title": "Mini-IPIP : 20 items des marqueurs Big Five de l’IPIP",
+      "authors": "M. Brent Donnellan, Frederick L. Oswald, Brendan M. Baird, Richard E. Lucas",
+      "year": 2006,
+      "citation": "Donnellan, M. B., Oswald, F. L., Baird, B. M., & Lucas, R. E. (2006). The Mini-IPIP scales: Tiny-yet-effective measures of the Big Five factors of personality. Psychological Assessment, 18(2), 192–203. https://doi.org/10.1037/1040-3590.18.2.192",
+      "url": "https://ipip.ori.org/MiniIPIPKey.htm",
+      "licence": "Domaine public. Les items et échelles de l’IPIP peuvent être copiés, modifiés, traduits et utilisés pour tout usage, sans autorisation ni frais (ipip.ori.org).",
+      "validated": false,
+      "adaptation": "Traduction française de l’équipe, non validée : ni rétro-traduction, ni étude psychométrique. 18 items sur 20 : les items 4 (« Have frequent mood swings ») et 19 (« Seldom feel blue ») sont retirés, car le jeu ne pose aucune question sur l’humeur ou la tristesse. Le facteur Neuroticisme est noté dans le sens Stabilité émotionnelle et ne repose plus que sur 2 items (9 et 14). Réponses IPIP « Very Inaccurate » à « Very Accurate » rendues par « Pas du tout moi » à « Tout à fait moi ». Consigne raccourcie : la comparaison aux personnes du même sexe et du même âge est retirée.",
+      "note": "Items tirés des 50 marqueurs Big Five de l’IPIP (Goldberg, L. R., 1992, The development of markers for the Big-Five factor structure, Psychological Assessment, 4, 26–42). Numéros des items dans l’ordre de passation de Donnellan et al. (2006). L’IPIP recense une traduction française des 50 marqueurs (Gibson & Boucher), dont la page n’était pas accessible le 19/11/2026 : elle n’est pas utilisée. Une adaptation française du Mini-IPIP a été publiée dans une revue à comité de lecture : Laverdière, O., Gamache, D., Morin, A. J. S., & Diguer, L. (2020). French adaptation of the Mini-IPIP: A short measure of the Big Five. European Review of Applied Psychology, 70(3), 100512. https://doi.org/10.1016/j.erap.2019.100512. Elle n’est pas reprise : l’article est payant et la licence de sa formulation française n’est pas connue, ce qui ne permet pas de la publier dans un dépôt public. La traduction de l’équipe, faite à partir des items IPIP du domaine public, est donc conservée, sans pouvoir se prévaloir de la validation de cette adaptation."
+    },
+    {
+      "id": "mccrae_costa_1989",
+      "title": "Le MBTI relu à travers le modèle en cinq facteurs",
+      "authors": "Robert R. McCrae, Paul T. Costa Jr.",
+      "year": 1989,
+      "citation": "McCrae, R. R., & Costa, P. T., Jr. (1989). Reinterpreting the Myers-Briggs Type Indicator from the perspective of the five-factor model of personality. Journal of Personality, 57(1), 17–40. https://doi.org/10.1111/j.1467-6494.1989.tb00759.x",
+      "url": "https://doi.org/10.1111/j.1467-6494.1989.tb00759.x",
+      "licence": "Article cité comme justification théorique, sans rien en reproduire.",
+      "validated": false,
+      "adaptation": "Questions écrites par l’équipe à partir des oppositions classiques décrites par le MBTI (énergie, information, décision, organisation) ; aucune formulation d’item du MBTI ou de l’OEJTS n’est reprise. Seul le rattachement des quatre dimensions aux facteurs Extraversion, Ouverture, Agréabilité et Conscienciosité vient de l’article.",
+      "note": "L’article ne trouve aucun appui à l’idée que le MBTI mesure des préférences tranchées ou des types distincts, mais montre que ses quatre indices recouvrent quatre des cinq grands facteurs. Le jeu ne donne donc ni type ni code. L’échelle OEJTS (openpsychometrics.org) n’est pas reprise : sa licence CC BY-NC-SA 4.0 n’est pas compatible avec un dépôt public sous licence MIT."
+    }
+  ]
+}
