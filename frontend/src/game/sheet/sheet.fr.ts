@@ -71,7 +71,7 @@ export const sheetFr = {
 
   attributes: {
     title: 'Attributs',
-    intro: 'De 8 à 20. Ils montrent tes forces, jamais une note.',
+    intro: 'De 10 à 20. Ils montrent tes forces, jamais une note.',
     /** Lu après le nom de l'attribut par les lecteurs d'écran. */
     spokenScore: (score: number | null) =>
       score === null ? `${nbsp}: à découvrir` : `${nbsp}: ${score} sur 20`,
