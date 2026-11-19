@@ -61,8 +61,6 @@ Types de questions :
 
 `relation` vaut `verbatim`, `translated`, `adapted` ou `inspired`. Une source contient `id`, `title`, `citation`, `url`, `licence`, `validated`, `adaptation` et éventuellement `note`.
 
-Un signal (option d'un choix, ou partie d'une question Likert) peut porter son propre `tier`, qui remplace celui de l'instrument : `{ "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }` marque un indicateur maison glissé dans une question sourcée.
-
 ### Niveaux de preuve et poids dans les curseurs
 
 | `tier` | Libellé vu par la psychologue | Sens | Poids |
@@ -75,6 +73,12 @@ Un signal (option d'un choix, ou partie d'une question Likert) peut porter son p
 | `talent` | Talent validé par le jeune | Talent validé par le jeune dans la discussion | 0,25 |
 
 Une traduction maison d'un test validé prend le niveau `translated`, et `adaptation` dit qu'elle n'est pas validée. Citer une théorie (Holland, par exemple) justifie « inspiré de », jamais « test validé ».
+
+Un signal (option d'un choix, ou partie d'une question Likert) peut porter son propre `tier`, qui remplace celui de l'instrument : `{ "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }` marque un indicateur maison glissé dans une question sourcée. Ce niveau peut être plus faible que celui de l'instrument, jamais plus fort (`TIER_STRENGTH` dans `catalog.py` : `validated` et `performance`, puis `translated`, `adapted`, `custom`). Le backoffice l'affiche à côté du signal.
+
+Le backoffice montre le libellé envoyé par l'API (`TIER_LABELS` dans `service.py`) ; sa copie dans `frontend/src/game/backoffice/` (libellés, poids, ordre) sert à la légende et à la page Sources, et `tests/test_game_tiers.py` vérifie qu'elle reste identique.
+
+Chaque signal enregistré garde le niveau et le poids de sa réponse : changer le niveau d'un instrument ne réécrit pas les parties terminées. Les versions 2 du Grand Tri, du Miroir et du quiz corrigent leurs niveaux sans migration de données, car la migration `0002` qui crée les tables du jeu n'est encore ni fusionnée ni déployée : une base de développement qui contient des parties des versions 1 se recrée (volume Postgres neuf) plutôt que de se migrer.
 
 ## Calcul
 
