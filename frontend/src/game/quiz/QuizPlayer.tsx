@@ -288,13 +288,14 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   }
 
   function commit(value: AnswerValue, responseMs: number) {
+    if (!player.answer(value, responseMs)) return;
     setDirection('forward');
-    player.answer(value, responseMs);
     afterLeaving(item.id);
   }
 
   function handleAnswer(value: AnswerValue) {
-    if (pickTimer.current !== undefined) return;
+    // Un appui juste après l'affichage termine un double appui commencé sur l'écran d'avant.
+    if (pickTimer.current !== undefined || player.justShown()) return;
     // Le temps de réponse s'arrête à l'appui, pas après l'animation du choix.
     const responseMs = player.elapsed();
     if (typeof value !== 'string') {
@@ -311,8 +312,8 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   function handleSkip() {
     cancelPick();
+    if (!player.skip()) return;
     setDirection('forward');
-    player.skip();
     afterLeaving(item.id);
   }
 
@@ -361,6 +362,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
       )}
       <div key={item.id} className={`quiz-slide quiz-slide--${direction}`}>
         <QuestionCard
+          key={item.id}
           item={item}
           scale={instrument.scale}
           value={picked ?? stored?.value}

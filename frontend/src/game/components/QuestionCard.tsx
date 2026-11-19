@@ -15,8 +15,13 @@ interface Props {
   value?: AnswerValue;
   onAnswer: (value: AnswerValue) => void;
   onSkip?: () => void;
-  /** Place le focus sur l'énoncé à chaque nouvelle question (une question par écran). */
+  /**
+   * Place le focus sur l'énoncé à l'affichage, pour que les lecteurs d'écran l'annoncent.
+   * Avec une carte par question (`key` = id de la question), c'est à chaque nouvelle question.
+   */
   autoFocus?: boolean;
+  /** Id d'un texte lu avec l'énoncé quand il prend le focus (avancement, par exemple). */
+  describedBy?: string;
 }
 
 function scalePoints(scale: LikertScale) {
@@ -52,7 +57,15 @@ function OptionContent({ option }: { option: ItemOption }) {
 }
 
 /** Affiche n'importe quelle question (Likert, choix, texte libre). Sans logique de partie. */
-export function QuestionCard({ item, scale, value, onAnswer, onSkip, autoFocus = false }: Props) {
+export function QuestionCard({
+  item,
+  scale,
+  value,
+  onAnswer,
+  onSkip,
+  autoFocus = false,
+  describedBy,
+}: Props) {
   const multiple = (item.max_choices ?? 1) > 1;
   const [selected, setSelected] = useState<string[]>([]);
   const [text, setText] = useState('');
@@ -85,7 +98,13 @@ export function QuestionCard({ item, scale, value, onAnswer, onSkip, autoFocus =
 
   return (
     <section className="question" aria-labelledby={`q-${item.id}`}>
-      <h1 id={`q-${item.id}`} ref={heading} tabIndex={-1} className="question__prompt">
+      <h1
+        id={`q-${item.id}`}
+        ref={heading}
+        tabIndex={-1}
+        className="question__prompt"
+        aria-describedby={describedBy}
+      >
         {frenchSpacing(item.prompt)}
       </h1>
       {item.hint && <p className="muted">{frenchSpacing(item.hint)}</p>}

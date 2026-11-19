@@ -102,6 +102,8 @@ export function QuestionnairePlayer({
         ? `chapter:${pendingChapter?.id}`
         : screen;
 
+  // Une question place elle-même le focus sur son énoncé (QuestionCard autoFocus) : seuls
+  // l'accueil, les étapes et la fin ont une cible ici.
   useEffect(() => {
     if (!instrument || result) return;
     window.scrollTo({ top: 0 });
@@ -341,13 +343,7 @@ export function QuestionnairePlayer({
           {gameFr.question.saveError}
         </p>
       )}
-      <div
-        ref={setFocusTarget}
-        tabIndex={-1}
-        className="play-question"
-        aria-labelledby={`q-${current.id}`}
-        aria-describedby="play-progress-label"
-      >
+      <div className="play-question">
         {kicker && <p className="play-kicker">{kicker}</p>}
         {/* Une carte neuve par question : ni focus ni survol hérités de la précédente. */}
         <QuestionCard
@@ -358,6 +354,8 @@ export function QuestionnairePlayer({
           onAnswer={player.answer}
           // Une réponse déjà donnée ne se passe pas : « Suivant » avance sans l'effacer.
           onSkip={answered ? undefined : player.skip}
+          autoFocus
+          describedBy="play-progress-label"
         />
       </div>
       <div className="play-nav">

@@ -16,6 +16,12 @@ export interface RunStart {
 
 const NOTHING_YET: RunStart = { answered: 0, seen: 0 };
 
+/**
+ * Un appui reçu juste après l'affichage d'une question vient de l'écran précédent
+ * (double appui, touche Entrée maintenue) : il est ignoré.
+ */
+const SETTLE_MS = 300;
+
 /** Dernière réponse donnée à une question et état de son enregistrement. */
 interface Save {
   /** Numéro du dernier envoi demandé : le résultat d'un envoi plus ancien ne compte plus. */
@@ -107,6 +113,9 @@ export function useRunPlayer(instrumentId: string) {
     const now = performance.now();
     clock.current = { shownAt: now, hiddenSince: document.hidden ? now : null };
   }, []);
+
+  /** Vrai juste après l'affichage d'une question : un appui à ce moment-là est ignoré. */
+  const justShown = useCallback(() => elapsed() < SETTLE_MS, [elapsed]);
 
   useEffect(() => {
     function onVisibilityChange() {
@@ -220,7 +229,7 @@ export function useRunPlayer(instrumentId: string) {
 
   const record = useCallback(
     (item: GameItem, value: AnswerValue, skipped: boolean, responseMs: number) => {
-      if (!runId) return;
+      if (!runId || responseMs < SETTLE_MS) return false;
       const stored = answers[item.id];
       const unchanged =
         stored !== undefined &&
@@ -236,28 +245,33 @@ export function useRunPlayer(instrumentId: string) {
       }
       // Après un retour ou une reprise, on ne refait pas défiler les questions déjà vues.
       setIndex(nextUnseen(items, after, index));
+      markShown();
+      return true;
     },
-    [runId, answers, items, index, send],
+    [runId, answers, items, index, send, markShown],
   );
 
   /**
    * Répond à la question affichée. `responseMs` sert quand l'appui précède l'envoi (animation du
-   * choix) : le temps est alors mesuré à l'appui.
+   * choix). Renvoie false si l'appui est ignoré, trop tôt après l'affichage.
    */
   const answer = useCallback(
-    (value: AnswerValue, responseMs = elapsed()) => {
-      if (current) record(current, value, false, responseMs);
-    },
+    (value: AnswerValue, responseMs = elapsed()) =>
+      current ? record(current, value, false, responseMs) : false,
     [current, record, elapsed],
   );
 
   /** Passe la question. Une question déjà répondue n'est pas effacée : on avance, sans envoi. */
   const skip = useCallback(() => {
-    if (!current) return;
+    if (!current) return false;
     const stored = answers[current.id];
-    if (stored && !stored.skipped) next();
-    else record(current, null, true, elapsed());
-  }, [current, answers, next, record, elapsed]);
+    if (stored && !stored.skipped) {
+      if (justShown()) return false;
+      next();
+      return true;
+    }
+    return record(current, null, true, elapsed());
+  }, [current, answers, justShown, next, record, elapsed]);
 
   const back = useCallback(() => setIndex((position) => Math.max(0, position - 1)), []);
   /** Va directement à une question (ou à la fin avec `items.length`). */
@@ -325,6 +339,7 @@ export function useRunPlayer(instrumentId: string) {
     back,
     goTo,
     markShown,
+    justShown,
     elapsed,
     pause,
     finish,
