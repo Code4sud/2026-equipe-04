@@ -47,6 +47,9 @@ XP_PER_ANSWER = 2
 XP_PER_TALENT = 25
 XP_REPLAY = 10
 BALANCED_MARGIN = 8
+# Un attribut de la fiche ne se construit qu'avec des points forts : curseurs à 50 ou plus.
+STRENGTH_FLOOR = 50
+ATTRIBUTE_MIN, ATTRIBUTE_MAX = 10, 20
 TIER_LABELS = {
     "validated": "Test validé",
     "adapted": "Inspiré d'un test validé",
@@ -132,6 +135,10 @@ def collect_signals(data: YouthData) -> list[dict]:
                 }
             )
     return rows
+
+
+def cursors_of(data: YouthData) -> dict[str, dict]:
+    return aggregate(catalog(), collect_signals(data))
 
 
 def clan_for(cursors: dict[str, dict]) -> dict | None:
@@ -474,7 +481,7 @@ def _score_performance(run: GameRun, instrument: dict, trials) -> None:
 def _result(user: User, run: GameRun, instrument: dict, before: dict) -> dict:
     data = load_youth(user.id)
     after = progress(data)
-    cursors = aggregate(catalog(), collect_signals(data))
+    cursors = cursors_of(data)
     earned_before = {b["id"] for b in before["badges"] if b["earned"]}
     return {
         "run": run_dict(run, instrument),
@@ -562,17 +569,31 @@ def youth_trait(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict |
     return {**view, "label": trait["youth"]["label"]}
 
 
+def _attribute_score(parts: list[dict], cursors: dict[str, dict]) -> int | None:
+    """Moyenne pondérée des seuls points forts (curseurs à 50 ou plus), ramenée de 50-100 à 10-20.
+
+    Un curseur bas ne fait jamais baisser un attribut : sans aucun point fort, l'attribut reste
+    à découvrir (None).
+    """
+    total, weights = 0.0, 0.0
+    for part in parts:
+        value = cursors[part["trait"]]["value"]
+        if value is None or value < STRENGTH_FLOOR:
+            continue
+        weight = part.get("weight", 1)
+        total += value * weight
+        weights += weight
+    if not weights:
+        return None
+    mean = total / weights
+    span = ATTRIBUTE_MAX - ATTRIBUTE_MIN
+    return round(ATTRIBUTE_MIN + (mean - STRENGTH_FLOOR) * span / (100 - STRENGTH_FLOOR))
+
+
 def _attributes(cursors: dict[str, dict], completed: set[str]) -> list[dict]:
     attributes = []
     for attribute in catalog().sheet["attributes"]:
-        total, weights = 0.0, 0.0
-        for part in attribute["traits"]:
-            value = cursors[part["trait"]]["value"]
-            if value is not None:
-                weight = part.get("weight", 1)
-                total += value * weight
-                weights += weight
-        score = round(8 + (total / weights) * 12 / 100) if weights else None
+        score = _attribute_score(attribute["traits"], cursors)
         attributes.append(
             {
                 "id": attribute["id"],
@@ -580,7 +601,7 @@ def _attributes(cursors: dict[str, dict], completed: set[str]) -> list[dict]:
                 "description": attribute["description"],
                 "icon": attribute.get("icon", "star"),
                 "score": score,
-                # Jeu à proposer tant que l'attribut reste inconnu.
+                # Jeu à proposer tant que l'attribut reste à découvrir.
                 "reveal_with": None
                 if score is not None
                 else reveal_with(catalog(), {p["trait"] for p in attribute["traits"]}, completed),
@@ -601,16 +622,25 @@ def fact_dict(fact: GameFact) -> dict:
     }
 
 
+def _is_shown_to_youth(view: dict, group: dict) -> bool:
+    """Un curseur à un seul pôle ne montre au jeune que ses points forts, quel que soit son groupe."""
+    if view["value"] is None:
+        return False
+    if view["kind"] == "unipolar" or group.get("youth_view") == "strengths":
+        return view["value"] >= STRENGTH_FLOOR
+    return True
+
+
 def character_sheet(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
-    cursors = aggregate(cat, collect_signals(data))
+    cursors = cursors_of(data)
     groups = []
     for group in cat.trait_groups:
         traits = [youth_trait(t, cursors[t], data.feedback) for t in group["trait_ids"]]
-        known = [t for t in traits if t["value"] is not None]
+        known = [view for view in traits if _is_shown_to_youth(view, group)]
         if group.get("youth_view") == "strengths":
-            known = sorted((t for t in known if t["value"] >= 50), key=lambda t: -t["value"])
+            known.sort(key=lambda view: -view["value"])
         groups.append({"id": group["id"], "label": group["youth_label"], "traits": known})
     pending = db.session.query(Skill).filter(
         Skill.youth_id == user.id, Skill.status == SkillStatus.PENDING
@@ -730,7 +760,7 @@ def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict:
 def psy_overview(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
-    cursors = aggregate(cat, collect_signals(data))
+    cursors = cursors_of(data)
     runs = []
     for run in reversed(data.runs):
         instrument = cat.instruments.get(run.instrument_id)

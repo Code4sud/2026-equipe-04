@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from test_game import answer, complete, finish_onboarding, start, youth_id
 
+from app.game import service as game
 from app.game.catalog import Catalog
 from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text
@@ -53,6 +54,10 @@ def sheet(client, youth) -> dict:
     return client.get("/api/me/game/sheet", headers=youth).get_json()
 
 
+def youth_traits(payload: dict) -> dict[str, dict]:
+    return {trait["id"]: trait for group in payload["trait_groups"] for trait in group["traits"]}
+
+
 def facts_of(client, youth) -> dict[str, dict]:
     return {fact["key"]: fact for fact in sheet(client, youth)["facts"]}
 
@@ -60,6 +65,50 @@ def facts_of(client, youth) -> dict[str, dict]:
 def raw(client, method, url, headers, text):
     """Envoie un JSON tel quel (NaN, 1e400, \\u0000...), que json.dumps ne produirait pas."""
     return client.open(url, method=method, data=text, headers={**headers, "Content-Type": "application/json"})
+
+
+# --- 2. La fiche ne montre que des points forts ---
+
+
+def test_attribute_score_maps_strengths_from_50_100_to_10_20():
+    parts = [{"trait": "a"}, {"trait": "b", "weight": 0.5}, {"trait": "c"}]
+    cursors = {"a": {"value": 100.0}, "b": {"value": 50.0}, "c": {"value": 5.0}}
+    # c (5) est ignoré : (100 + 0,5 × 50) / 1,5 = 83,3, soit 10 + 33,3 / 5 = 16,7.
+    assert game._attribute_score(parts, cursors) == 17
+    assert game._attribute_score([{"trait": "a"}], cursors) == 20
+    assert game._attribute_score([{"trait": "b"}], cursors) == 10
+    assert game._attribute_score([{"trait": "c"}], cursors) is None
+    assert game._attribute_score([{"trait": "a"}], {"a": {"value": None}}) is None
+
+
+def test_attributes_never_show_a_low_number(client, youth):
+    finish_onboarding(client, youth)  # Extraversion 10, intérêt manuel 95, organisation 100.
+    attributes = {a["id"]: a for a in sheet(client, youth)["attributes"]}
+    # L'audace ne repose ici que sur un pôle bas : elle reste à découvrir au lieu d'afficher 9.
+    assert attributes["audace"]["score"] is None
+    assert attributes["audace"]["reveal_with"]["id"] == "fixture_questionnaire"
+    assert attributes["adresse"]["score"] == 19 and attributes["methode"]["score"] == 20
+
+    run_id = start(client, youth, "fixture_span")["run"]["id"]
+    failed = [{"sequence": [1, 2], "response": [2, 1]}, {"sequence": [1, 2, 3], "response": [3, 2, 1]}]
+    assert complete(client, youth, run_id, trials=failed).status_code == 200
+    attributes = {a["id"]: a for a in sheet(client, youth)["attributes"]}
+    # Partie ratée : la mémoire de travail à 0 ne fait pas apparaître une logique à 8.
+    assert attributes["logique"]["score"] is None
+    assert all(a["score"] is None or 10 <= a["score"] <= 20 for a in attributes.values())
+
+
+def test_unipolar_traits_never_show_a_low_value_whatever_their_group(client, youth, catalog):
+    for group in catalog.trait_groups:
+        group.pop("youth_view", None)
+    finish_onboarding(client, youth)
+    run_id = start(client, youth, "fixture_span")["run"]["id"]
+    assert complete(client, youth, run_id, trials=[{"sequence": [1, 2], "response": [2, 1]}]).status_code == 200
+    traits = youth_traits(sheet(client, youth))
+    assert "working_memory" not in traits
+    assert all(trait["value"] >= 50 for trait in traits.values() if trait["kind"] == "unipolar")
+    # Un curseur bipolaire reste neutre : ses deux pôles se montrent.
+    assert traits["extraversion"]["value"] == 10.0
 
 
 # --- 6. Le jeune ne reçoit que ses réussites ---
