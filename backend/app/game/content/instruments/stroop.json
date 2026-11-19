@@ -1,0 +1,39 @@
+{
+  "id": "stroop",
+  "version": 1,
+  "order": 42,
+  "kind": "performance",
+  "tier": "performance",
+  "title": "Peinture fraîche",
+  "tagline": "Le mot dit une couleur, la peinture en montre une autre.",
+  "icon": "palette",
+  "duration_min": 3,
+  "xp": 80,
+  "requires": ["onboarding"],
+  "replayable": true,
+  "source_ids": ["stroop_1935", "macleod_1991_stroop"],
+  "intro": "Un nom de couleur s’affiche, peint dans une couleur. Touche la couleur de la peinture, pas celle que le mot raconte. Vise juste, puis vise vite !",
+  "outro": "Quelle concentration ! Tu as gardé l’œil sur la peinture.",
+  "source_note": "Inspiré de l’effet Stroop, décrit par J. R. Stroop en 1935.",
+  "scoring_note": "Tâche de Stroop informatisée. 4 couleurs (rouge, vert, bleu, jaune ; palette lisible par les personnes daltoniennes, nom écrit sur chaque bouton), réponse par bouton ou touches R, V, B, J. 4 essais d’entraînement gardés mais non comptés, puis 32 essais en 2 manches : 50 % congruents, jamais deux fois la même encre de suite, pas de limite de temps. Le serveur recalcule congruence et justesse. TR moyens sur les essais justes entre 200 et 3000 ms. Effet de congruence = TR incongruent − TR congruent (sans essais neutres, interférence et facilitation ne sont pas séparées). Précision = (exactitude − 25 %) / 75 % ; résistance = 1 − effet / 400 ms, bornée entre 0 et 1 (0,5 si incalculable). Curseur = précision × (0,5 + 0,5 × résistance) × 100. Pas d’étalonnage, pas un diagnostic.",
+  "performance": {
+    "scorer": "stroop",
+    "variant": "stroop",
+    "trait": "attention_control",
+    "weight": 4,
+    "colors": [
+      { "id": "rouge", "label": "Rouge", "key": "r" },
+      { "id": "vert", "label": "Vert", "key": "v" },
+      { "id": "bleu", "label": "Bleu", "key": "b" },
+      { "id": "jaune", "label": "Jaune", "key": "j" }
+    ],
+    "trials": 32,
+    "blocks": 2,
+    "practice_trials": 4,
+    "congruent_ratio": 0.5,
+    "fixation_ms": 500,
+    "rt_min_ms": 200,
+    "rt_max_ms": 3000,
+    "interference_scale_ms": 400
+  }
+}

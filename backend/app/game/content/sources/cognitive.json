@@ -1,0 +1,61 @@
+{
+  "sources": [
+    {
+      "id": "corsi_kessels_2000",
+      "title": "Tâche des blocs de Corsi (procédure standardisée)",
+      "citation": "Corsi, P. M. (1972). Human memory and the medial temporal region of the brain [Thèse de doctorat, Université McGill]. Procédure standardisée : Kessels, R. P. C., van Zandvoort, M. J. E., Postma, A., Kappelle, L. J., & de Haan, E. H. F. (2000). The Corsi Block-Tapping Task: Standardization and normative data. Applied Neuropsychology, 7(4), 252–258.",
+      "url": "https://doi.org/10.1207/S15324826AN0704_8",
+      "licence": "Paradigme expérimental libre, sans item protégé. Articles sous droits de leurs éditeurs : rien n’en est reproduit.",
+      "validated": false,
+      "adaptation": "Version tactile maison : 9 lanternes à des positions propres au jeu (pas la planche d’origine), séquences tirées au hasard sans répétition, 1 lanterne par seconde. Deux chances par longueur, la seconde seulement après une erreur, arrêt après 2 erreurs à une même longueur. Le score total de Kessels et al. n’est pas calculé et leurs normes ne s’appliquent pas.",
+      "note": "Corsi (1972) est une thèse non publiée : son lien d’archive à l’Université McGill n’a pas pu être vérifié, il n’est donc pas donné."
+    },
+    {
+      "id": "jacobs_1887_empan",
+      "title": "Empan de chiffres : première description",
+      "citation": "Jacobs, J. (1887). Experiments on “prehension”. Mind, os-12(45), 75–79.",
+      "url": "https://doi.org/10.1093/mind/os-12.45.75",
+      "licence": "Article de 1887, rien n’en est reproduit. Paradigme libre : les séries sont tirées au hasard, aucune ne vient d’un test commercial.",
+      "validated": false,
+      "adaptation": "Restitution immédiate de séries de chiffres de longueur croissante, ici affichées à l’écran une par seconde et retapées sur un pavé, avec une phase à l’envers en plus."
+    },
+    {
+      "id": "woods_2011_empan",
+      "title": "Empan de chiffres informatisé et adaptatif",
+      "citation": "Woods, D. L., Kishiyama, M. M., Yund, E. W., Herron, T. J., Edwards, B., Poliva, O., Hink, R. F., & Reed, B. (2011). Improving digit span assessment of short-term verbal memory. Journal of Clinical and Experimental Neuropsychology, 33(1), 101–111.",
+      "url": "https://doi.org/10.1080/13803395.2010.493149",
+      "licence": "Article sous droits de l’éditeur, rien n’en est reproduit.",
+      "validated": false,
+      "adaptation": "Référence pour une passation informatisée où la longueur des séries suit les réussites, à l’endroit et à l’envers. Ici : présentation visuelle et non auditive, règle d’arrêt simple (2 erreurs à une même longueur), sans l’empan moyen proposé par les auteurs."
+    },
+    {
+      "id": "stroop_1935",
+      "title": "Effet Stroop",
+      "citation": "Stroop, J. R. (1935). Studies of interference in serial verbal reactions. Journal of Experimental Psychology, 18(6), 643–662.",
+      "url": "https://doi.org/10.1037/h0054651",
+      "licence": "Paradigme expérimental libre. Article publié par l’American Psychological Association : rien n’en est reproduit.",
+      "validated": false,
+      "adaptation": "Version informatisée, essai par essai, réponse par bouton. Stroop (1935) faisait nommer à voix haute des planches de mots avec 5 couleurs (rouge, bleu, vert, marron, violet) ; ici 4 couleurs (rouge, vert, bleu, jaune) d’une palette lisible par les personnes daltoniennes, nom écrit sur chaque bouton, 50 % d’essais congruents.",
+      "note": "Texte intégral consultable sur Classics in the History of Psychology (York University) : https://psychclassics.yorku.ca/Stroop/"
+    },
+    {
+      "id": "macleod_1991_stroop",
+      "title": "Revue de l’effet Stroop",
+      "citation": "MacLeod, C. M. (1991). Half a century of research on the Stroop effect: An integrative review. Psychological Bulletin, 109(2), 163–203.",
+      "url": "https://doi.org/10.1037/0033-2909.109.2.163",
+      "licence": "Article sous droits de l’éditeur, rien n’en est reproduit.",
+      "validated": false,
+      "adaptation": "Citée comme synthèse de référence, pas pour des normes. Sans essais neutres, le jeu mesure l’effet de congruence (incongruent − congruent) et ne sépare pas interférence et facilitation."
+    },
+    {
+      "id": "icar_2014",
+      "title": "International Cognitive Ability Resource (ICAR)",
+      "citation": "Condon, D. M., & Revelle, W. (2014). The International Cognitive Ability Resource: Development and initial validation of a public-domain measure. Intelligence, 43, 52–64.",
+      "url": "https://doi.org/10.1016/j.intell.2014.01.004",
+      "licence": "Items ICAR diffusés sous licence d’usage scientifique (PsychArchives), réservés à la recherche et à garder hors de la vue du public. Aucun item ICAR n’est reproduit ici.",
+      "validated": false,
+      "adaptation": "Inspiration de format seulement : suites de lettres et de nombres, matrices 3×3 de formes avec une case manquante, 6 choix, sans limite de temps. Les 12 énigmes sont originales, écrites pour Potentiel, sans validation ni normes.",
+      "note": "Ce dépôt est public : aucun item ICAR n’y est copié. Conditions d’utilisation : https://sms.statistik.tu-dortmund.de/en/research/projects/completed-research-projects/international-cognitive-ability-resource-icar/"
+    }
+  ]
+}

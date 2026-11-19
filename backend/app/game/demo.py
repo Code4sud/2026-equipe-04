@@ -4,6 +4,7 @@ from __future__ import annotations
 import random
 import uuid
 
+from ..errors import ApiError
 from ..extensions import db
 from ..models import User
 from .catalog import likert_parts
@@ -56,7 +57,12 @@ def seed_youth_game(user: User, persona: dict) -> None:
     rng = random.Random(f"{user.email}:game")
     game.set_consent(user, persona.get("share", True))
     for instrument in game.catalog().ordered_instruments():
-        payload, _ = game.start_run(user, instrument["id"])
+        try:
+            payload, _ = game.start_run(user, instrument["id"])
+        except ApiError as error:
+            if error.code == "locked":  # Prérequis absent du contenu chargé (quiz d'arrivée).
+                continue
+            raise
         run_uuid = uuid.UUID(payload["run"]["id"])
         body = {}
         if instrument["kind"] == "performance":
