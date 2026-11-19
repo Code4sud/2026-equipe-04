@@ -4,7 +4,7 @@
 
 1. À la création du compte, le jeune accepte que ses données soient transmises au Centre des Possibles et à sa psychologue (formulaire d'inscription, hors de ce module).
 2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions en chapitres. Il peut passer une question ou continuer plus tard.
-3. Le quiz révèle son clan (type RIASEC dominant) et débloque les jeux de `/jeune/jeux`. Le clan suit l'intérêt le plus fort : si une partie le fait changer, son résultat l'annonce (`previous_clan` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer.
+3. Le quiz révèle son archétype, un badge tiré de son trait de caractère le plus marqué (voir « Archétype »), et débloque les jeux de `/jeune/jeux`. L'archétype est recalculé avec toutes ses réponses : si une partie le fait changer, son résultat l'annonce (`previous_archetype` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer.
 4. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur ce que chaque curseur affiche. Si un curseur bipolaire change de pôle ensuite, son ancien verdict ne s'affiche plus et il peut juger le nouveau.
 5. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, ainsi que chaque modification du jeune (détail corrigé avec sa réponse d'origine, détail masqué ou remontré, verdict donné, changé ou retiré avec ce qu'il jugeait, réponse changée ou retirée), pour pouvoir en parler avec lui.
 
@@ -13,8 +13,9 @@
 - Aucune question ni déduction sur la santé, le handicap, l'origine, la famille, la religion, la vie amoureuse ou les opinions. `tests/test_game_content.py` contrôle les textes envoyés au jeune (contenu et fichiers `*.fr.ts` hors backoffice) avec la lecture et les termes du garde-fou du chat, plus des mots interdits côté jeune.
 - Le jeune garde la parole sur ce qui le concerne : il corrige ou masque ses détails et donne son verdict sur chaque curseur. Masquer ne change que sa fiche, et l'interface lui dit clairement que la psychologue voit ses réponses et ses changements.
 - Côté jeune, pas de pourcentage bas, pas de libellé péjoratif, pas de QI. Les curseurs bipolaires restent neutres et les autres (`kind: unipolar`, quel que soit leur groupe) ne montrent que les points forts. Les attributs de la fiche ne comptent que les points forts, et la fin d'un jeu chronométré ne renvoie que les réussites (voir Calcul).
-- Rien de ce qui sert à coter ne part vers le jeune : ni signaux, ni curseurs visés, ni clés de correction, ni sources, ni historique de ses modifications.
+- Rien de ce qui sert à coter ne part vers le jeune : ni signaux, ni curseurs visés, ni clés de correction, ni sources, ni historique de ses modifications, ni le curseur, le pôle ou la valeur qui désignent son archétype.
 - Le MBTI n'est ni normé ni validé. Le nom n'apparaît pas côté jeune, et aucun résultat n'est présenté comme un test MBTI.
+- L'archétype est un habillage ludique : ni un type de personnalité validé, ni un type MBTI. Son nom et sa description restent positifs, quel que soit le pôle, et la psychologue voit toujours d'après quel curseur il a été attribué.
 - Univers original : aucun nom, personnage ou visuel d'une licence existante.
 - Un score de jeu n'est ni un diagnostic ni une norme : la psychologue voit toujours le niveau de preuve.
 
@@ -25,7 +26,7 @@
 | `traits/*.json` | Curseurs, regroupés par famille |
 | `instruments/*.json` | Quiz, questionnaires et jeux (un fichier par instrument) |
 | `sources/*.json` | Références bibliographiques citées par les instruments |
-| `clans.json`, `sheet.json` | Clans, attributs de la fiche, niveaux, badges |
+| `archetypes.json`, `sheet.json` | Archétypes, attributs de la fiche, niveaux, badges |
 | `skill_signals.json` | Effet d'un talent validé sur les curseurs |
 
 ### Instrument
@@ -93,6 +94,29 @@ La confiance d'un curseur dépend du poids total de ses signaux : `none` à 0, `
 
 Un attribut (`sheet.json`) combine plusieurs curseurs. Seuls les points forts comptent : une partie dont le curseur est sous 50 (jeu raté, pôle bas d'un curseur bipolaire) est ignorée. La moyenne pondérée des parties restantes, entre 50 et 100, devient un score de 10 à 20. Sans aucune partie à 50 ou plus, `score` vaut `null` : la fiche affiche « ? » et `reveal_with` propose le premier jeu du catalogue qui nourrit l'un de ces curseurs et reste jouable (un jeu jamais terminé avant un jeu à rejouer).
 
+### Archétype
+
+L'archétype est le badge d'identité du jeune : un nom, une devise, une description et un emoji (`archetypes.json`). C'est un habillage ludique de ses curseurs de caractère, pas un type de personnalité validé ni un type MBTI. Il n'a rien à voir avec les badges de progression de `sheet.json`.
+
+`archetype_for` (`service.py`) le recalcule à chaque lecture, avec tous les signaux du jeune (quiz, questionnaires, jeux et talents validés), comme les curseurs :
+
+1. Seuls comptent les cinq curseurs bipolaires du groupe `personality` qui ont une valeur. Sans aucune valeur, pas encore d'archétype (`null`).
+2. Le curseur le plus éloigné de 50 l'emporte ; à égalité, le premier dans l'ordre de `traits/10_personality.json`.
+3. S'il ne s'écarte pas de plus de 8 points de 50 (`BALANCED_MARGIN`, la marge qui affiche déjà « Entre les deux » au jeune), c'est l'archétype équilibré, Le Caméléon. Sinon c'est l'archétype de son pôle : `high` au-dessus de 50, `low` en dessous.
+
+| Curseur | Pôle `low` | Pôle `high` |
+|---|---|---|
+| `extraversion` (Réservé·e ↔ Sociable) | 🏮 La Lanterne | ✨ L'Étincelle |
+| `agreeableness` (Franc·he ↔ Conciliant·e) | 🧭 La Boussole | 🌉 Le Pont |
+| `conscientiousness` (Spontané·e ↔ Organisé·e) | 🍃 Le Vent | 🧱 La Charpente |
+| `emotional_stability` (Intense ↔ Posé·e) | 🔥 La Flamme | ⛰️ Le Roc |
+| `openness` (Concret·e ↔ Curieux·se) | 🌳 La Racine | 🌅 L'Horizon |
+| Aucun curseur à plus de 8 points de 50 | 🦎 Le Caméléon (`pole: "balanced"`, `trait: null`) | |
+
+Chaque entrée de `archetypes.json` porte `id`, `trait` (`null` pour l'archétype équilibré), `pole` (`high`, `low` ou `balanced`), `name`, `motto`, `description` et `emoji`. Le catalogue refuse de démarrer si un pôle de personnalité n'a pas exactement un archétype, s'il n'y a pas exactement un archétype équilibré, si un archétype vise un curseur qui n'est pas un curseur bipolaire de personnalité, si un pôle est inconnu, si un identifiant est en double ou si un champ manque. `tests/test_game_content.py` relit tous ses textes avec le garde-fou du jeune.
+
+Le jeune reçoit `{id, name, motto, description, emoji, quality}`, où `quality` est le libellé jeune du pôle (« Sociable »), ou « Entre les deux » pour Le Caméléon. La fin de partie renvoie aussi `previous_archetype`, l'archétype d'avant quand la partie l'a fait changer, sinon `null` (comme quand on redemande le résultat d'une partie déjà terminée). Le quiz compte dès les réponses : sa fin révèle l'archétype sans annoncer de changement.
+
 ### Verdicts
 
 `PUT /traits/<id>/feedback` enregistre le verdict avec le libellé montré au jeune à ce moment-là (`label_at_verdict` : pôle, « Entre les deux » ou nom du curseur) et la valeur du curseur (`value_at_verdict`), tous deux recalculés par le serveur : ce que le navigateur envoie en plus est ignoré. Côté jeune (fiche, `highlights`), `verdict` vaut `null` quand un curseur bipolaire affiche désormais un autre libellé, pour qu'il puisse juger à nouveau. Le même verdict renvoyé deux fois ne change rien ; deux appuis rapprochés gardent le dernier. Un verdict retiré laisse une trace dans l'historique.
@@ -125,14 +149,15 @@ Une réponse renvoyée à l'identique, un détail réécrit sans changement ou u
 
 Jeune (`/api/me/game`) : `GET /`, `POST /instruments/<id>/runs`, `PUT /runs/<id>/answers/<item>`, `POST /runs/<id>/pause`, `POST /runs/<id>/complete`, `GET /sheet`, `PATCH /facts/<clé>`, `PUT /traits/<id>/feedback`.
 
+- `POST /runs/<id>/complete` renvoie `archetype` et `previous_archetype`, et `GET /sheet` donne `identity.archetype` (voir « Archétype ») : jamais le curseur, le pôle ni la valeur qui l'ont désigné.
 - `POST /runs/<id>/complete` d'un jeu chronométré renvoie dans `metrics` les seules réussites du jeune : la projection `youth` de chaque correcteur (`SCORERS`), par défaut toutes les mesures sans aucun `percent`. Empan : `span`, `trials`, `correct`, `phases.<id>.span`... ; Stroop : `trials`, `best_streak`, `fastest_rt_ms` ; énigmes : `solved`, `best_streak`. La psychologue garde toutes les mesures.
 - Un `PUT` de réponse envoyé deux fois donne le même résultat qu'une fois (la dernière valeur gagne). Une partie se modifie sous verrou : rien n'arrive dans une partie déjà terminée (`409 run_closed`).
 - Les textes libres (réponses et détails corrigés) refusent les caractères de contrôle et les moitiés de paire UTF-16 (`400`). Un `response_ms` ou `rt_ms` qui n'est pas un nombre fini est ignoré. Le corps d'une requête du jeu est limité à 256 Ko (`413 payload_too_large`).
 
 Psychologue (`/api/backoffice`) : `GET /game/catalog`, `GET /youths/<id>/game`, `GET /youths/<id>/game/runs/<run>`, `GET /youths/<id>/game/traits/<trait>`.
 
-- `GET /game/catalog` : `instruments` (avec `chapters` : identifiant et titre), `sources`, `weights` (poids de chaque niveau de preuve) et `confidence_thresholds` (`{medium: 2, high: 5}`).
-- `GET /youths/<id>/game` : chaque curseur garde `verdict` (dernier verdict enregistré) et ajoute `verdict_detail` (`{verdict, label_at_verdict, value_at_verdict, at, stale}`, `stale` quand le curseur a changé de pôle depuis) ; `facts` ajoute `source_instrument_id`, `source_item_id` et `edited_at` (dernière correction de la valeur par le jeune) ; `events` donne les 200 dernières modifications, de la plus récente à la plus ancienne : `{id, kind, subject, ref, before, after, at}`, où `subject` nomme en clair ce qui a changé (« Passion », « Réservé ↔ Sociable », « Quiz d'arrivée · Ta couleur préférée ? ») et `ref` le désigne (`{type: "fact", key}`, `{type: "trait", trait_id}`, `{type: "answer", run_id, instrument_id, item_id}`).
+- `GET /game/catalog` : `instruments` (avec `chapters` : identifiant et titre), `sources`, `weights` (poids de chaque niveau de preuve), `confidence_thresholds` (`{medium: 2, high: 5}`) et `archetypes` (chaque archétype avec `trait`, `pole`, `trait_label` et `pole_label`), affichés sur la page Sources et méthode.
+- `GET /youths/<id>/game` : `archetype` ajoute aux champs du jeune `trait`, `pole`, `value` (valeur brute du curseur, `null` pour Le Caméléon), `trait_label` (« Réservé ↔ Sociable ») et `pole_label` (« Sociable », ou « Entre les deux ») ; la synthèse l'explique par le titre du curseur (« 72 % sociable »). Chaque curseur garde `verdict` (dernier verdict enregistré) et ajoute `verdict_detail` (`{verdict, label_at_verdict, value_at_verdict, at, stale}`, `stale` quand le curseur a changé de pôle depuis) ; `facts` ajoute `source_instrument_id`, `source_item_id` et `edited_at` (dernière correction de la valeur par le jeune) ; `events` donne les 200 dernières modifications, de la plus récente à la plus ancienne : `{id, kind, subject, ref, before, after, at}`, où `subject` nomme en clair ce qui a changé (« Passion », « Réservé ↔ Sociable », « Quiz d'arrivée · Ta couleur préférée ? ») et `ref` le désigne (`{type: "fact", key}`, `{type: "trait", trait_id}`, `{type: "answer", run_id, instrument_id, item_id}`).
 - `GET /youths/<id>/game/runs/<run>` : chaque ligne ajoute `options` (`[{id, label}]` d'une question à choix) et `scale` (`{min, max, labels}` d'une question Likert, telle que proposée au jeune), `null` sinon. `hidden_by_youth` vaut pour le détail venu de ce même instrument et de cette même question.
 
 Les types TypeScript sont dans `frontend/src/game/types.ts`.
