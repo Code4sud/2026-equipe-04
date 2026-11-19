@@ -1173,6 +1173,21 @@ p.sheet-attr__hint {
   stroke: var(--color-accent);
 }
 
+/* Image de la fiche */
+.sheet-download {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.sheet-download__hint {
+  max-width: 24rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
 @media (min-width: 30rem) {
   .sheet-paper {
     padding-inline: var(--space-5);

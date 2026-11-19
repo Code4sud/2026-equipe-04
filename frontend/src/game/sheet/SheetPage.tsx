@@ -6,6 +6,7 @@ import type { CharacterSheet, GameFact, GameStatus, Verdict } from '../types';
 import { Attributes } from './Attributes';
 import { Badges } from './Badges';
 import { Character } from './Character';
+import { DownloadSheet } from './DownloadSheet';
 import { ActionIcon, Corner } from './glyphs';
 import { Identity, type FactChanges } from './Identity';
 import { SheetHero } from './SheetHero';
@@ -134,6 +135,11 @@ export default function SheetPage() {
   if (!sheet) return <Loading />;
 
   const quest = questFor(status);
+  // Une image vaut d'être gardée dès qu'il y a un clan, un détail ou un talent.
+  const hasContent =
+    Boolean(sheet.identity.clan) ||
+    sheet.facts.some((fact) => !fact.hidden) ||
+    sheet.talents.validated.length > 0;
   const quizPending = quest === 'quiz-start' || quest === 'quiz-resume';
   const characterNext = quizPending
     ? { to: '/jeune/quiz', text: t.character.emptyQuiz, cta: t.identity.emptyCta }
@@ -173,6 +179,8 @@ export default function SheetPage() {
             <Badges badges={sheet.progress.badges} />
           </div>
         </article>
+
+        {hasContent && <DownloadSheet sheet={sheet} announce={announce} />}
 
         <p className="visually-hidden" aria-live="polite">
           {message}

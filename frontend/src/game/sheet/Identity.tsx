@@ -3,25 +3,13 @@ import { Link } from 'react-router-dom';
 import { errorMessage } from '../../components/Feedback';
 import type { GameFact } from '../types';
 import { isColorFact, swatchFor } from './colors';
+import { orderFacts } from './facts';
 import { ActionIcon } from './glyphs';
 import { SheetBox } from './SheetBox';
 import { sheetFr } from './sheet.fr';
 
 const t = sheetFr.identity;
 const MAX_LENGTH = 120;
-/** La couleur et la passion ouvrent la fiche ; les autres détails gardent l'ordre de l'API. */
-const FIRST = [/couleur/, /passion/];
-
-function orderFacts(facts: GameFact[]) {
-  const rank = (fact: GameFact) => {
-    const index = FIRST.findIndex((pattern) => pattern.test(fact.key));
-    return index < 0 ? FIRST.length : index;
-  };
-  return facts
-    .map((fact, index) => ({ fact, index }))
-    .sort((a, b) => rank(a.fact) - rank(b.fact) || a.index - b.index)
-    .map(({ fact }) => fact);
-}
 
 export type FactChanges = { value?: string; hidden?: boolean };
 
@@ -108,6 +96,7 @@ function FactEditor({
   return (
     <form
       className="sheet-fact__form"
+      noValidate
       onSubmit={submit}
       onKeyDown={(event) => {
         if (event.key === 'Escape') {

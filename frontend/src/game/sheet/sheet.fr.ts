@@ -16,7 +16,7 @@ export const sheetFr = {
   hero: {
     kicker: 'Fiche d’aventure',
     clan: 'Clan',
-    noClan: 'Clan encore secret',
+    noClan: 'encore secret',
     noClanHint: 'Ton clan se révèle à la fin du quiz d’arrivée.',
     level: 'Niv.',
     levelFull: (level: number) => `Niveau ${level}`,
@@ -77,6 +77,10 @@ export const sheetFr = {
     play: (title: string) => `Joue à ${quote(title)} pour le découvrir`,
     finish: (title: string) => `Finis ${quote(title)} pour le découvrir`,
     later: 'Tes prochains jeux et talents le révéleront.',
+    playAll: (title: string) => `Joue à ${quote(title)} pour les découvrir.`,
+    finishAll: (title: string) => `Finis ${quote(title)} pour les découvrir.`,
+    laterAll: 'Les jeux les révèlent un à un.',
+    laterAllCta: 'Voir les jeux',
   },
 
   character: {
@@ -97,7 +101,7 @@ export const sheetFr = {
     agreed: (label: string) => `Noté : ${quote(label)}, c’est toi.`,
     disagreed: (label: string) => `Noté : ${quote(label)}, ce n’est pas toi.`,
     cleared: (label: string) => `Ton avis sur ${quote(label)} est retiré.`,
-    noStrength: 'Rien pour l’instant. Les jeux le révéleront.',
+    noStrength: 'À découvrir en jouant.',
   },
 
   badges: {
@@ -112,7 +116,7 @@ export const sheetFr = {
     busy: 'Je dessine ta fiche…',
     done: 'Ta fiche est téléchargée.',
     error: 'Le dessin n’a pas marché. Réessaie dans un instant.',
-    hint: 'Une image de ta fiche, sans les détails masqués ni les avis « Pas moi ».',
+    hint: 'Une image à garder ou à montrer, sans les détails que tu as masqués.',
     file: (name: string) => `fiche-${name}.png`,
   },
 };

@@ -6,20 +6,52 @@ import { sheetFr, typo } from './sheet.fr';
 
 const t = sheetFr.attributes;
 
-function RevealHint({ reveal }: { reveal: SheetAttribute['reveal_with'] }) {
+type Reveal = NonNullable<SheetAttribute['reveal_with']>;
+
+const linkFor = (reveal: Reveal) => (reveal.kind === 'quiz' ? '/jeune/quiz' : '/jeune/jeux');
+
+function RevealHint({ reveal }: { reveal: Reveal | null }) {
   if (!reveal) return <p className="sheet-attr__hint">{t.later}</p>;
-  const isQuiz = reveal.kind === 'quiz';
   return (
-    <Link to={isQuiz ? '/jeune/quiz' : '/jeune/jeux'} className="sheet-attr__hint sheet-link">
-      {isQuiz ? t.finish(reveal.title) : t.play(reveal.title)}
+    <Link to={linkFor(reveal)} className="sheet-attr__hint sheet-link">
+      {reveal.kind === 'quiz' ? t.finish(reveal.title) : t.play(reveal.title)}
     </Link>
+  );
+}
+
+/** Une seule invitation quand aucun attribut n'est connu, plutôt que six fois la même. */
+function SharedHint({ attributes }: { attributes: SheetAttribute[] }) {
+  const targets = new Map<string, Reveal>();
+  for (const attribute of attributes) {
+    if (attribute.reveal_with) targets.set(attribute.reveal_with.id, attribute.reveal_with);
+  }
+  const [only] = targets.size === 1 ? [...targets.values()] : [];
+  if (!only) {
+    return (
+      <p className="sheet-box__intro">
+        {t.laterAll}{' '}
+        <Link to="/jeune/jeux" className="sheet-link">
+          {t.laterAllCta}
+        </Link>
+      </p>
+    );
+  }
+  return (
+    <p className="sheet-box__intro">
+      <Link to={linkFor(only)} className="sheet-link">
+        {only.kind === 'quiz' ? t.finishAll(only.title) : t.playAll(only.title)}
+      </Link>
+    </p>
   );
 }
 
 /** Les six attributs, de 8 à 20, en médaillons. Un attribut inconnu montre comment le révéler. */
 export function Attributes({ attributes }: { attributes: SheetAttribute[] }) {
+  const noneKnown = attributes.every((attribute) => attribute.score === null);
+
   return (
     <SheetBox id="sheet-attributes" title={t.title} intro={t.intro} className="sheet-area--attributes">
+      {noneKnown && <SharedHint attributes={attributes} />}
       <ul className="sheet-attributes">
         {attributes.map((attribute) => {
           const known = attribute.score !== null;
@@ -37,7 +69,7 @@ export function Attributes({ attributes }: { attributes: SheetAttribute[] }) {
                 </span>
               </h4>
               <p className="sheet-attr__description">{typo(attribute.description)}</p>
-              {!known && <RevealHint reveal={attribute.reveal_with ?? null} />}
+              {!known && !noneKnown && <RevealHint reveal={attribute.reveal_with ?? null} />}
             </li>
           );
         })}
