@@ -86,7 +86,7 @@ export const sheetFr = {
 
   character: {
     title: 'Caractère',
-    intro: 'Dis si tu te reconnais. La psychologue voit ton avis.',
+    intro: 'Dis si tu te reconnais. La psychologue voit ton avis, même si tu le changes.',
     empty: 'Joue aux mini-jeux pour dessiner ton caractère.',
     emptyCta: 'Voir les jeux',
     emptyQuiz: 'Le quiz d’arrivée dessine tes premiers traits.',
