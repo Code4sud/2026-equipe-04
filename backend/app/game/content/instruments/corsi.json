@@ -14,7 +14,7 @@
   "source_ids": ["corsi_kessels_2000"],
   "intro": "Les lanternes du terrier s’allument une par une. Touche-les ensuite dans le même ordre. À chaque réussite, le chemin s’allonge d’une lanterne.",
   "outro": "Bien joué ! Ta mémoire des parcours a fait du chemin.",
-  "source_note": "Inspiré d’une tâche de mémoire inventée par Philip Corsi en 1972.",
+  "source_note": "Inspiré d’une tâche de mémoire décrite par Philip Corsi en 1972.",
   "scoring_note": "Tâche des blocs de Corsi, version tactile à 9 lanternes (positions propres au jeu, numérotées de 1 à 9 de haut en bas). Séquences tirées au hasard sans répétition, 1 lanterne par seconde (700 ms allumée, 300 ms éteinte). Départ à 2, +1 après une série exacte, 2e essai à la même longueur après une erreur, arrêt après 2 erreurs à une même longueur ou après une série de 9 réussie. Un ou deux essais d’entraînement à 2 lanternes, gardés mais non comptés. Empan = plus longue série restituée exactement. Curseur = (empan − 1) / 8 × 100, 0 sans série exacte. Pas d’étalonnage, pas un diagnostic : les normes de Kessels et al. (2000) ne s’appliquent pas à cette version.",
   "performance": {
     "scorer": "span",

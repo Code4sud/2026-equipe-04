@@ -959,3 +959,33 @@ def test_history_keeps_the_200_most_recent_changes(app, client, youth, psycholog
     assert len(found) == 200
     assert found[0]["at"] == iso(base + timedelta(seconds=204))
     assert [e["at"] for e in found] == sorted((e["at"] for e in found), reverse=True)
+
+
+@pytest.mark.parametrize("key", ["a%00b", "%00", "Couleur", "couleur-preferee", "x" * 61])
+def test_fact_edits_on_a_malformed_key_are_not_found(client, youth, key):
+    # Vérifiée avant la base : Postgres répond 500 à un octet nul dans une clé.
+    response = client.patch(f"/api/me/game/facts/{key}", json={"value": "Vert"}, headers=youth)
+    assert response.status_code == 404 and response.get_json()["error"]["code"] == "not_found"
+
+
+def test_content_refuses_a_fact_key_that_could_not_be_edited(tmp_path):
+    broken = copy.deepcopy(ECHO)
+    broken["items"][0]["fact"] = "Couleur préférée"
+    (tmp_path / "instruments").mkdir()
+    (tmp_path / "instruments" / "broken.json").write_text(json.dumps(broken), encoding="utf-8")
+    with pytest.raises(ValueError, match="clé de détail invalide"):
+        Catalog(overlays=[FIXTURES, tmp_path])
+
+
+@pytest.mark.parametrize("value", [["agree"], {"verdict": "agree"}, 1, True])
+def test_a_verdict_that_is_not_text_is_refused(client, youth, value):
+    response = verdict(client, youth, "extraversion", value)
+    assert response.status_code == 400 and response.get_json()["error"]["code"] == "invalid_field"
+
+
+def test_the_youth_clan_does_not_name_its_cursor(client, youth, psychologist):
+    _, result = finish_onboarding(client, youth)
+    assert result["clan"] and "trait" not in result["clan"]
+    assert "trait" not in sheet(client, youth)["identity"]["clan"]
+    overview = client.get(f"/api/backoffice/youths/{youth_id(client, youth)}/game", headers=psychologist)
+    assert overview.get_json()["clan"]["trait"].startswith("riasec_")

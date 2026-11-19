@@ -34,7 +34,7 @@ from ..models import (
 )
 from ..services import service
 from . import events
-from .catalog import Catalog
+from .catalog import FACT_KEY, Catalog
 from .discovery import reveal_with
 from .performance import SCORERS, finite_ms, youth_metrics
 from .scoring import (
@@ -160,6 +160,12 @@ def clan_for(cursors: dict[str, dict]) -> dict | None:
         if value is not None and value > best_value:
             best, best_value = clan, value
     return best
+
+
+def youth_clan(cursors: dict[str, dict]) -> dict | None:
+    """Le clan tel que le voit le jeune, sans l'identifiant du curseur qui le désigne."""
+    clan = clan_for(cursors)
+    return {k: v for k, v in clan.items() if k != "trait"} if clan else None
 
 
 def youth_leaning(trait_id: str, value: float | None) -> str | None:
@@ -653,7 +659,7 @@ def _result(user: User, run: GameRun, instrument: dict, before: dict) -> dict:
         "progress": after,
         "leveled_up": after["level"] > before["level"],
         "new_badges": [b for b in after["badges"] if b["earned"] and b["id"] not in earned_before],
-        "clan": clan_for(cursors),
+        "clan": youth_clan(cursors),
         "highlights": _highlights(cursors, data.feedback),
         # Ses réussites seulement : les pourcentages et les mesures fines restent à la psychologue.
         "metrics": youth_metrics(instrument, run.metrics) if instrument["kind"] == "performance" else None,
@@ -811,7 +817,7 @@ def character_sheet(user: User) -> dict:
         Skill.youth_id == user.id, Skill.status == SkillStatus.PENDING
     ).count()
     return {
-        "identity": {"display_name": user.display_name, "clan": clan_for(cursors)},
+        "identity": {"display_name": user.display_name, "clan": youth_clan(cursors)},
         "progress": progress(data),
         "facts": [fact_dict(f) for f in data.facts],
         "attributes": _attributes(
@@ -835,6 +841,9 @@ def character_sheet(user: User) -> dict:
 
 
 def update_fact(user: User, key: str, body: dict) -> dict:
+    # Vérifiée avant la requête : Postgres refuse un octet nul dans un texte (500 sinon).
+    if not FACT_KEY.fullmatch(key):
+        raise ApiError(404, "not_found", "Détail introuvable.")
     fact = db.session.get(GameFact, (user.id, key), with_for_update=True, populate_existing=True)
     if fact is None:
         raise ApiError(404, "not_found", "Détail introuvable.")
@@ -926,7 +935,7 @@ def _apply_verdict(user: User, trait_id: str, verdict: str | None, label: str | 
 def set_trait_feedback(user: User, trait_id: str, verdict) -> dict:
     if trait_id not in catalog().traits:
         raise ApiError(404, "not_found", "Curseur introuvable.")
-    if verdict is not None and verdict not in VERDICTS:
+    if verdict is not None and (not isinstance(verdict, str) or verdict not in VERDICTS):
         raise ApiError(400, "invalid_field", "Le verdict doit être agree, disagree ou null.")
     # Ce que le jeune juge est recalculé ici, jamais repris du navigateur.
     value = cursors_of(load_youth(user.id))[trait_id]["value"]

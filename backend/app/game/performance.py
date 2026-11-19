@@ -343,7 +343,7 @@ def stroop_sequence(
 ) -> list[tuple[str, str]]:
     """Paires (mot, encre) équilibrées : chaque encre autant de fois, la part voulue d'essais
     congruents répartie entre les couleurs, et jamais la même encre deux fois de suite.
-    Même règle que le navigateur (frontend/src/game/cognitive/stroop/sequence.ts)."""
+    Même règle que le navigateur (stroopSequence dans frontend/src/game/cognitive/random.ts)."""
     size = len(colors)
     inks = [colors[i % size] for i in range(count - count % size)] + rng.sample(colors, count % size)
     slots = rng.sample(range(count), count)

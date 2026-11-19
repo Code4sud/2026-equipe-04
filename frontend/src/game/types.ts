@@ -127,11 +127,15 @@ export interface GameStatus {
 
 export interface Clan {
   id: string;
-  trait: string;
   name: string;
   motto: string;
   description: string;
   icon: string;
+}
+
+/** Côté psychologue, le clan dit aussi quel curseur l'a désigné. */
+export interface PsyClan extends Clan {
+  trait: string;
 }
 
 /** Un curseur à un seul pôle n'apparaît au jeune que comme point fort (valeur de 50 ou plus). */
@@ -328,7 +332,7 @@ export interface GameEvent {
 export interface PsyOverview {
   youth: { id: string; display_name: string };
   progress: { xp: number; level: number; level_title: string };
-  clan: Clan | null;
+  clan: PsyClan | null;
   cursor_groups: { id: string; label: string; cursors: PsyCursor[] }[];
   /** Tous les détails, y compris ceux que le jeune a masqués de sa fiche. */
   facts: GameFact[];

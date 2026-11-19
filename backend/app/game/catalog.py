@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 DEFAULT_CONTENT_DIR = Path(__file__).resolve().parent / "content"
@@ -18,6 +19,8 @@ PUBLIC_INSTRUMENT_FIELDS = (
     "id", "version", "kind", "title", "tagline", "icon", "duration_min", "xp", "intro", "outro",
     "source_note", "scale", "chapters", "min_answers",
 )
+# Clé d'un détail de la fiche (couleur_preferee...) : elle arrive aussi dans l'URL de correction.
+FACT_KEY = re.compile(r"[a-z][a-z0-9_]{0,59}")
 
 
 class ContentError(ValueError):
@@ -141,6 +144,8 @@ class Catalog:
                 self._check_source(item["source"]["source_id"], where)
             if "fact" in item and "fact_label" not in item:
                 raise ContentError(f"{where} : fact_label manquant")
+            if "fact" in item and not FACT_KEY.fullmatch(str(item["fact"])):
+                raise ContentError(f"{where} : clé de détail invalide (minuscules, chiffres, _)")
             if item["type"] == "likert":
                 if "scale" not in item and "scale" not in instrument:
                     raise ContentError(f"{where} : échelle manquante")

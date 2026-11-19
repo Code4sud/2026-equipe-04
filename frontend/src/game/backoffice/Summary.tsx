@@ -1,4 +1,4 @@
-import type { Clan, PsyCursor, PsyRun } from '../types';
+import type { PsyClan, PsyCursor, PsyRun } from '../types';
 import { bo } from './backoffice.fr';
 import { cursorName, formatLongDate, headlineText, lowerFirst } from './format';
 import { Flag } from './parts';
@@ -63,7 +63,7 @@ export function Summary({
   cursors,
   facts,
 }: {
-  clan: Clan | null | undefined;
+  clan: PsyClan | null | undefined;
   progress: { xp: number; level: number; level_title: string } | undefined;
   runs: PsyRun[];
   cursors: PsyCursor[];
