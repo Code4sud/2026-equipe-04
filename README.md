@@ -4,7 +4,7 @@ Projet réalisé à Nice les 18, 19 et 20 novembre 2026, sur le thème **« L'or
 
 ## Le projet
 
-**Flaire**, le détecteur du potentiel caché (sujet 4). Certains jeunes en décrochage répondent « rien » quand on leur demande ce qu'ils savent faire, alors qu'ils ont gardé leurs petits frères, réparé des scooters ou tenu la caisse d'une association. Un compagnon IA les fait raconter, révèle les compétences cachées dans leur récit en montrant d'où vient chacune, et leur laisse le dernier mot. Une psychologue du travail et de l'orientation assure le suivi dans un backoffice.
+**Flair**, le détecteur du potentiel caché (sujet 4). Certains jeunes en décrochage répondent « rien » quand on leur demande ce qu'ils savent faire, alors qu'ils ont gardé leurs petits frères, réparé des scooters ou tenu la caisse d'une association. Un compagnon IA les fait raconter, révèle les compétences cachées dans leur récit en montrant d'où vient chacune, et leur laisse le dernier mot. Une psychologue du travail et de l'orientation assure le suivi dans un backoffice.
 
 ## Lancer le projet
 

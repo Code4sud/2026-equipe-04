@@ -6,7 +6,7 @@ const stroke = {
   strokeLinejoin: 'round',
 } as const;
 
-/** Symboles des clans, dessinés pour Flaire dans une boîte de 48 × 48. */
+/** Symboles des clans, dessinés pour Flair dans une boîte de 48 × 48. */
 function Glyph({ icon }: { icon: string }) {
   switch (icon) {
     case 'hammer':

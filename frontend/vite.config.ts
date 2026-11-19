@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png', 'flaire-mark.png'],
       manifest: {
-        name: 'Flaire',
-        short_name: 'Flaire',
+        name: 'Flair',
+        short_name: 'Flair',
         description: 'Raconte ta vie et repère les talents que tu as déjà.',
         lang: 'fr',
         start_url: '/',
