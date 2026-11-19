@@ -990,6 +990,7 @@
     display: table-row !important;
   }
 
+  .card,
   .bog-reactions,
   .bog-summary > div,
   .bog-source-card {
