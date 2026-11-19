@@ -108,7 +108,8 @@ export const cogFr = {
       'Touche la couleur de la peinture, pas le mot.',
       'Vise juste d’abord, la vitesse viendra toute seule.',
     ],
-    example: 'Exemple : BLEU peint en rouge, tu touches Rouge.',
+    example: (word: string, ink: string, button: string) =>
+      `Exemple : ${word} peint en ${ink}, tu touches ${button}.`,
     keyboardHint: 'Au clavier : R, V, B et J.',
     colors: 'Couleurs',
     stimulus: (word: string, ink: string) => `Le mot ${word}, peint en ${ink}`,

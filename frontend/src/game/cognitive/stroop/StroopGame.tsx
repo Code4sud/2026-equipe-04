@@ -162,18 +162,20 @@ export function StroopGame({
   }, [state.step, onFinish]);
 
   if (state.step === 'intro') {
+    const [shownInk, , shownWord] = settings.colors;
+    const word = (shownWord ?? settings.colors[1]).label.toUpperCase();
     return (
       <GameIntro
         instrument={instrument}
         rules={t.rules}
         preview={
           <div className="cog-night cog-word-panel cog-word-panel--mini">
-            <span className="cog-word" style={ink('rouge')}>
-              BLEU
+            <span className="cog-word" style={ink(shownInk.id)}>
+              {word}
             </span>
           </div>
         }
-        note={t.example}
+        note={t.example(word, shownInk.label.toLowerCase(), shownInk.label)}
         keyboardNote={t.keyboardHint}
         onStart={() => (settings.practiceTrials > 0 ? startList('practice', 0) : startList('run', 1))}
       />
