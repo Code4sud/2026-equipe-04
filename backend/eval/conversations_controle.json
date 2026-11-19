@@ -1,0 +1,66 @@
+{
+  "note": "Jeu de contrôle : écrit après le réglage du moteur sur conversations.json et jamais utilisé pour régler indices ou seuils. Sert à vérifier que le rappel ne vient pas d'un sur-ajustement.",
+  "conversations": [
+    {
+      "id": "marche-fruits",
+      "messages": ["le dimanche je bosse sur le marché avec un pote de mon oncle", "je mets les fruits en place, je sers les gens et je rends la monnaie"],
+      "attendus": ["vente", "manutention"],
+      "acceptables": ["fiabilite", "rigueur", "accueil", "travail_equipe", "budget"]
+    },
+    {
+      "id": "velo-quartier",
+      "messages": ["tout le monde m'amène son vélo quand il y a un souci", "je change les chambres à air et je règle les dérailleurs"],
+      "attendus": ["mecanique", "entraide"],
+      "acceptables": ["bricolage", "diagnostic", "debrouillardise", "responsabilite"]
+    },
+    {
+      "id": "serveur-discord",
+      "messages": ["je modère un serveur Discord de 800 personnes", "quand ça part en clash entre deux membres c'est moi qui calme le jeu"],
+      "attendus": ["reseaux_sociaux", "mediation"],
+      "acceptables": ["responsabilite", "programmation", "ecoute"]
+    },
+    {
+      "id": "anglais-series",
+      "messages": ["j'ai appris l'anglais tout seul en regardant des séries en VO", "maintenant je comprends presque tout sans sous-titres"],
+      "attendus": ["apprendre_seul", "langues"],
+      "acceptables": ["autonomie", "perseverance", "apprendre_experience", "curiosite", "observer"]
+    },
+    {
+      "id": "patisserie",
+      "messages": ["je fais des cupcakes que je vends au lycée", "j'ai dû recommencer plein de fois avant que la recette soit bonne"],
+      "attendus": ["cuisine", "vente", "perseverance"],
+      "acceptables": ["initiative", "budget", "apprendre_experience", "creativite"]
+    },
+    {
+      "id": "colo-animateur",
+      "messages": ["j'ai passé mon BAFA l'an dernier", "cet été j'étais animateur en colo avec des 8-10 ans, je préparais les grands jeux"],
+      "attendus": ["animation", "garde_enfants"],
+      "acceptables": ["organisation_temps", "evenement", "responsabilite", "creativite", "travail_equipe"]
+    },
+    {
+      "id": "graff-mur",
+      "messages": ["avec la mairie on a fait une fresque sur le mur du gymnase", "j'ai dessiné le croquis et on l'a peinte à cinq"],
+      "attendus": ["dessin", "travail_equipe"],
+      "acceptables": ["creativite", "batiment", "initiative", "evenement"]
+    },
+    {
+      "id": "doute-total",
+      "messages": ["franchement je sers à rien", "je dors, je joue un peu, c'est tout"],
+      "attendus": [],
+      "acceptables": ["strategie_jeu"]
+    },
+    {
+      "id": "religion",
+      "messages": ["à la mosquée j'aide à préparer les repas pendant le ramadan"],
+      "attendus": [],
+      "acceptables": [],
+      "sensible": true
+    },
+    {
+      "id": "jeu-strategie",
+      "messages": ["je suis dans le top 500 sur Overwatch", "je fais les calls pour mon équipe et je prépare les compos avant les matchs"],
+      "attendus": ["strategie_jeu", "travail_equipe"],
+      "acceptables": ["responsabilite", "communication", "perseverance", "oral", "organisation_temps"]
+    }
+  ]
+}

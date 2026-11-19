@@ -1,4 +1,4 @@
-"""Espace jeune : compétences à valider et choix de partage."""
+"""Espace jeune : talents à valider, talents ajoutés par le jeune, accord de partage."""
 from __future__ import annotations
 
 import uuid
@@ -9,14 +9,28 @@ from sqlalchemy.exc import IntegrityError
 
 from ..errors import ApiError
 from ..extensions import db
-from ..models import Conversation, Role, Skill, SkillStatus, YouthProfile, iso, utcnow
+from ..models import (
+    Conversation,
+    Role,
+    Skill,
+    SkillAction,
+    SkillOrigin,
+    SkillStatus,
+    YouthProfile,
+    iso,
+    utcnow,
+)
 from ..security import require_roles
 from ..services import service
 from ..services.guardrails import name_key
 from . import api
 from .helpers import json_body, text_field
 
-REVIEW_STATUSES = {SkillStatus.VALIDATED.value, SkillStatus.REJECTED.value}
+REVIEW_ACTIONS = {
+    SkillStatus.VALIDATED.value: SkillAction.VALIDATED,
+    SkillStatus.REJECTED.value: SkillAction.REJECTED,
+}
+DEFAULT_CATEGORY = "savoir_faire"
 
 
 def _conversations() -> list[Conversation]:
@@ -25,13 +39,12 @@ def _conversations() -> list[Conversation]:
     )
 
 
-def _profile() -> YouthProfile:
-    profile = db.session.get(YouthProfile, g.user.id)
-    if profile is None:
-        profile = YouthProfile(user_id=g.user.id)
-        db.session.add(profile)
-        db.session.flush()
-    return profile
+def _commit_skill(skill: Skill) -> None:
+    try:
+        db.session.commit()
+    except IntegrityError as error:
+        db.session.rollback()
+        raise ApiError(409, "skill_exists", "Tu as déjà un talent avec ce nom.") from error
 
 
 @api.get("/me/skills")
@@ -48,6 +61,29 @@ def list_my_skills():
     )
 
 
+@api.post("/me/skills")
+@require_roles(Role.YOUTH)
+def add_my_skill():
+    """Le jeune ajoute un talent que Néo n'a pas vu."""
+    data = json_body()
+    name = text_field(data, "name", "Le nom", 3, 80)
+    description = str(data.get("description") or "").replace("\x00", "").strip()[:300]
+    skill = Skill(
+        youth_id=g.user.id,
+        origin=SkillOrigin.YOUTH,
+        name=name,
+        name_key=name_key(name),
+        category=DEFAULT_CATEGORY,
+        description=description,
+        status=SkillStatus.VALIDATED,
+        reviewed_at=utcnow(),
+    )
+    skill.record(SkillAction.ADDED)
+    db.session.add(skill)
+    _commit_skill(skill)
+    return jsonify({"skill": skill.to_dict()}), 201
+
+
 @api.post("/me/skills/refresh")
 @require_roles(Role.YOUTH)
 def refresh_my_skills():
@@ -62,50 +98,38 @@ def refresh_my_skills():
 @api.patch("/me/skills/<uuid:skill_id>")
 @require_roles(Role.YOUTH)
 def review_my_skill(skill_id: uuid.UUID):
-    """Le jeune valide, refuse ou renomme une compétence : lui seul décide."""
+    """Le jeune garde, retire ou renomme un talent. Chaque choix est gardé dans l'historique."""
     skill = db.session.get(Skill, skill_id)
     if skill is None or skill.youth_id != g.user.id:
-        raise ApiError(404, "not_found", "Compétence introuvable.")
+        raise ApiError(404, "not_found", "Talent introuvable.")
 
     data = json_body()
+    if "status" in data and data["status"] not in REVIEW_ACTIONS:
+        raise ApiError(400, "invalid_field", "Le statut doit être validated ou rejected.")
     if "name" in data:
-        skill.name = text_field(data, "name", "Le nom", 3, 80)
-        skill.name_key = name_key(skill.name)
+        name = text_field(data, "name", "Le nom", 3, 80)
+        if name != skill.name:
+            previous = skill.name
+            skill.name = name
+            skill.name_key = name_key(name)
+            skill.record(SkillAction.RENAMED, previous_name=previous)
     if "status" in data:
-        status = data["status"]
-        if status not in REVIEW_STATUSES:
-            raise ApiError(400, "invalid_field", "Le statut doit être validated ou rejected.")
-        skill.status = SkillStatus(status)
-        skill.reviewed_at = utcnow()
-    try:
-        db.session.commit()
-    except IntegrityError as error:
-        db.session.rollback()
-        raise ApiError(409, "skill_exists", "Tu as déjà une compétence avec ce nom.") from error
+        status = SkillStatus(data["status"])
+        if status != skill.status:
+            skill.status = status
+            skill.reviewed_at = utcnow()
+            skill.record(REVIEW_ACTIONS[status.value])
+    _commit_skill(skill)
     return jsonify({"skill": skill.to_dict()})
-
-
-def _privacy_payload(profile: YouthProfile) -> dict:
-    return {
-        "share_transcripts": profile.share_transcripts,
-        "share_updated_at": iso(profile.share_updated_at),
-    }
 
 
 @api.get("/me/privacy")
 @require_roles(Role.YOUTH)
 def get_privacy():
-    return jsonify(_privacy_payload(_profile()))
-
-
-@api.patch("/me/privacy")
-@require_roles(Role.YOUTH)
-def update_privacy():
-    value = json_body().get("share_transcripts")
-    if not isinstance(value, bool):
-        raise ApiError(400, "invalid_field", "share_transcripts doit être vrai ou faux.")
-    profile = _profile()
-    profile.share_transcripts = value
-    profile.share_updated_at = utcnow()
-    db.session.commit()
-    return jsonify(_privacy_payload(profile))
+    profile = db.session.get(YouthProfile, g.user.id)
+    return jsonify(
+        {
+            "share_transcripts": bool(profile and profile.share_transcripts),
+            "consent_at": iso(profile.consent_at) if profile else None,
+        }
+    )

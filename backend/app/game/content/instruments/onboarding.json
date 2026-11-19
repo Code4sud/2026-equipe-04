@@ -1,0 +1,575 @@
+{
+  "id": "onboarding",
+  "version": 2,
+  "order": 0,
+  "kind": "quiz",
+  "tier": "adapted",
+  "title": "Quiz d’arrivée",
+  "tagline": "Une semaine dans ta vie, 50 questions, et ton clan au bout.",
+  "icon": "paw",
+  "duration_min": 10,
+  "xp": 200,
+  "replayable": false,
+  "min_answers": 30,
+  "source_ids": ["goldberg_big_five_markers", "ipip_neo", "holland_riasec"],
+  "source_note": "Situations inventées pour Flaire, inspirées de travaux publiés en psychologie sur la personnalité et les centres d’intérêt.",
+  "scoring_note": "Quiz maison, niveau de preuve « Inspiré de travaux publiés, non validé » (poids 0,5). 38 situations du quotidien inspirées des marqueurs IPIP de Goldberg (1992), d’un item IPIP-NEO sur l’art (Goldberg, 1999) et de la typologie RIASEC de Holland (1997), plus 12 questions de fiche (couleur, passion…) sans aucune cotation. Chaque option donne une valeur de 0 à 100 au curseur visé ; certaines alimentent aussi un second curseur avec un poids de 0,5. Les dilemmes RIASEC opposent deux types : l’option choisie monte l’un et baisse l’autre, l’option mixte donne une valeur moyenne aux deux. Les signaux « Intérêt geek et numérique » relèvent d’un indicateur maison sans source publiée : ils portent leur propre niveau, « Indicateur maison », avec un poids de 0,5. Format non validé : une tendance à discuter avec le jeune, jamais une mesure.",
+  "intro": "Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton clan.",
+  "outro": "Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton clan ?",
+  "chapters": [
+    { "id": "reveil", "title": "Le réveil", "intro": "Bip bip, c’est l’heure ! On commence en douceur, histoire de faire connaissance. Ici, chaque réponse est la bonne." },
+    { "id": "route", "title": "En route", "intro": "Dehors, ça bouge ! Bus en retard, rencontres imprévues, petits détours… Voyons comment tu vis le trajet." },
+    { "id": "journee", "title": "La journée", "intro": "Place à la journée. Pas besoin d’un planning chargé : on parle de ce que tu fais, toi, quand il se passe des choses." },
+    { "id": "soir", "title": "Le soir", "intro": "Le soleil se couche. C’est l’heure des potes, des écrans ou du calme. À toi de voir !" },
+    { "id": "weekend", "title": "Le week-end", "intro": "Le week-end, enfin ! Dernière ligne droite, et après, je te révèle ton clan." }
+  ],
+  "items": [
+    {
+      "id": "couleur", "type": "choice", "chapter": "reveil",
+      "prompt": "Commençons par l’essentiel : c’est quoi, ta couleur préférée ?",
+      "fact": "couleur_preferee", "fact_label": "Couleur préférée", "allow_text": true, "placeholder": "Une autre couleur ?",
+      "options": [
+        { "id": "rouge", "label": "Rouge", "color": "#e5484d" },
+        { "id": "orange", "label": "Orange", "color": "#f5934a" },
+        { "id": "jaune", "label": "Jaune", "color": "#ffd166" },
+        { "id": "vert", "label": "Vert", "color": "#4f9d69" },
+        { "id": "bleu", "label": "Bleu", "color": "#4d8fd6" },
+        { "id": "violet", "label": "Violet", "color": "#8e6cc9" },
+        { "id": "rose", "label": "Rose", "color": "#f28bb5" },
+        { "id": "noir", "label": "Noir", "color": "#2b2523" },
+        { "id": "blanc", "label": "Blanc", "color": "#fdfaf4" }
+      ]
+    },
+    {
+      "id": "reveil_groupe", "type": "choice", "chapter": "reveil",
+      "prompt": "Ton téléphone vibre : dans le groupe de potes, quelqu’un propose un plan pour aujourd’hui.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Extraversion, clé +", "original": "Start conversations.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je réponds direct et je motive tout le monde", "emoji": "📣", "signals": [{ "trait": "extraversion", "value": 90 }, { "trait": "riasec_e", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je dis que je suis partant·e", "emoji": "👍", "signals": [{ "trait": "extraversion", "value": 65 }] },
+        { "id": "c", "label": "Je lis, je verrai plus tard", "emoji": "👀", "signals": [{ "trait": "extraversion", "value": 35 }] },
+        { "id": "d", "label": "Je garde ma journée pour moi, tranquille", "emoji": "🛋️", "signals": [{ "trait": "extraversion", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "reveil_rdv", "type": "choice", "chapter": "reveil",
+      "prompt": "Tu as un rendez-vous à 10 h. Ton réveil sonne.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Conscienciosité, clé +", "original": "Am always prepared.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Tout est prêt depuis la veille, j’ai juste à y aller", "emoji": "🗂️", "signals": [{ "trait": "conscientiousness", "value": 90 }] },
+        { "id": "b", "label": "Je me lève et je rassemble ce qu’il me faut", "emoji": "🎒", "signals": [{ "trait": "conscientiousness", "value": 60 }] },
+        { "id": "c", "label": "J’improvise, je suis rapide quand il faut", "emoji": "⚡", "signals": [{ "trait": "conscientiousness", "value": 25 }] },
+        { "id": "d", "label": "Encore cinq minutes, je gère le timing au feeling", "emoji": "😴", "signals": [{ "trait": "conscientiousness", "value": 10 }] }
+      ]
+    },
+    {
+      "id": "moment", "type": "choice", "chapter": "reveil",
+      "prompt": "Et toi, tu es plutôt de quel moment de la journée ?",
+      "fact": "moment_prefere", "fact_label": "Moment préféré",
+      "options": [
+        { "id": "matin", "label": "Le petit matin", "emoji": "🌅" },
+        { "id": "aprem", "label": "L’après-midi", "emoji": "☀️" },
+        { "id": "soir", "label": "La fin de journée", "emoji": "🌇" },
+        { "id": "nuit", "label": "La nuit", "emoji": "🌙" }
+      ]
+    },
+    {
+      "id": "reveil_video", "type": "choice", "chapter": "reveil",
+      "prompt": "En scrollant, tu tombes sur une vidéo : « Pourquoi le temps passe plus vite quand on s’amuse ? »",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Intellect ou imagination, clé +", "original": "Spend time reflecting on things.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je regarde jusqu’au bout et j’en enchaîne trois autres", "emoji": "🌀", "signals": [{ "trait": "openness", "value": 90 }, { "trait": "riasec_i", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je la garde pour plus tard, ça a l’air intéressant", "emoji": "📌", "signals": [{ "trait": "openness", "value": 60 }] },
+        { "id": "c", "label": "Je préfère les vidéos pratiques, genre tutos et astuces", "emoji": "🛠️", "signals": [{ "trait": "openness", "value": 25 }] }
+      ]
+    },
+    {
+      "id": "reveil_chargeur", "type": "choice", "chapter": "reveil",
+      "prompt": "Plus de batterie. Ton chargeur, il est où ?",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Conscienciosité, clé -", "original": "Often forget to put things back in their proper place.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "À sa place, comme toujours", "emoji": "📍", "signals": [{ "trait": "conscientiousness", "value": 90 }] },
+        { "id": "b", "label": "Quelque part dans mon bazar organisé, je le trouve vite", "emoji": "🧭", "signals": [{ "trait": "conscientiousness", "value": 55 }] },
+        { "id": "c", "label": "Aucune idée ! Je retourne tout et je retrouve plein d’autres trucs", "emoji": "🌪️", "signals": [{ "trait": "conscientiousness", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "reveil_service", "type": "choice", "chapter": "reveil",
+      "prompt": "Un·e pote te demande un service ce matin, alors que tu avais prévu autre chose.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Agréabilité, clé +", "original": "Take time out for others.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je dis oui et je change mes plans", "emoji": "🤝", "signals": [{ "trait": "agreeableness", "value": 85 }, { "trait": "riasec_s", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je propose un autre moment qui nous arrange tous les deux", "emoji": "🔄", "signals": [{ "trait": "agreeableness", "value": 55 }] },
+        { "id": "c", "label": "Je dis franchement que ce n’est pas possible aujourd’hui", "emoji": "🗣️", "signals": [{ "trait": "agreeableness", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "musique", "type": "choice", "chapter": "reveil",
+      "prompt": "Pour te mettre en route, tu mets quoi dans tes oreilles ?",
+      "fact": "musique", "fact_label": "Musique", "allow_text": true, "placeholder": "Un style, un·e artiste…",
+      "options": [
+        { "id": "rap", "label": "Rap", "emoji": "🎤" },
+        { "id": "pop", "label": "Pop", "emoji": "🎶" },
+        { "id": "electro", "label": "Électro", "emoji": "🎛️" },
+        { "id": "rock", "label": "Rock ou métal", "emoji": "🎸" },
+        { "id": "rnb", "label": "R’n’B ou soul", "emoji": "💿" },
+        { "id": "mix", "label": "Un peu de tout", "emoji": "🔀" },
+        { "id": "silence", "label": "Le silence, tranquille", "emoji": "🤫" }
+      ]
+    },
+    {
+      "id": "reveil_tache", "type": "choice", "chapter": "reveil",
+      "prompt": "Au moment de partir, tu découvres une grosse tache sur ton t-shirt préféré.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Stabilité émotionnelle, clé -", "original": "Get irritated easily.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je me change en deux secondes, aucun souci", "emoji": "😎", "signals": [{ "trait": "emotional_stability", "value": 90 }] },
+        { "id": "b", "label": "Petit soupir, et je trouve une solution", "emoji": "🙃", "signals": [{ "trait": "emotional_stability", "value": 60 }] },
+        { "id": "c", "label": "Je râle un bon coup, puis ça passe", "emoji": "😤", "signals": [{ "trait": "emotional_stability", "value": 25 }] }
+      ]
+    },
+    {
+      "id": "reveil_chaine", "type": "choice", "chapter": "reveil",
+      "prompt": "Un·e pote t’écrit : « Je lance ma chaîne vidéo, tu m’aides ? »",
+      "source": { "source_id": "holland_riasec", "ref": "Types A et E ; intérêt numérique : indicateur maison", "original": "Artistic / Enterprising", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je m’occupe du montage et des visuels", "emoji": "🎬", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "riasec_e", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
+        { "id": "b", "label": "Je m’occupe de la faire connaître partout", "emoji": "📢", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_a", "value": 35 }, { "trait": "interest_digital", "value": 60, "weight": 0.5, "tier": "custom" }] },
+        { "id": "c", "label": "Un peu des deux, je suis partant·e pour tout", "emoji": "🙌", "signals": [{ "trait": "riasec_a", "value": 60 }, { "trait": "riasec_e", "value": 60 }] }
+      ]
+    },
+
+    {
+      "id": "route_bus", "type": "choice", "chapter": "route",
+      "prompt": "Ton bus annonce 20 minutes de retard, et tu as un rendez-vous.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Stabilité émotionnelle, clé +", "original": "Am relaxed most of the time.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je préviens, puis j’en profite pour écouter du son", "emoji": "🎧", "signals": [{ "trait": "emotional_stability", "value": 85 }, { "trait": "conscientiousness", "value": 60, "weight": 0.5 }] },
+        { "id": "b", "label": "Je cherche vite un autre trajet", "emoji": "🗺️", "signals": [{ "trait": "emotional_stability", "value": 55 }] },
+        { "id": "c", "label": "Je regarde l’heure toutes les trente secondes", "emoji": "⏱️", "signals": [{ "trait": "emotional_stability", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "super_pouvoir", "type": "choice", "chapter": "route",
+      "prompt": "Coincé·e dans les bouchons, un super-pouvoir serait bien pratique. Tu choisis lequel ?",
+      "fact": "super_pouvoir", "fact_label": "Super-pouvoir", "allow_text": true, "placeholder": "Un autre pouvoir ?",
+      "options": [
+        { "id": "voler", "label": "Voler", "emoji": "🦸" },
+        { "id": "teleporter", "label": "Me téléporter", "emoji": "✨" },
+        { "id": "temps", "label": "Arrêter le temps", "emoji": "⏸️" },
+        { "id": "invisible", "label": "Devenir invisible", "emoji": "👻" },
+        { "id": "animaux", "label": "Parler aux animaux", "emoji": "🐾" },
+        { "id": "reparer", "label": "Tout réparer d’un geste", "emoji": "🔧" }
+      ]
+    },
+    {
+      "id": "route_voisin", "type": "choice", "chapter": "route",
+      "prompt": "Dans le bus, la personne à côté de toi engage la conversation.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Extraversion, clé -", "original": "Am quiet around strangers.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je papote avec plaisir, on refait le monde", "emoji": "💬", "signals": [{ "trait": "extraversion", "value": 90 }] },
+        { "id": "b", "label": "Je réponds gentiment, deux ou trois phrases", "emoji": "🙂", "signals": [{ "trait": "extraversion", "value": 55 }, { "trait": "agreeableness", "value": 60, "weight": 0.5 }] },
+        { "id": "c", "label": "Je souris et je remets mes écouteurs", "emoji": "🎧", "signals": [{ "trait": "extraversion", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "route_velo", "type": "choice", "chapter": "route",
+      "prompt": "Le vélo d’un·e pote fait un bruit bizarre en roulant.",
+      "source": { "source_id": "holland_riasec", "ref": "Types R et I ; intérêt numérique : indicateur maison", "original": "Realistic / Investigative", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je mets les mains dedans et je bricole jusqu’à ce que ça roule", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 90 }, { "trait": "riasec_i", "value": 35 }] },
+        { "id": "b", "label": "Je mène l’enquête pour trouver d’où vient le bruit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 90 }, { "trait": "riasec_r", "value": 35 }] },
+        { "id": "c", "label": "On regarde un tuto ensemble et on répare", "emoji": "📱", "signals": [{ "trait": "riasec_r", "value": 60 }, { "trait": "riasec_i", "value": 60 }, { "trait": "interest_digital", "value": 65, "weight": 0.5, "tier": "custom" }] }
+      ]
+    },
+    {
+      "id": "route_retard", "type": "choice", "chapter": "route",
+      "prompt": "Quelqu’un de ta bande arrive au rendez-vous avec 30 minutes de retard. Encore.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Agréabilité, clé +", "original": "Have a soft heart.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je dis cash que ça m’a agacé·e", "emoji": "🗣️", "signals": [{ "trait": "agreeableness", "value": 15 }] },
+        { "id": "b", "label": "Je le fais remarquer, avec humour", "emoji": "😏", "signals": [{ "trait": "agreeableness", "value": 50 }] },
+        { "id": "c", "label": "Je laisse couler, il y a sûrement une raison", "emoji": "🤗", "signals": [{ "trait": "agreeableness", "value": 85 }] }
+      ]
+    },
+    {
+      "id": "route_trajet", "type": "choice", "chapter": "route",
+      "prompt": "Long trajet en transport. Dans ta tête, ça donne quoi ?",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Intellect ou imagination, clé +", "original": "Have a vivid imagination.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "J’invente des histoires sur les gens autour de moi", "emoji": "🎭", "signals": [{ "trait": "openness", "value": 90 }, { "trait": "riasec_a", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je réfléchis à des grandes questions, genre l’univers", "emoji": "🌌", "signals": [{ "trait": "openness", "value": 80 }, { "trait": "riasec_i", "value": 65, "weight": 0.5 }] },
+        { "id": "c", "label": "Je pense à tout ce que j’ai à faire aujourd’hui", "emoji": "📋", "signals": [{ "trait": "openness", "value": 30 }, { "trait": "conscientiousness", "value": 65, "weight": 0.5 }] }
+      ]
+    },
+    {
+      "id": "objet", "type": "choice", "chapter": "route",
+      "prompt": "L’objet qui te suit partout ?",
+      "fact": "objet_fetiche", "fact_label": "Objet fétiche", "allow_text": true, "placeholder": "Un autre objet ?",
+      "options": [
+        { "id": "ecouteurs", "label": "Mes écouteurs", "emoji": "🎧" },
+        { "id": "carnet", "label": "Un carnet et un stylo", "emoji": "📓" },
+        { "id": "skate", "label": "Mon skate", "emoji": "🛹" },
+        { "id": "photo", "label": "Un appareil photo", "emoji": "📷" },
+        { "id": "porte_cles", "label": "Un porte-clés porte-bonheur", "emoji": "🔑" },
+        { "id": "manette", "label": "Ma manette", "emoji": "🎮" }
+      ]
+    },
+    {
+      "id": "route_aide", "type": "choice", "chapter": "route",
+      "prompt": "À l’arrêt de bus, une personne perdue te demande de l’aide pour lire le plan.",
+      "source": { "source_id": "holland_riasec", "ref": "Types I et S", "original": "Investigative / Social", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je décortique le plan pour trouver le trajet le plus malin", "emoji": "🧭", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_s", "value": 35 }] },
+        { "id": "b", "label": "Je l’accompagne jusqu’au bon arrêt", "emoji": "🚶", "signals": [{ "trait": "riasec_s", "value": 85 }, { "trait": "riasec_i", "value": 35 }] },
+        { "id": "c", "label": "Je lui explique simplement, étape par étape", "emoji": "💬", "signals": [{ "trait": "riasec_s", "value": 65 }, { "trait": "riasec_i", "value": 60 }] }
+      ]
+    },
+    {
+      "id": "route_file", "type": "choice", "chapter": "route",
+      "prompt": "Dans une file d’attente, quelqu’un te partage sa théorie : on vivrait peut-être dans une simulation.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Intellect ou imagination, clé -", "original": "Am not interested in abstract ideas.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je pose plein de questions, j’adore ce genre de théories", "emoji": "🤯", "signals": [{ "trait": "openness", "value": 85 }, { "trait": "riasec_i", "value": 60, "weight": 0.5 }] },
+        { "id": "b", "label": "J’écoute, c’est marrant", "emoji": "😄", "signals": [{ "trait": "openness", "value": 50 }] },
+        { "id": "c", "label": "Je préfère parler de choses concrètes", "emoji": "🧱", "signals": [{ "trait": "openness", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "route_sortie", "type": "choice", "chapter": "route",
+      "prompt": "Vous partez à plusieurs pour une sortie. Il faut organiser le trajet.",
+      "source": { "source_id": "holland_riasec", "ref": "Types E et C", "original": "Enterprising / Conventional", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je motive tout le monde et je fixe le rendez-vous", "emoji": "📣", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_c", "value": 35 }] },
+        { "id": "b", "label": "Je prépare l’itinéraire et les horaires, au détail près", "emoji": "🗓️", "signals": [{ "trait": "riasec_c", "value": 90 }, { "trait": "riasec_e", "value": 35 }] },
+        { "id": "d", "label": "Un peu des deux : je motive la bande et je vérifie les horaires", "emoji": "🤹", "signals": [{ "trait": "riasec_e", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
+      ]
+    },
+
+    {
+      "id": "passion", "type": "choice", "chapter": "journee",
+      "prompt": "Le truc qui te fait complètement oublier l’heure ?",
+      "fact": "passion", "fact_label": "Passion", "allow_text": true, "placeholder": "Ta passion à toi…",
+      "options": [
+        { "id": "musique", "label": "La musique", "emoji": "🎵" },
+        { "id": "jeux", "label": "Les jeux vidéo", "emoji": "🎮" },
+        { "id": "sport", "label": "Le sport", "emoji": "🏀" },
+        { "id": "dessin", "label": "Le dessin", "emoji": "🎨" },
+        { "id": "mecanique", "label": "La mécanique", "emoji": "🔧" },
+        { "id": "video", "label": "La vidéo et la photo", "emoji": "🎬" },
+        { "id": "danse", "label": "La danse", "emoji": "🩰" },
+        { "id": "mangas", "label": "Les mangas et les BD", "emoji": "📚" }
+      ]
+    },
+    {
+      "id": "journee_atelier", "type": "choice", "chapter": "journee",
+      "prompt": "Dans un atelier, ton groupe doit présenter son travail devant tout le monde.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Extraversion, clé +", "original": "Don't mind being the center of attention.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je prends le micro, j’adore ça", "emoji": "🎤", "signals": [{ "trait": "extraversion", "value": 90 }, { "trait": "riasec_e", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je présente une partie, si on se partage la parole", "emoji": "🙋", "signals": [{ "trait": "extraversion", "value": 60 }] },
+        { "id": "c", "label": "Je prépare tout dans l’ombre, d’autres parlent", "emoji": "🧩", "signals": [{ "trait": "extraversion", "value": 20 }, { "trait": "conscientiousness", "value": 65, "weight": 0.5 }] }
+      ]
+    },
+    {
+      "id": "journee_dossier", "type": "choice", "chapter": "journee",
+      "prompt": "Tu as un dossier à envoyer avant vendredi.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Conscienciosité, clé +", "original": "Get chores done right away.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je le fais aujourd’hui, comme ça c’est réglé", "emoji": "✅", "signals": [{ "trait": "conscientiousness", "value": 90 }] },
+        { "id": "b", "label": "Je note la date et je m’y mets le moment venu", "emoji": "🗓️", "signals": [{ "trait": "conscientiousness", "value": 60 }] },
+        { "id": "c", "label": "La veille au soir : sous pression, je suis au top", "emoji": "🔥", "signals": [{ "trait": "conscientiousness", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "journee_local", "type": "choice", "chapter": "journee",
+      "prompt": "Le local d’une asso du quartier a besoin d’un coup de jeune. Tu t’y mets.",
+      "source": { "source_id": "holland_riasec", "ref": "Types R et A", "original": "Realistic / Artistic", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je répare les étagères et je repeins les murs", "emoji": "🔨", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "riasec_a", "value": 35 }] },
+        { "id": "b", "label": "Je dessine une fresque géante sur un mur", "emoji": "🎨", "signals": [{ "trait": "riasec_a", "value": 90 }, { "trait": "riasec_r", "value": 35 }] },
+        { "id": "c", "label": "Un peu des deux", "emoji": "🧰", "signals": [{ "trait": "riasec_r", "value": 60 }, { "trait": "riasec_a", "value": 60 }] }
+      ]
+    },
+    {
+      "id": "jeu_appli", "type": "choice", "chapter": "journee",
+      "prompt": "Petite pause. Sur ton écran, tu ouvres quoi en premier ?",
+      "fact": "jeu_ou_appli", "fact_label": "Jeu ou appli", "allow_text": true, "placeholder": "Un jeu ou une appli en particulier ?",
+      "options": [
+        { "id": "jeu", "label": "Un jeu", "emoji": "🎮" },
+        { "id": "videos", "label": "Des vidéos", "emoji": "📺" },
+        { "id": "musique", "label": "Ma musique", "emoji": "🎧" },
+        { "id": "messages", "label": "Mes messages", "emoji": "💬" },
+        { "id": "creation", "label": "Une appli pour créer", "emoji": "🎨" },
+        { "id": "rien", "label": "Rien, je regarde autour de moi", "emoji": "👀" }
+      ]
+    },
+    {
+      "id": "journee_desaccord", "type": "choice", "chapter": "journee",
+      "prompt": "Dans un groupe, deux personnes ne sont pas d’accord sur la façon de faire.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Agréabilité, clé +", "original": "Make people feel at ease.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je calme le jeu et je cherche un compromis", "emoji": "⚖️", "signals": [{ "trait": "agreeableness", "value": 85 }, { "trait": "riasec_s", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Je donne mon avis franchement, même si ça bouscule", "emoji": "🗣️", "signals": [{ "trait": "agreeableness", "value": 20 }] },
+        { "id": "c", "label": "Je propose de tester les deux façons", "emoji": "🧪", "signals": [{ "trait": "agreeableness", "value": 55 }, { "trait": "openness", "value": 60, "weight": 0.5 }] }
+      ]
+    },
+    {
+      "id": "journee_entretien", "type": "choice", "chapter": "journee",
+      "prompt": "Dans dix minutes, tu as un entretien : job, stage ou formation.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Stabilité émotionnelle, clé -", "original": "Worry about things.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Zen, ça va bien se passer", "emoji": "😌", "signals": [{ "trait": "emotional_stability", "value": 90 }] },
+        { "id": "b", "label": "Un peu de trac, ça me donne de l’énergie", "emoji": "⚡", "signals": [{ "trait": "emotional_stability", "value": 55 }] },
+        { "id": "c", "label": "Je me repasse tout dans la tête, encore et encore", "emoji": "🔁", "signals": [{ "trait": "emotional_stability", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "lieu", "type": "choice", "chapter": "journee",
+      "prompt": "Ton coin idéal pour souffler un peu ?",
+      "fact": "lieu_ideal", "fact_label": "Coin idéal",
+      "options": [
+        { "id": "eau", "label": "Au bord de l’eau", "emoji": "🌊" },
+        { "id": "montagne", "label": "En montagne", "emoji": "⛰️" },
+        { "id": "ville", "label": "En pleine ville", "emoji": "🏙️" },
+        { "id": "foret", "label": "En forêt", "emoji": "🌲" },
+        { "id": "toit", "label": "Sur un toit, avec vue", "emoji": "🌆" },
+        { "id": "coin", "label": "Dans mon coin, au calme", "emoji": "🛋️" }
+      ]
+    },
+    {
+      "id": "journee_aprem", "type": "choice", "chapter": "journee",
+      "prompt": "Après-midi libre. On te propose trois plans : tu choisis lequel ?",
+      "source": { "source_id": "holland_riasec", "ref": "Types A et S", "original": "Artistic / Social", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Créer la bande-son de la vidéo d’un·e pote", "emoji": "🎧", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "riasec_s", "value": 35 }] },
+        { "id": "b", "label": "Aider un·e voisin·e à faire ses démarches en ligne", "emoji": "📝", "signals": [{ "trait": "riasec_s", "value": 85 }, { "trait": "riasec_a", "value": 30 }] },
+        { "id": "c", "label": "Animer un atelier dessin pour les enfants du quartier", "emoji": "🖍️", "signals": [{ "trait": "riasec_a", "value": 65 }, { "trait": "riasec_s", "value": 70 }] }
+      ]
+    },
+    {
+      "id": "journee_collecte", "type": "choice", "chapter": "journee",
+      "prompt": "Une asso organise une collecte de livres et de jeux. Tu donnes un coup de main.",
+      "source": { "source_id": "holland_riasec", "ref": "Types S et C", "original": "Social / Conventional", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "J’accueille les gens et je discute avec eux", "emoji": "👋", "signals": [{ "trait": "riasec_s", "value": 85 }, { "trait": "riasec_c", "value": 35 }] },
+        { "id": "b", "label": "Je trie, je compte et je tiens l’inventaire", "emoji": "📋", "signals": [{ "trait": "riasec_c", "value": 90 }, { "trait": "riasec_s", "value": 35 }] },
+        { "id": "c", "label": "Je fais l’accueil et je note tout au passage", "emoji": "🔁", "signals": [{ "trait": "riasec_s", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
+      ]
+    },
+
+    {
+      "id": "soir_soiree", "type": "choice", "chapter": "soir",
+      "prompt": "Un·e pote t’invite à une soirée où tu ne connais personne.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Extraversion, clé +", "original": "Talk to a lot of different people at parties.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Génial, je vais parler à tout le monde", "emoji": "🎉", "signals": [{ "trait": "extraversion", "value": 95 }] },
+        { "id": "b", "label": "J’y vais, et je reste d’abord avec qui je connais", "emoji": "👥", "signals": [{ "trait": "extraversion", "value": 60 }] },
+        { "id": "c", "label": "J’y passe un moment, puis je file", "emoji": "🚪", "signals": [{ "trait": "extraversion", "value": 35 }] },
+        { "id": "d", "label": "Je propose plutôt un plan à deux", "emoji": "🎲", "signals": [{ "trait": "extraversion", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "soir_son", "type": "choice", "chapter": "soir",
+      "prompt": "Un·e pote te fait écouter son dernier son. Franchement, pas ton style.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Agréabilité, clé +", "original": "Sympathize with others' feelings.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je dis franchement ce que j’en pense", "emoji": "🎯", "signals": [{ "trait": "agreeableness", "value": 15 }] },
+        { "id": "b", "label": "Je relève ce qui est bien, puis je donne une piste", "emoji": "⚖️", "signals": [{ "trait": "agreeableness", "value": 55 }] },
+        { "id": "c", "label": "Je l’encourage à fond, c’est courageux de se lancer", "emoji": "📣", "signals": [{ "trait": "agreeableness", "value": 90 }] }
+      ]
+    },
+    {
+      "id": "film", "type": "choice", "chapter": "soir",
+      "prompt": "Soirée écran : tu lances quoi ?",
+      "fact": "film_serie", "fact_label": "Film ou série",
+      "options": [
+        { "id": "action", "label": "De l’action", "emoji": "💥" },
+        { "id": "comedie", "label": "Une comédie", "emoji": "😂" },
+        { "id": "sf", "label": "De la science-fiction", "emoji": "🚀" },
+        { "id": "anime", "label": "De l’animé", "emoji": "✨" },
+        { "id": "horreur", "label": "Un film d’horreur", "emoji": "👻" },
+        { "id": "docu", "label": "Un documentaire", "emoji": "🔎" }
+      ]
+    },
+    {
+      "id": "soir_connexion", "type": "choice", "chapter": "soir",
+      "prompt": "La connexion coupe en plein milieu de ton film.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Stabilité émotionnelle, clé -", "original": "Am easily disturbed.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Pas grave, je fais autre chose en attendant", "emoji": "📖", "signals": [{ "trait": "emotional_stability", "value": 85 }] },
+        { "id": "b", "label": "Je relance et je patiente", "emoji": "🔄", "signals": [{ "trait": "emotional_stability", "value": 55 }] },
+        { "id": "c", "label": "Ça m’agace, je réessaie toutes les dix secondes", "emoji": "😤", "signals": [{ "trait": "emotional_stability", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "soir_jeux", "type": "choice", "chapter": "soir",
+      "prompt": "Tu prépares une soirée jeux avec des potes.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Conscienciosité, clé +", "original": "Follow a schedule.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je fais une liste : jeux, horaires, tout est prévu", "emoji": "📝", "signals": [{ "trait": "conscientiousness", "value": 90 }, { "trait": "riasec_c", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "J’ai les grandes lignes en tête", "emoji": "🧠", "signals": [{ "trait": "conscientiousness", "value": 55 }] },
+        { "id": "c", "label": "On verra sur place, c’est plus fun", "emoji": "🎲", "signals": [{ "trait": "conscientiousness", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "soir_sf", "type": "choice", "chapter": "soir",
+      "prompt": "Tu viens de finir un film de science-fiction.",
+      "source": { "source_id": "holland_riasec", "ref": "Types I et A", "original": "Investigative / Artistic", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je cherche si ce qu’on y voit est possible en vrai", "emoji": "🔬", "signals": [{ "trait": "riasec_i", "value": 90 }, { "trait": "riasec_a", "value": 35 }] },
+        { "id": "b", "label": "J’imagine déjà ma propre suite", "emoji": "✍️", "signals": [{ "trait": "riasec_a", "value": 90 }, { "trait": "riasec_i", "value": 35 }] },
+        { "id": "c", "label": "Les deux : je vérifie, puis j’imagine", "emoji": "💭", "signals": [{ "trait": "riasec_i", "value": 65 }, { "trait": "riasec_a", "value": 65 }] }
+      ]
+    },
+    {
+      "id": "soir_telephone", "type": "choice", "chapter": "soir",
+      "prompt": "Ton téléphone rame et sa mémoire est pleine.",
+      "source": { "source_id": "holland_riasec", "ref": "Types I et C ; intérêt numérique : indicateur maison", "original": "Investigative / Conventional", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je fouille les réglages pour comprendre ce qui le ralentit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_c", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
+        { "id": "b", "label": "Je fais le grand tri : photos, applis, dossiers, tout est rangé", "emoji": "🗃️", "signals": [{ "trait": "riasec_c", "value": 85 }, { "trait": "riasec_i", "value": 35 }] },
+        { "id": "d", "label": "Un peu des deux : je repère ce qui prend de la place, puis je range", "emoji": "🧹", "signals": [{ "trait": "riasec_i", "value": 60 }, { "trait": "riasec_c", "value": 60 }] }
+      ]
+    },
+    {
+      "id": "soir_idee", "type": "choice", "chapter": "soir",
+      "prompt": "Le soir, une idée te traverse la tête : une histoire, une appli, un projet…",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Intellect ou imagination, clé +", "original": "Am full of ideas.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je la note tout de suite, j’en ai plein des comme ça", "emoji": "💡", "signals": [{ "trait": "openness", "value": 85 }] },
+        { "id": "b", "label": "J’y pense un moment, puis je passe à autre chose", "emoji": "🤔", "signals": [{ "trait": "openness", "value": 50 }] },
+        { "id": "c", "label": "Je préfère les idées qu’on peut réaliser dès demain", "emoji": "🛠️", "signals": [{ "trait": "openness", "value": 25 }] }
+      ]
+    },
+    {
+      "id": "animal", "type": "choice", "chapter": "soir",
+      "prompt": "Ton animal totem ? (Le renard est un excellent choix, je dis ça, je dis rien.)",
+      "fact": "animal_totem", "fact_label": "Animal totem",
+      "options": [
+        { "id": "loup", "label": "Le loup", "emoji": "🐺" },
+        { "id": "chat", "label": "Le chat", "emoji": "🐱" },
+        { "id": "aigle", "label": "L’aigle", "emoji": "🦅" },
+        { "id": "dauphin", "label": "Le dauphin", "emoji": "🐬" },
+        { "id": "ours", "label": "L’ours", "emoji": "🐻" },
+        { "id": "hibou", "label": "Le hibou", "emoji": "🦉" },
+        { "id": "renard", "label": "Le renard", "emoji": "🦊" }
+      ]
+    },
+    {
+      "id": "soir_pluie", "type": "choice", "chapter": "soir",
+      "prompt": "Il pleut des cordes et ta soirée est libre. Tu fais quoi ?",
+      "source": { "source_id": "holland_riasec", "ref": "Types A, R et I ; intérêt numérique : indicateur maison", "original": "Artistic / Realistic / Investigative", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Une partie en ligne avec des potes", "emoji": "🎮", "signals": [{ "trait": "interest_digital", "value": 90, "weight": 0.5, "tier": "custom" }] },
+        { "id": "b", "label": "Je dessine, j’écris ou je compose", "emoji": "🎨", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "interest_digital", "value": 35, "weight": 0.5, "tier": "custom" }] },
+        { "id": "c", "label": "Je bricole un truc qui traînait", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "interest_digital", "value": 25, "weight": 0.5, "tier": "custom" }] },
+        { "id": "d", "label": "Je regarde des vidéos pour apprendre un truc", "emoji": "🧠", "signals": [{ "trait": "riasec_i", "value": 75 }, { "trait": "interest_digital", "value": 60, "weight": 0.5, "tier": "custom" }] }
+      ]
+    },
+
+    {
+      "id": "weekend_samedi", "type": "choice", "chapter": "weekend",
+      "prompt": "Samedi, rien de prévu. Ton plan idéal ?",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Extraversion, clé +", "original": "Feel comfortable around people.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Un max de monde, un max d’ambiance", "emoji": "🥳", "signals": [{ "trait": "extraversion", "value": 95 }] },
+        { "id": "b", "label": "Deux ou trois potes, ça suffit", "emoji": "👥", "signals": [{ "trait": "extraversion", "value": 55 }] },
+        { "id": "c", "label": "Une journée solo pour recharger les batteries", "emoji": "🔋", "signals": [{ "trait": "extraversion", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "saison", "type": "choice", "chapter": "weekend",
+      "prompt": "Le week-end parfait, c’est en quelle saison ?",
+      "fact": "saison", "fact_label": "Saison préférée",
+      "options": [
+        { "id": "printemps", "label": "Le printemps", "emoji": "🌸" },
+        { "id": "ete", "label": "L’été", "emoji": "☀️" },
+        { "id": "automne", "label": "L’automne", "emoji": "🍂" },
+        { "id": "hiver", "label": "L’hiver", "emoji": "❄️" }
+      ]
+    },
+    {
+      "id": "weekend_troc", "type": "choice", "chapter": "weekend",
+      "prompt": "Ton quartier organise une journée troc : on échange des objets au lieu de les jeter.",
+      "source": { "source_id": "holland_riasec", "ref": "Types R et E", "original": "Realistic / Enterprising", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je retape des vieux objets pour leur donner une seconde vie", "emoji": "🛠️", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "riasec_e", "value": 35 }] },
+        { "id": "b", "label": "Je tiens le stand et je négocie les meilleurs échanges", "emoji": "🤝", "signals": [{ "trait": "riasec_e", "value": 90 }, { "trait": "riasec_r", "value": 30 }] },
+        { "id": "c", "label": "Je retape et j’échange : les deux !", "emoji": "🔄", "signals": [{ "trait": "riasec_r", "value": 65 }, { "trait": "riasec_e", "value": 65 }] }
+      ]
+    },
+    {
+      "id": "weekend_sortie", "type": "choice", "chapter": "weekend",
+      "prompt": "Tu organises une sortie, et chacun veut faire un truc différent.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Agréabilité, clé +", "original": "Make people feel at ease.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je trouve un plan qui fait plaisir à tout le monde", "emoji": "🧩", "signals": [{ "trait": "agreeableness", "value": 85 }] },
+        { "id": "b", "label": "On vote, c’est plus simple", "emoji": "✋", "signals": [{ "trait": "agreeableness", "value": 50 }] },
+        { "id": "c", "label": "Je tranche, sinon on y est encore demain", "emoji": "🎯", "signals": [{ "trait": "agreeableness", "value": 20 }, { "trait": "riasec_e", "value": 65, "weight": 0.5 }] }
+      ]
+    },
+    {
+      "id": "weekend_etagere", "type": "choice", "chapter": "weekend",
+      "prompt": "Tu aides à monter une étagère en kit.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Conscienciosité, clé +", "original": "Pay attention to details.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je suis la notice étape par étape", "emoji": "📖", "signals": [{ "trait": "conscientiousness", "value": 85 }] },
+        { "id": "b", "label": "Je jette un œil au schéma et je me lance", "emoji": "👀", "signals": [{ "trait": "conscientiousness", "value": 45 }] },
+        { "id": "c", "label": "Notice ? Je fais à l’instinct, il restera peut-être une vis", "emoji": "🤞", "signals": [{ "trait": "conscientiousness", "value": 15 }] }
+      ]
+    },
+    {
+      "id": "weekend_annule", "type": "choice", "chapter": "weekend",
+      "prompt": "Ton plan du week-end tombe à l’eau à la dernière minute.",
+      "source": { "source_id": "goldberg_big_five_markers", "ref": "Stabilité émotionnelle, clé -", "original": "Get upset easily.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Pas grave, je trouve vite autre chose", "emoji": "✨", "signals": [{ "trait": "emotional_stability", "value": 85 }] },
+        { "id": "b", "label": "Un peu déçu·e, puis je m’adapte", "emoji": "🙂", "signals": [{ "trait": "emotional_stability", "value": 55 }] },
+        { "id": "c", "label": "Je le prends à cœur, j’avais tout prévu", "emoji": "💥", "signals": [{ "trait": "emotional_stability", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "weekend_demenagement", "type": "choice", "chapter": "weekend",
+      "prompt": "Un·e pote déménage et t’appelle en renfort.",
+      "source": { "source_id": "holland_riasec", "ref": "Types R et C", "original": "Realistic / Conventional", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je démonte et je remonte les meubles", "emoji": "🔨", "signals": [{ "trait": "riasec_r", "value": 85 }, { "trait": "riasec_c", "value": 35 }] },
+        { "id": "b", "label": "Je gère les cartons : étiquettes, listes, rien ne se perd", "emoji": "🏷️", "signals": [{ "trait": "riasec_c", "value": 90 }, { "trait": "riasec_r", "value": 35 }] },
+        { "id": "c", "label": "Je fais un peu de tout, selon les besoins", "emoji": "🔀", "signals": [{ "trait": "riasec_r", "value": 55 }, { "trait": "riasec_c", "value": 55 }] }
+      ]
+    },
+    {
+      "id": "weekend_expo", "type": "choice", "chapter": "weekend",
+      "prompt": "Une expo gratuite d’art abstrait ouvre pas loin.",
+      "source": { "source_id": "ipip_neo", "ref": "Ouverture, facette Intérêts artistiques (O2), clé -", "original": "Do not enjoy going to art museums.", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "J’y fonce : plus c’est étrange, plus j’aime", "emoji": "🖼️", "signals": [{ "trait": "openness", "value": 90 }, { "trait": "riasec_a", "value": 65, "weight": 0.5 }] },
+        { "id": "b", "label": "Pourquoi pas, si des potes viennent avec moi", "emoji": "👥", "signals": [{ "trait": "openness", "value": 55 }, { "trait": "extraversion", "value": 60, "weight": 0.5 }] },
+        { "id": "c", "label": "Je préfère une sortie où je sais à quoi m’attendre", "emoji": "🎳", "signals": [{ "trait": "openness", "value": 20 }] }
+      ]
+    },
+    {
+      "id": "weekend_fete", "type": "choice", "chapter": "weekend",
+      "prompt": "Tu participes à l’organisation d’une fête de quartier.",
+      "source": { "source_id": "holland_riasec", "ref": "Types S et E", "original": "Social / Enterprising", "relation": "inspired" },
+      "options": [
+        { "id": "a", "label": "Je prends la tête de l’orga et je répartis les rôles", "emoji": "🧭", "signals": [{ "trait": "riasec_e", "value": 90 }, { "trait": "riasec_s", "value": 35 }] },
+        { "id": "b", "label": "J’accueille les gens et je m’occupe de ceux qui arrivent seuls", "emoji": "🤗", "signals": [{ "trait": "riasec_s", "value": 85 }, { "trait": "riasec_e", "value": 35 }] },
+        { "id": "c", "label": "Je motive l’équipe et je veille à ce que personne ne soit oublié", "emoji": "🔥", "signals": [{ "trait": "riasec_e", "value": 65 }, { "trait": "riasec_s", "value": 65 }] }
+      ]
+    },
+    {
+      "id": "devise", "type": "choice", "chapter": "weekend",
+      "prompt": "Dernière question, et pas des moindres : ta devise ?",
+      "fact": "devise", "fact_label": "Devise", "allow_text": true, "placeholder": "Ta propre devise…",
+      "options": [
+        { "id": "partant", "label": "Toujours partant·e", "emoji": "🚀" },
+        { "id": "doucement", "label": "Doucement mais sûrement", "emoji": "🐢" },
+        { "id": "pourquoi", "label": "Pourquoi pas ?", "emoji": "🤷" },
+        { "id": "lacher", "label": "On ne lâche rien", "emoji": "🔥" },
+        { "id": "chill", "label": "Chill avant tout", "emoji": "😎" },
+        { "id": "ensemble", "label": "Ensemble, on va plus loin", "emoji": "🤝" }
+      ]
+    }
+  ]
+}

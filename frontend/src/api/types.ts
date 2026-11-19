@@ -55,10 +55,24 @@ export interface Skill {
   description: string;
   quote: string;
   status: SkillStatus;
-  conversation_id: string;
-  source_message_id: string;
+  origin: 'ai' | 'youth';
+  conversation_id: string | null;
+  source_message_id: string | null;
   created_at: string;
   reviewed_at: string | null;
+}
+
+export interface SkillEvent {
+  action: 'proposed' | 'added' | 'validated' | 'rejected' | 'renamed';
+  actor: 'ai' | 'youth';
+  name: string;
+  previous_name: string | null;
+  at: string;
+}
+
+export interface TrackedSkill extends Skill {
+  history: SkillEvent[];
+  to_discuss: boolean;
 }
 
 export interface SkillList {
@@ -68,7 +82,7 @@ export interface SkillList {
 
 export interface Privacy {
   share_transcripts: boolean;
-  share_updated_at: string | null;
+  consent_at: string | null;
 }
 
 export interface YouthSummary {
@@ -79,21 +93,37 @@ export interface YouthSummary {
   last_activity_at: string | null;
   validated_skills: number;
   pending_skills: number;
+  rejected_skills: number;
+  skills_to_discuss: number;
+  /** Curseurs jugés et détails, réponses modifiés dans le quiz et les jeux (un par sujet). */
+  game_changes?: number;
 }
 
 export interface YouthDetail {
-  youth: Pick<YouthSummary, 'id' | 'display_name' | 'share_transcripts'>;
-  skills: Skill[];
+  youth: Pick<YouthSummary, 'id' | 'display_name' | 'share_transcripts'> & { consent_at: string | null };
+  skills: TrackedSkill[];
   pending_skills: number;
   conversations: Conversation[];
 }
 
+export type ReplyKind =
+  | 'model'
+  | 'reveal'
+  | 'relaunch'
+  | 'greeting'
+  | 'followup'
+  | 'encourage'
+  | 'identity'
+  | 'sensitive'
+  | 'crisis';
+
 export type ChatEvent =
   | { type: 'start'; data: { user_message: Message | null } }
   | { type: 'safety'; data: SafetyInfo }
+  | { type: 'reply'; data: { kind: ReplyKind } }
   | { type: 'delta'; data: { text: string } }
   | {
       type: 'done';
-      data: { assistant_message: Message; pending_skills: number; extracting: boolean };
+      data: { assistant_message: Message; pending_skills: number; talent: Skill | null; extracting: boolean };
     }
   | { type: 'error'; data: { code: string } };

@@ -1,0 +1,26 @@
+/* Lien « Sources et méthode » de la barre du backoffice (chargé avec la mise en page).
+   Sur téléphone, la barre n'a pas la place : le lien reste accessible depuis la fiche du jeune. */
+.bog-nav {
+  display: none;
+}
+
+.bog-nav .bo__label {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .bog-nav {
+    display: block;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 56rem) {
+  .bog-nav {
+    margin-left: 0;
+  }
+
+  .bog-nav .bo__label {
+    display: block;
+  }
+}

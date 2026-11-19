@@ -36,18 +36,21 @@ def _email(data: dict) -> str:
 def register():
     """Crée un compte jeune. Les comptes psychologues passent par `flask create-user`."""
     data = json_body()
-    # Le partage des discussions demande un accord explicite, jamais coché par défaut.
-    share_transcripts = data.get("share_transcripts") is True
+    # Le Centre des Possibles accompagne le jeune : son accord est demandé à l'inscription.
+    if data.get("accept_sharing") is not True:
+        raise ApiError(
+            400,
+            "consent_required",
+            "Pour continuer, accepte de partager ton parcours avec le Centre des Possibles.",
+        )
     user = User(
         email=_email(data),
         display_name=text_field(data, "display_name", "Le prénom ou pseudo", 1, 80),
         password_hash=generate_password_hash(text_field(data, "password", "Le mot de passe", 8, 200)),
         role=Role.YOUTH,
     )
-    user.youth_profile = YouthProfile(
-        share_transcripts=share_transcripts,
-        share_updated_at=utcnow() if share_transcripts else None,
-    )
+    now = utcnow()
+    user.youth_profile = YouthProfile(share_transcripts=True, share_updated_at=now, consent_at=now)
     db.session.add(user)
     try:
         db.session.commit()
@@ -62,7 +65,8 @@ def login():
     data = json_body()
     email = str(data.get("email", "")).strip().lower()
     password = str(data.get("password", ""))
-    user = db.session.scalar(select(User).where(User.email == email))
+    # Un caractère NUL ferait échouer la requête SQL : ce n'est de toute façon pas un compte.
+    user = None if "\x00" in email else db.session.scalar(select(User).where(User.email == email))
     valid = check_password_hash(user.password_hash if user else _DUMMY_HASH, password)
     if user is None or not valid or not user.is_active:
         raise ApiError(401, "invalid_credentials", "E-mail ou mot de passe incorrect.")

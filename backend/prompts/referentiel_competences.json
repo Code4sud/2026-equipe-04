@@ -1,0 +1,1298 @@
+{
+  "version": 1,
+  "sources": {
+    "rome": "ROME 4.0 de France Travail : savoir-être professionnels et grands domaines de métiers (open data, francetravail.io)",
+    "esco": "ESCO v1.2 de la Commission européenne : compétences transversales (open data, esco.ec.europa.eu)"
+  },
+  "note": "Sous-ensemble écrit pour des jeunes de 16 à 25 ans : chaque entrée part d'une compétence ROME ou ESCO, reformulée en mots simples et positifs. 'indices' : termes repérés dans les messages (même syntaxe que garde_fous.json, * = n'importe quelle fin de mot). 'exemples' : phrases typiques, utilisées pour le rapprochement par embeddings. Aucune entrée ne touche à la santé, l'origine, la religion ou la famille.",
+  "competences": [
+    {
+      "id": "mecanique",
+      "nom": "Réparer et entretenir des véhicules",
+      "categorie": "savoir_faire",
+      "description": "Comprendre comment marche un véhicule et le remettre en état.",
+      "source": "ROME I – Installation et maintenance (mécanique automobile, cycles et motocycles)",
+      "indices": [
+        "mecani*",
+        "moteur*",
+        "vidange*",
+        "garage*",
+        "carross*",
+        "embrayage*",
+        "frein*",
+        "pneu",
+        "voiture",
+        "bagnole",
+        "scooter",
+        "moto",
+        "mobylette",
+        "velo",
+        "carbu*",
+        "bougie*",
+        "plaquette*",
+        "batterie de la voiture"
+      ],
+      "exemples": [
+        "j'ai aidé à réparer la voiture",
+        "je change les plaquettes de frein du scooter",
+        "je fais la vidange de la moto",
+        "je répare les vélos de mes potes"
+      ]
+    },
+    {
+      "id": "bricolage",
+      "nom": "Bricoler et réparer des objets",
+      "categorie": "savoir_faire",
+      "description": "Démonter, réparer ou fabriquer des objets avec des outils.",
+      "source": "ROME I – Installation et maintenance ; ESCO – compétences physiques et manuelles",
+      "indices": [
+        "bricol*",
+        "repar*",
+        "demont*",
+        "remont*",
+        "outil*",
+        "visser",
+        "devisser",
+        "perceuse*",
+        "tournevis",
+        "souder",
+        "soudure*",
+        "monter un meuble",
+        "meubles"
+      ],
+      "exemples": [
+        "j'ai monté les meubles de ma chambre",
+        "je démonte les trucs pour voir comment ça marche",
+        "je répare ce qui est cassé à la maison"
+      ]
+    },
+    {
+      "id": "batiment",
+      "nom": "Faire des travaux dans un logement",
+      "categorie": "savoir_faire",
+      "description": "Peindre, poser ou rénover dans une maison ou un appartement.",
+      "source": "ROME F – Construction, bâtiment et travaux publics",
+      "indices": [
+        "peindre",
+        "peinture",
+        "carrel*",
+        "placo*",
+        "macon*",
+        "chantier*",
+        "enduit*",
+        "tapisser",
+        "renov*",
+        "travaux",
+        "parquet*",
+        "mur",
+        "murs",
+        "bosse sur un chantier",
+        "poser du"
+      ],
+      "exemples": [
+        "on a refait la peinture du salon",
+        "j'ai aidé sur un chantier cet été",
+        "j'ai posé du carrelage"
+      ]
+    },
+    {
+      "id": "informatique",
+      "nom": "Dépanner du matériel informatique",
+      "categorie": "savoir_faire",
+      "description": "Installer, réparer ou configurer un ordinateur, une console ou un téléphone.",
+      "source": "ROME I – Installation et maintenance (maintenance informatique)",
+      "indices": [
+        "ordi",
+        "ordinateur*",
+        "pc",
+        "informatique*",
+        "windows",
+        "logiciel*",
+        "formater",
+        "wifi",
+        "box internet",
+        "console*",
+        "ecran*",
+        "installer",
+        "configur*",
+        "carte graphique"
+      ],
+      "exemples": [
+        "j'ai monté mon PC moi-même",
+        "je répare les ordis de mes voisins",
+        "j'ai remis le wifi en marche"
+      ]
+    },
+    {
+      "id": "programmation",
+      "nom": "Programmer ou créer un site",
+      "categorie": "savoir_faire",
+      "description": "Écrire du code pour faire un site, un jeu ou un petit programme.",
+      "source": "ROME M – Support à l'entreprise (systèmes d'information) ; ESCO – compétences numériques",
+      "indices": [
+        "cod*",
+        "programm*",
+        "python",
+        "html",
+        "javascript",
+        "site web",
+        "site internet",
+        "script*",
+        "appli*",
+        "bot discord",
+        "serveur minecraft",
+        "mod*"
+      ],
+      "exemples": [
+        "j'ai codé un petit jeu",
+        "j'ai fait un site pour le club",
+        "je gère un serveur Minecraft"
+      ]
+    },
+    {
+      "id": "cuisine",
+      "nom": "Cuisiner",
+      "categorie": "savoir_faire",
+      "description": "Préparer des repas en suivant ou en inventant des recettes.",
+      "source": "ROME G – Hôtellerie-restauration, tourisme, loisirs et animation",
+      "indices": [
+        "cuisin*",
+        "recette*",
+        "repas",
+        "gateau*",
+        "patiss*",
+        "plat",
+        "plats",
+        "four",
+        "cuire",
+        "cuisson",
+        "manger pour"
+      ],
+      "exemples": [
+        "je fais à manger pour tout le monde le soir",
+        "je fais des gâteaux pour les anniversaires",
+        "je cuisine des recettes que je trouve"
+      ]
+    },
+    {
+      "id": "jardinage",
+      "nom": "Entretenir un jardin ou des plantes",
+      "categorie": "savoir_faire",
+      "description": "Planter, arroser et entretenir un jardin ou un potager.",
+      "source": "ROME A – Agriculture et pêche, espaces naturels et espaces verts",
+      "indices": [
+        "jardin*",
+        "potager*",
+        "plante*",
+        "tondre",
+        "tondeuse*",
+        "arros*",
+        "legume*",
+        "haie*",
+        "planter"
+      ],
+      "exemples": [
+        "je tonds la pelouse des voisins",
+        "on a un potager et je m'en occupe",
+        "je taille les haies"
+      ]
+    },
+    {
+      "id": "animaux",
+      "nom": "S'occuper d'animaux",
+      "categorie": "savoir_faire",
+      "description": "Nourrir, soigner et promener des animaux de façon régulière.",
+      "source": "ROME A – Agriculture et pêche (soins aux animaux)",
+      "indices": [
+        "chien*",
+        "chat",
+        "chats",
+        "chaton*",
+        "cheval",
+        "chevaux",
+        "animal",
+        "animaux",
+        "ecurie*",
+        "nourrir",
+        "promener",
+        "aquarium*"
+      ],
+      "exemples": [
+        "je promène le chien tous les jours",
+        "je m'occupe des chevaux au centre équestre",
+        "je garde les chats des voisins"
+      ]
+    },
+    {
+      "id": "couture",
+      "nom": "Coudre et customiser des vêtements",
+      "categorie": "creativite",
+      "description": "Transformer, réparer ou créer des vêtements.",
+      "source": "ROME B – Arts et façonnage d'ouvrages d'art",
+      "indices": [
+        "coudre",
+        "couture*",
+        "tricot*",
+        "custom*",
+        "vetement*",
+        "machine a coudre",
+        "ourlet*",
+        "broder",
+        "broderie*"
+      ],
+      "exemples": [
+        "je customise mes sneakers",
+        "j'ai appris à coudre mes vêtements",
+        "je fais des ourlets"
+      ]
+    },
+    {
+      "id": "coiffure_beaute",
+      "nom": "Coiffer et mettre en beauté",
+      "categorie": "savoir_faire",
+      "description": "Coiffer, tresser ou maquiller d'autres personnes.",
+      "source": "ROME D – Commerce, vente et grande distribution (soins esthétiques et coiffure)",
+      "indices": [
+        "coiff*",
+        "tresse*",
+        "natte*",
+        "maquill*",
+        "ongle*",
+        "barbe*",
+        "degrade*",
+        "cheveux",
+        "tondeuse a cheveux"
+      ],
+      "exemples": [
+        "je fais les tresses de mes copines",
+        "je coupe les cheveux des potes",
+        "je fais des dégradés"
+      ]
+    },
+    {
+      "id": "vente",
+      "nom": "Vendre et conseiller des clients",
+      "categorie": "communication",
+      "description": "Présenter un produit, conseiller et conclure une vente.",
+      "source": "ROME D – Commerce, vente et grande distribution ; ROME savoir-être : sens de la communication",
+      "indices": [
+        "vend*",
+        "client*",
+        "caisse*",
+        "revend*",
+        "marche",
+        "vinted",
+        "leboncoin",
+        "commerce*",
+        "boutique*",
+        "magasin*",
+        "achet*"
+      ],
+      "exemples": [
+        "je revends des fringues sur Vinted",
+        "j'ai tenu la caisse au marché",
+        "je conseille les clients au magasin"
+      ]
+    },
+    {
+      "id": "sport",
+      "nom": "S'entraîner avec régularité",
+      "categorie": "savoir_faire",
+      "description": "Pratiquer un sport, s'entraîner et progresser avec le temps.",
+      "source": "ROME G – Loisirs et animation sportive ; ESCO – compétences physiques",
+      "indices": [
+        "entrain*",
+        "match*",
+        "foot",
+        "football",
+        "basket*",
+        "boxe*",
+        "muscu*",
+        "sport*",
+        "course a pied",
+        "competition*",
+        "tournoi*",
+        "danse*",
+        "skate*",
+        "natation",
+        "judo",
+        "karate",
+        "rugby",
+        "hand"
+      ],
+      "exemples": [
+        "je m'entraîne trois fois par semaine au foot",
+        "je fais de la boxe depuis deux ans",
+        "je danse avec un groupe"
+      ]
+    },
+    {
+      "id": "musique",
+      "nom": "Faire de la musique",
+      "categorie": "creativite",
+      "description": "Jouer, chanter, écrire ou produire de la musique.",
+      "source": "ROME L – Spectacle",
+      "indices": [
+        "musique*",
+        "guitare*",
+        "piano*",
+        "chante*",
+        "chanter",
+        "rap",
+        "rappe*",
+        "beat*",
+        "instrument*",
+        "compos*",
+        "prod",
+        "prods",
+        "batterie",
+        "solfege"
+      ],
+      "exemples": [
+        "je fais des prods sur mon ordi",
+        "j'écris des sons de rap",
+        "je joue de la guitare"
+      ]
+    },
+    {
+      "id": "video_image",
+      "nom": "Créer des vidéos ou des photos",
+      "categorie": "creativite",
+      "description": "Filmer, photographier et monter des contenus.",
+      "source": "ROME E – Communication, média et multimédia",
+      "indices": [
+        "montage*",
+        "monter des videos",
+        "monte des videos",
+        "filme*",
+        "filmer",
+        "photo*",
+        "capcut",
+        "premiere pro",
+        "ma chaine",
+        "tourner",
+        "camera"
+      ],
+      "exemples": [
+        "je monte des vidéos pour TikTok",
+        "je fais des photos de mes potes",
+        "je filme et je monte des clips"
+      ]
+    },
+    {
+      "id": "dessin",
+      "nom": "Dessiner et créer des visuels",
+      "categorie": "creativite",
+      "description": "Dessiner, peindre, graffer ou créer des visuels.",
+      "source": "ROME B – Arts et façonnage d'ouvrages d'art ; ROME E – multimédia",
+      "indices": [
+        "dessin*",
+        "dessine*",
+        "graff*",
+        "illustr*",
+        "manga*",
+        "logo*",
+        "croquis",
+        "tatouage*",
+        "canva",
+        "photoshop"
+      ],
+      "exemples": [
+        "je dessine des mangas",
+        "j'ai fait le logo de l'équipe",
+        "je fais des graffs"
+      ]
+    },
+    {
+      "id": "strategie_jeu",
+      "nom": "Élaborer des stratégies",
+      "categorie": "resolution_problemes",
+      "description": "Analyser une situation de jeu et choisir la meilleure tactique.",
+      "source": "ESCO – compétences de réflexion (pensée stratégique)",
+      "indices": [
+        "strateg*",
+        "tactique*",
+        "jeux video",
+        "jeu video",
+        "ranked",
+        "classe",
+        "classement",
+        "echecs",
+        "rank",
+        "esport*"
+      ],
+      "exemples": [
+        "je suis bien classé en ranked",
+        "je prépare des stratégies avec ma team",
+        "je joue aux échecs"
+      ]
+    },
+    {
+      "id": "livraison",
+      "nom": "Livrer et se repérer",
+      "categorie": "organisation",
+      "description": "Organiser des trajets et livrer à l'heure.",
+      "source": "ROME N – Transport et logistique",
+      "indices": [
+        "livr*",
+        "uber eats",
+        "deliveroo",
+        "colis",
+        "tournee*",
+        "itineraire*",
+        "trajet*",
+        "gps"
+      ],
+      "exemples": [
+        "je fais des livraisons à vélo",
+        "je connais tous les raccourcis du quartier",
+        "je livre des colis"
+      ]
+    },
+    {
+      "id": "manutention",
+      "nom": "Porter, ranger et gérer du matériel",
+      "categorie": "savoir_faire",
+      "description": "Charger, déplacer et ranger du matériel avec soin.",
+      "source": "ROME N – Transport et logistique (manutention, magasinage)",
+      "indices": [
+        "carton*",
+        "demenag*",
+        "decharg*",
+        "charger le camion",
+        "stock*",
+        "entrepot*",
+        "manutention*",
+        "rayon*",
+        "mise en rayon"
+      ],
+      "exemples": [
+        "j'ai aidé à un déménagement",
+        "je décharge les camions le matin",
+        "je range le stock du magasin"
+      ]
+    },
+    {
+      "id": "entretien_logement",
+      "nom": "Entretenir un lieu de vie",
+      "categorie": "organisation",
+      "description": "Nettoyer, ranger et tenir un lieu propre et agréable.",
+      "source": "ROME K – Services à la personne et à la collectivité",
+      "indices": [
+        "menage*",
+        "nettoy*",
+        "ranger",
+        "range",
+        "lessive*",
+        "linge",
+        "vaisselle*",
+        "aspirateur*",
+        "courses"
+      ],
+      "exemples": [
+        "je fais le ménage et les courses",
+        "je m'occupe du linge",
+        "je range tout l'appartement"
+      ]
+    },
+    {
+      "id": "garde_enfants",
+      "nom": "S'occuper d'enfants",
+      "categorie": "relationnel",
+      "description": "Garder des enfants, veiller sur eux et les occuper.",
+      "source": "ROME K – Services à la personne (garde d'enfants)",
+      "indices": [
+        "enfant*",
+        "garder",
+        "garde",
+        "baby sitting",
+        "babysit*",
+        "bebe*",
+        "gamin*",
+        "petits",
+        "petit frere",
+        "petite soeur",
+        "petits freres",
+        "petites soeurs",
+        "ecole",
+        "devoirs"
+      ],
+      "exemples": [
+        "je garde les enfants des voisins",
+        "je récupère les petits à l'école",
+        "j'aide les petits pour les devoirs"
+      ]
+    },
+    {
+      "id": "aide_personnes",
+      "nom": "Aider une personne au quotidien",
+      "categorie": "relationnel",
+      "description": "Accompagner quelqu'un pour les courses, les papiers ou les trajets.",
+      "source": "ROME K – Services à la personne (aide à domicile)",
+      "indices": [
+        "voisine*",
+        "voisin*",
+        "personne agee",
+        "personnes agees",
+        "accompagn*",
+        "papiers",
+        "rendez vous",
+        "courses pour",
+        "traduire pour"
+      ],
+      "exemples": [
+        "je fais les courses pour ma voisine",
+        "j'accompagne quelqu'un à ses rendez-vous",
+        "j'aide à remplir les papiers"
+      ]
+    },
+    {
+      "id": "animation",
+      "nom": "Animer un groupe",
+      "categorie": "communication",
+      "description": "Proposer des activités et faire participer un groupe.",
+      "source": "ROME G – Animation socioculturelle et de loisirs",
+      "indices": [
+        "anim*",
+        "colonie*",
+        "colo",
+        "centre aere",
+        "bafa",
+        "encadr*",
+        "atelier*",
+        "jeux pour"
+      ],
+      "exemples": [
+        "j'anime des ateliers au centre aéré",
+        "j'encadre les jeunes du club",
+        "j'organise des jeux pour les petits"
+      ]
+    },
+    {
+      "id": "organisation_temps",
+      "nom": "Organiser son temps",
+      "categorie": "organisation",
+      "description": "Prévoir ses tâches et les faire dans l'ordre et à temps.",
+      "source": "ROME savoir-être : sens de l'organisation ; ESCO – autogestion",
+      "indices": [
+        "planning*",
+        "agenda*",
+        "emploi du temps",
+        "organis*",
+        "planifi*",
+        "liste*",
+        "horaire*",
+        "a l avance",
+        "prevoir",
+        "prevu"
+      ],
+      "exemples": [
+        "je fais une liste de tout ce que j'ai à faire",
+        "je prévois mon planning de la semaine",
+        "je m'organise pour tout faire"
+      ]
+    },
+    {
+      "id": "budget",
+      "nom": "Gérer un budget",
+      "categorie": "organisation",
+      "description": "Suivre ses dépenses, économiser et prévoir.",
+      "source": "ESCO – compétences de base (gérer ses finances)",
+      "indices": [
+        "budget*",
+        "argent",
+        "econom*",
+        "depens*",
+        "euros",
+        "payer",
+        "paye",
+        "factur*",
+        "thune",
+        "sous de cote",
+        "mettre de cote"
+      ],
+      "exemples": [
+        "je mets de l'argent de côté chaque mois",
+        "je gère mon budget tout seul",
+        "j'ai économisé pour m'acheter un scooter"
+      ]
+    },
+    {
+      "id": "evenement",
+      "nom": "Organiser un événement",
+      "categorie": "organisation",
+      "description": "Préparer une fête, une sortie ou un tournoi de A à Z.",
+      "source": "ROME G – Organisation d'événements ; ROME savoir-être : sens de l'organisation",
+      "indices": [
+        "anniversaire*",
+        "fete*",
+        "soiree*",
+        "evenement*",
+        "tournoi*",
+        "sortie*",
+        "voyage*",
+        "organise*"
+      ],
+      "exemples": [
+        "j'ai organisé l'anniversaire surprise",
+        "j'ai monté un tournoi de foot dans le quartier",
+        "on a organisé un voyage entre potes"
+      ]
+    },
+    {
+      "id": "rigueur",
+      "nom": "Travailler avec soin et précision",
+      "categorie": "organisation",
+      "description": "Faire les choses avec précision et vérifier son travail.",
+      "source": "ROME savoir-être : rigueur",
+      "indices": [
+        "precis*",
+        "minuti*",
+        "verifi*",
+        "rigueur*",
+        "rigoureu*",
+        "soign*",
+        "detail*",
+        "mesur*",
+        "propre",
+        "bien fait"
+      ],
+      "exemples": [
+        "je vérifie tout deux fois",
+        "je fais attention aux détails",
+        "il faut que ce soit bien fait"
+      ]
+    },
+    {
+      "id": "fiabilite",
+      "nom": "Tenir ses engagements",
+      "categorie": "organisation",
+      "description": "Être là quand on compte sur soi, régulièrement et à l'heure.",
+      "source": "ROME savoir-être : fiabilité ; ESCO – autogestion",
+      "indices": [
+        "ponctuel*",
+        "a l heure",
+        "chaque semaine",
+        "tous les jours",
+        "tous les matins",
+        "tous les soirs",
+        "regulier*",
+        "regulierement",
+        "fiable*",
+        "engagement*",
+        "compte sur moi",
+        "comptent sur moi",
+        "jamais en retard",
+        "jamais rate",
+        "jamais manque"
+      ],
+      "exemples": [
+        "tous les samedis je suis là à 8h",
+        "ils comptent sur moi",
+        "je n'ai jamais raté un entraînement"
+      ]
+    },
+    {
+      "id": "entraide",
+      "nom": "Donner un coup de main",
+      "categorie": "relationnel",
+      "description": "Proposer son aide et soutenir les autres dans ce qu'ils font.",
+      "source": "ESCO – compétences sociales (soutenir les autres) ; ROME savoir-être : travail en équipe",
+      "indices": [
+        "aide",
+        "aider",
+        "aidé",
+        "aide a",
+        "j ai aide",
+        "aidais",
+        "coup de main",
+        "rendre service",
+        "rends service",
+        "depann*",
+        "soutien*",
+        "soutenir"
+      ],
+      "exemples": [
+        "j'ai aidé mon voisin à déménager",
+        "je donne souvent un coup de main",
+        "je rends service quand on me demande"
+      ]
+    },
+    {
+      "id": "travail_equipe",
+      "nom": "Travailler en équipe",
+      "categorie": "relationnel",
+      "description": "Coopérer avec d'autres pour arriver à un résultat commun.",
+      "source": "ROME savoir-être : travail en équipe ; ESCO – compétences sociales",
+      "indices": [
+        "equipe*",
+        "ensemble",
+        "collectif*",
+        "a plusieurs",
+        "avec les autres",
+        "coequipier*",
+        "team",
+        "on s est reparti",
+        "repartir"
+      ],
+      "exemples": [
+        "on s'est réparti le travail à plusieurs",
+        "dans l'équipe chacun a son rôle",
+        "on a fait ça ensemble"
+      ]
+    },
+    {
+      "id": "ecoute",
+      "nom": "Écouter et soutenir quelqu'un",
+      "categorie": "relationnel",
+      "description": "Prendre le temps d'écouter et de réconforter une personne.",
+      "source": "ESCO – compétences sociales (écoute active)",
+      "indices": [
+        "ecout*",
+        "confie*",
+        "console*",
+        "rassur*",
+        "remonter le moral",
+        "parler avec",
+        "se confier",
+        "viennent me voir",
+        "vient me voir"
+      ],
+      "exemples": [
+        "mes potes viennent me voir quand ça va pas",
+        "j'écoute et je rassure",
+        "je sais remonter le moral"
+      ]
+    },
+    {
+      "id": "mediation",
+      "nom": "Apaiser les tensions",
+      "categorie": "relationnel",
+      "description": "Calmer une dispute et aider chacun à trouver un terrain d'entente.",
+      "source": "ESCO – compétences sociales (gérer les conflits)",
+      "indices": [
+        "dispute*",
+        "conflit*",
+        "embrouille*",
+        "calme*",
+        "calmer",
+        "separer",
+        "mediat*",
+        "reconcili*",
+        "clash*",
+        "bagarre*"
+      ],
+      "exemples": [
+        "quand il y a une embrouille c'est moi qui calme",
+        "j'ai réconcilié deux potes",
+        "je sépare quand ça chauffe"
+      ]
+    },
+    {
+      "id": "accueil",
+      "nom": "Accueillir et mettre à l'aise",
+      "categorie": "relationnel",
+      "description": "Recevoir les nouveaux et les aider à trouver leur place.",
+      "source": "ROME savoir-être : sens du service ; ESCO – compétences sociales",
+      "indices": [
+        "accueil*",
+        "recevoir",
+        "bienvenue",
+        "nouveaux",
+        "nouvelle",
+        "nouveau",
+        "integrer",
+        "a l aise"
+      ],
+      "exemples": [
+        "je montre le quartier aux nouveaux",
+        "j'accueille les nouveaux au club",
+        "je mets les gens à l'aise"
+      ]
+    },
+    {
+      "id": "transmettre",
+      "nom": "Expliquer et transmettre",
+      "categorie": "communication",
+      "description": "Montrer ou expliquer quelque chose pour que l'autre comprenne.",
+      "source": "ROME savoir-être : sens de la communication ; ESCO – former d'autres personnes",
+      "indices": [
+        "expliqu*",
+        "apprendre a",
+        "appris a",
+        "montrer comment",
+        "montre comment",
+        "enseign*",
+        "transmet*",
+        "faire des tutos",
+        "fais des tutos",
+        "aide aux devoirs",
+        "devoirs avec",
+        "aide les nouveaux"
+      ],
+      "exemples": [
+        "j'explique les exercices aux nouveaux",
+        "j'ai appris à mon pote à nager",
+        "je montre comment faire"
+      ]
+    },
+    {
+      "id": "oral",
+      "nom": "Prendre la parole devant un groupe",
+      "categorie": "communication",
+      "description": "Parler devant d'autres, présenter une idée ou un projet.",
+      "source": "ROME savoir-être : sens de la communication ; ESCO – communiquer",
+      "indices": [
+        "parler devant",
+        "presente*",
+        "presenter",
+        "expose*",
+        "oral",
+        "discours",
+        "micro*",
+        "scene",
+        "public"
+      ],
+      "exemples": [
+        "j'ai fait un exposé devant toute la classe",
+        "je parle au micro pendant les matchs",
+        "je suis monté sur scène"
+      ]
+    },
+    {
+      "id": "negociation",
+      "nom": "Convaincre et négocier",
+      "categorie": "communication",
+      "description": "Défendre son point de vue et trouver un accord.",
+      "source": "ESCO – compétences de communication (négocier) ; ROME savoir-être : force de persuasion",
+      "indices": [
+        "convainc*",
+        "convaincu",
+        "negoci*",
+        "persuad*",
+        "argument*",
+        "marchand*",
+        "baisser le prix"
+      ],
+      "exemples": [
+        "j'ai négocié le prix",
+        "j'ai réussi à les convaincre",
+        "je trouve les bons arguments"
+      ]
+    },
+    {
+      "id": "ecriture",
+      "nom": "Écrire des textes",
+      "categorie": "communication",
+      "description": "Raconter, rédiger ou exprimer des idées par écrit.",
+      "source": "ESCO – compétences de base (écrire) ; ROME E – Communication",
+      "indices": [
+        "ecri*",
+        "texte*",
+        "histoire*",
+        "poeme*",
+        "lettre*",
+        "blog*",
+        "redig*",
+        "fanfic*",
+        "paroles",
+        "carnet"
+      ],
+      "exemples": [
+        "j'écris des histoires",
+        "j'écris les paroles de mes sons",
+        "j'ai rédigé la lettre pour l'association"
+      ]
+    },
+    {
+      "id": "langues",
+      "nom": "Traduire et faire le lien entre deux langues",
+      "categorie": "communication",
+      "description": "Comprendre et transmettre un message dans une autre langue.",
+      "source": "ESCO – compétences linguistiques",
+      "indices": [
+        "tradu*",
+        "anglais",
+        "espagnol",
+        "allemand",
+        "langue*",
+        "bilingue*",
+        "parle deux",
+        "parle trois"
+      ],
+      "exemples": [
+        "je traduis pour les gens au guichet",
+        "je parle anglais avec les touristes",
+        "je fais l'interprète"
+      ]
+    },
+    {
+      "id": "reseaux_sociaux",
+      "nom": "Animer une communauté en ligne",
+      "categorie": "communication",
+      "description": "Publier des contenus et fédérer des abonnés sur les réseaux.",
+      "source": "ROME E – Communication, média et multimédia (community management)",
+      "indices": [
+        "reseaux sociaux",
+        "insta*",
+        "tiktok*",
+        "abonne*",
+        "followers",
+        "snap*",
+        "communaut*",
+        "discord",
+        "twitch",
+        "stream*",
+        "post",
+        "poste"
+      ],
+      "exemples": [
+        "j'ai 2000 abonnés sur TikTok",
+        "je gère le compte Insta du club",
+        "je stream sur Twitch"
+      ]
+    },
+    {
+      "id": "diagnostic",
+      "nom": "Trouver d'où vient un problème",
+      "categorie": "resolution_problemes",
+      "description": "Chercher méthodiquement la cause d'une panne ou d'un problème.",
+      "source": "ESCO – compétences de réflexion (résoudre des problèmes) ; ROME I – diagnostic de panne",
+      "indices": [
+        "panne*",
+        "diagnost*",
+        "trouver le probleme",
+        "marchait pas",
+        "marche pas",
+        "bug*",
+        "d ou ca vient",
+        "comprendre pourquoi",
+        "teste*",
+        "tester",
+        "piece par piece"
+      ],
+      "exemples": [
+        "je teste pièce par pièce jusqu'à trouver la panne",
+        "j'ai trouvé d'où venait le bug",
+        "je cherche pourquoi ça marche pas"
+      ]
+    },
+    {
+      "id": "debrouillardise",
+      "nom": "Trouver des solutions",
+      "categorie": "resolution_problemes",
+      "description": "Imaginer une solution concrète quand quelque chose bloque.",
+      "source": "ESCO – compétences de réflexion (résoudre des problèmes) ; ROME savoir-être : réactivité",
+      "indices": [
+        "solution*",
+        "debrouill*",
+        "systeme d",
+        "astuce*",
+        "trouver un moyen",
+        "trouve un moyen",
+        "resoudre",
+        "regle",
+        "regler",
+        "bidouill*",
+        "improvis*"
+      ],
+      "exemples": [
+        "je trouve toujours un moyen",
+        "j'ai bidouillé un truc et ça a marché",
+        "je me débrouille avec ce que j'ai"
+      ]
+    },
+    {
+      "id": "gestion_stress",
+      "nom": "Garder son calme sous pression",
+      "categorie": "resolution_problemes",
+      "description": "Rester efficace dans le rush ou face à l'imprévu.",
+      "source": "ROME savoir-être : gestion du stress",
+      "indices": [
+        "stress*",
+        "pression",
+        "rush",
+        "coup de feu",
+        "garde mon calme",
+        "rester calme",
+        "urgence*",
+        "panique*",
+        "sang froid"
+      ],
+      "exemples": [
+        "pendant le rush je reste calme",
+        "je garde mon sang-froid",
+        "même sous pression j'y arrive"
+      ]
+    },
+    {
+      "id": "comprendre",
+      "nom": "Comprendre comment les choses marchent",
+      "categorie": "resolution_problemes",
+      "description": "Observer, analyser et chercher à comprendre le fonctionnement des choses.",
+      "source": "ESCO – compétences de réflexion (pensée analytique) ; ROME savoir-être : curiosité",
+      "indices": [
+        "comment ca marche",
+        "comprendre comment",
+        "comment ca fonctionne",
+        "analys*",
+        "logique*",
+        "calcul*",
+        "fonctionnement"
+      ],
+      "exemples": [
+        "j'aime comprendre comment ça marche",
+        "je démonte pour voir le fonctionnement",
+        "j'analyse avant d'agir"
+      ]
+    },
+    {
+      "id": "autonomie",
+      "nom": "Se débrouiller seul",
+      "categorie": "autonomie",
+      "description": "Avancer seul, sans attendre qu'on dise quoi faire.",
+      "source": "ROME savoir-être : autonomie ; ESCO – autogestion",
+      "indices": [
+        "tout seul",
+        "toute seule",
+        "seul",
+        "seule",
+        "par moi meme",
+        "sans aide",
+        "sans personne",
+        "de moi meme"
+      ],
+      "exemples": [
+        "j'ai tout fait tout seul",
+        "personne ne m'a aidé, j'ai trouvé par moi-même",
+        "je me débrouille seul"
+      ]
+    },
+    {
+      "id": "initiative",
+      "nom": "Prendre des initiatives",
+      "categorie": "autonomie",
+      "description": "Lancer quelque chose de soi-même et proposer des idées.",
+      "source": "ROME savoir-être : prise d'initiative",
+      "indices": [
+        "initiative*",
+        "j ai decide",
+        "j ai lance",
+        "j ai monte",
+        "j ai propose",
+        "je propose",
+        "je me suis lance",
+        "lancer",
+        "proposer",
+        "de moi meme"
+      ],
+      "exemples": [
+        "j'ai décidé de lancer mon petit business",
+        "c'est moi qui ai proposé l'idée",
+        "je me suis lancé"
+      ]
+    },
+    {
+      "id": "perseverance",
+      "nom": "Tenir bon malgré les difficultés",
+      "categorie": "autonomie",
+      "description": "Recommencer et continuer jusqu'à réussir.",
+      "source": "ROME savoir-être : persévérance",
+      "indices": [
+        "persever*",
+        "pas lache",
+        "lache rien",
+        "lacher",
+        "recommenc*",
+        "insist*",
+        "continue*",
+        "malgre",
+        "jusqu a ce que",
+        "j ai reussi",
+        "enfin reussi",
+        "plusieurs fois",
+        "reessaye*",
+        "jusqu au bout",
+        "j ai tenu",
+        "pas abandonne",
+        "jamais lache",
+        "jamais abandonne"
+      ],
+      "exemples": [
+        "j'ai recommencé dix fois mais j'ai réussi",
+        "j'ai pas lâché",
+        "j'ai continué malgré tout"
+      ]
+    },
+    {
+      "id": "adaptation",
+      "nom": "S'adapter aux changements",
+      "categorie": "autonomie",
+      "description": "Trouver ses repères vite quand la situation change.",
+      "source": "ROME savoir-être : capacité d'adaptation",
+      "indices": [
+        "adapt*",
+        "imprevu*",
+        "changement*",
+        "nouvelle ville",
+        "nouvelle ecole",
+        "nouveau lycee",
+        "j ai change",
+        "habitue*"
+      ],
+      "exemples": [
+        "je me suis vite adapté à la nouvelle ville",
+        "quand ça change, je m'adapte",
+        "j'ai trouvé mes repères vite"
+      ]
+    },
+    {
+      "id": "responsabilite",
+      "nom": "Prendre des responsabilités",
+      "categorie": "autonomie",
+      "description": "Assumer une tâche importante à laquelle d'autres font confiance.",
+      "source": "ROME savoir-être : sens des responsabilités ; ESCO – autogestion",
+      "indices": [
+        "responsab*",
+        "en charge",
+        "confiance",
+        "les cles",
+        "capitaine",
+        "delegue*",
+        "chef",
+        "c est moi qui gere",
+        "je gere",
+        "je m occupe de"
+      ],
+      "exemples": [
+        "je suis capitaine de l'équipe",
+        "on m'a confié les clés du local",
+        "c'est moi qui gère la caisse"
+      ]
+    },
+    {
+      "id": "creativite",
+      "nom": "Imaginer et créer",
+      "categorie": "creativite",
+      "description": "Avoir des idées nouvelles et les transformer en réalisations.",
+      "source": "ROME savoir-être : créativité ; ESCO – pensée créative",
+      "indices": [
+        "cree*",
+        "creer",
+        "creation*",
+        "invent*",
+        "imagin*",
+        "idee*",
+        "fabriqu*",
+        "concevoir",
+        "design*",
+        "decor*"
+      ],
+      "exemples": [
+        "j'ai inventé un jeu",
+        "j'ai fabriqué une étagère avec des palettes",
+        "j'ai plein d'idées de déco"
+      ]
+    },
+    {
+      "id": "apprendre_seul",
+      "nom": "Apprendre en autonomie",
+      "categorie": "apprentissage",
+      "description": "Chercher seul les vidéos, tutos et infos pour apprendre quelque chose.",
+      "source": "ESCO – autogestion (apprendre à apprendre) ; ROME savoir-être : curiosité",
+      "indices": [
+        "youtube",
+        "tuto",
+        "tutos",
+        "tutoriel*",
+        "appris seul",
+        "appris tout seul",
+        "appris toute seule",
+        "autodidact*",
+        "internet",
+        "en regardant des videos",
+        "regarde des videos",
+        "forum*",
+        "je me renseigne",
+        "je cherche sur"
+      ],
+      "exemples": [
+        "je regarde sur YouTube comment faire",
+        "j'ai tout appris avec des tutos",
+        "je cherche sur internet et j'essaie"
+      ]
+    },
+    {
+      "id": "apprendre_experience",
+      "nom": "Apprendre en faisant",
+      "categorie": "apprentissage",
+      "description": "Progresser à chaque essai et retenir ce qu'on a vu en pratique.",
+      "source": "ESCO – autogestion (apprendre à apprendre)",
+      "indices": [
+        "j apprends",
+        "j ai appris",
+        "appris",
+        "apprendre",
+        "a chaque fois",
+        "progress*",
+        "je m ameliore",
+        "de mieux en mieux",
+        "essai*",
+        "erreur*",
+        "experience*"
+      ],
+      "exemples": [
+        "j'apprends pas mal de choses à chaque fois",
+        "j'ai appris sur le tas",
+        "je progresse à chaque essai"
+      ]
+    },
+    {
+      "id": "curiosite",
+      "nom": "Être curieux et aimer découvrir",
+      "categorie": "apprentissage",
+      "description": "S'intéresser à de nouveaux sujets et chercher à en savoir plus.",
+      "source": "ROME savoir-être : curiosité",
+      "indices": [
+        "curieu*",
+        "curiosite*",
+        "passionn*",
+        "decouvr*",
+        "m interesse",
+        "ca m interesse",
+        "je me renseigne",
+        "en savoir plus",
+        "documentaire*"
+      ],
+      "exemples": [
+        "je me renseigne sur plein de sujets",
+        "je regarde des documentaires sur l'espace",
+        "j'aime découvrir des trucs nouveaux"
+      ]
+    },
+    {
+      "id": "observer",
+      "nom": "Apprendre en observant",
+      "categorie": "apprentissage",
+      "description": "Regarder faire quelqu'un d'expérimenté pour reproduire ensuite.",
+      "source": "ESCO – autogestion (apprendre à apprendre)",
+      "indices": [
+        "en regardant",
+        "observ*",
+        "regarde faire",
+        "regardais faire",
+        "a cote de",
+        "m a montre",
+        "m ont montre",
+        "imit*",
+        "comme lui",
+        "comme elle"
+      ],
+      "exemples": [
+        "j'ai appris en regardant faire mon oncle",
+        "il m'a montré et après j'ai fait pareil",
+        "j'observe et je reproduis"
+      ]
+    }
+  ]
+}

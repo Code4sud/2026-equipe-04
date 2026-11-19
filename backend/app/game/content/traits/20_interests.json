@@ -1,0 +1,12 @@
+{
+  "group": { "id": "interests", "label": "Intérêts", "youth_label": "Ce qui t’attire", "order": 20, "youth_view": "strengths" },
+  "traits": [
+    { "id": "riasec_r", "kind": "unipolar", "youth": { "label": "Faire de tes mains" }, "psy": { "label": "Intérêt manuel et technique" }, "description": "Réparer, construire, utiliser des outils, travailler dehors.", "reference": "RIASEC, type Réaliste" },
+    { "id": "riasec_i", "kind": "unipolar", "youth": { "label": "Comprendre comment ça marche" }, "psy": { "label": "Intérêt pour l’investigation" }, "description": "Chercher, analyser, résoudre des énigmes.", "reference": "RIASEC, type Investigateur" },
+    { "id": "riasec_a", "kind": "unipolar", "youth": { "label": "Créer" }, "psy": { "label": "Intérêt artistique" }, "description": "Imaginer, composer, s’exprimer.", "reference": "RIASEC, type Artistique" },
+    { "id": "riasec_s", "kind": "unipolar", "youth": { "label": "Aider les autres" }, "psy": { "label": "Intérêt social" }, "description": "Accompagner, expliquer, prendre soin.", "reference": "RIASEC, type Social" },
+    { "id": "riasec_e", "kind": "unipolar", "youth": { "label": "Lancer des projets" }, "psy": { "label": "Intérêt entrepreneurial" }, "description": "Convaincre, décider, mener un groupe.", "reference": "RIASEC, type Entreprenant" },
+    { "id": "riasec_c", "kind": "unipolar", "youth": { "label": "Mettre de l’ordre" }, "psy": { "label": "Intérêt pour l’organisation" }, "description": "Classer, vérifier, suivre un cadre précis.", "reference": "RIASEC, type Conventionnel" },
+    { "id": "interest_digital", "kind": "unipolar", "youth": { "label": "Numérique et jeux vidéo" }, "psy": { "label": "Intérêt geek et numérique" }, "description": "Jeux vidéo, informatique, création en ligne.", "reference": "Indicateur maison, hors RIASEC", "norm_note": "Indicateur créé pour ce projet, sans validation psychométrique." }
+  ]
+}

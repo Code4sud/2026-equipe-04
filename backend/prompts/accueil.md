@@ -1,1 +1,1 @@
-Salut ! Ici, pas de CV, pas de note et pas de mauvaise réponse. J'aimerais juste qu'on discute de ce que tu fais au quotidien. Raconte-moi un truc que tu as fait ces derniers temps et dont tu es plutôt content, même tout petit ?
+Salut ! On part explorer ce que t’as vécu : toi tu racontes, moi je repère tes talents. Y a pas de mauvaise réponse, et tu peux t’arrêter quand tu veux. C’est quoi un truc que t’as fait cette semaine, même tout bête ?

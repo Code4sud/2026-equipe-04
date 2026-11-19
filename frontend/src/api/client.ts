@@ -47,7 +47,7 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, error?.code ?? 'unknown', error?.message ?? '');
 }
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
@@ -108,10 +108,10 @@ export async function streamReply(
 export const api = {
   login: (email: string, password: string) =>
     request<Session>('/auth/login', { method: 'POST', body: { email, password } }),
-  register: (display_name: string, email: string, password: string, share_transcripts: boolean) =>
+  register: (display_name: string, email: string, password: string, accept_sharing: boolean) =>
     request<Session>('/auth/register', {
       method: 'POST',
-      body: { display_name, email, password, share_transcripts },
+      body: { display_name, email, password, accept_sharing },
     }),
   me: (signal?: AbortSignal) => request<{ user: User }>('/auth/me', { signal }),
 
@@ -128,8 +128,8 @@ export const api = {
   updateSkill: (id: string, changes: { status?: SkillStatus; name?: string }) =>
     request<{ skill: Skill }>(`/me/skills/${id}`, { method: 'PATCH', body: changes }),
   getPrivacy: (signal?: AbortSignal) => request<Privacy>('/me/privacy', { signal }),
-  updatePrivacy: (share_transcripts: boolean) =>
-    request<Privacy>('/me/privacy', { method: 'PATCH', body: { share_transcripts } }),
+  addSkill: (name: string, description: string) =>
+    request<{ skill: Skill }>('/me/skills', { method: 'POST', body: { name, description } }),
 
   listYouths: (signal?: AbortSignal) =>
     request<{ youths: YouthSummary[] }>('/backoffice/youths', { signal }),

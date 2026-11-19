@@ -5,8 +5,22 @@ import type { YouthSummary } from '../../api/types';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { formatDateTime } from '../../components/format';
 import { fr } from '../../content/fr';
+import { bo } from '../../game/backoffice/backoffice.fr';
 
 const t = fr.backoffice;
+
+/** Talents retirés, renommés ou ajoutés, et changements faits dans le quiz et les jeux. */
+function ToDiscuss({ talents, game }: { talents: number; game: number }) {
+  const total = talents + game;
+  if (total === 0) return <>0</>;
+  const detail = bo.toDiscuss(talents, game);
+  return (
+    <span className="status status--waiting" title={detail}>
+      {total}
+      <span className="visually-hidden"> ({detail})</span>
+    </span>
+  );
+}
 
 export function YouthListPage() {
   const [youths, setYouths] = useState<YouthSummary[] | null>(null);
@@ -41,10 +55,10 @@ export function YouthListPage() {
             <thead>
               <tr>
                 <th scope="col">{t.name}</th>
-                <th scope="col">{t.lastActivity}</th>
+                <th scope="col" className="optional">{t.lastActivity}</th>
                 <th scope="col" className="numeric">{t.validated}</th>
                 <th scope="col" className="numeric">{t.pending}</th>
-                <th scope="col">{t.sharing}</th>
+                <th scope="col" className="numeric">{t.toDiscuss}</th>
               </tr>
             </thead>
             <tbody>
@@ -53,13 +67,13 @@ export function YouthListPage() {
                   <th scope="row">
                     <Link to={`/psy/jeunes/${youth.id}`}>{youth.display_name}</Link>
                   </th>
-                  <td>{youth.last_activity_at ? formatDateTime(youth.last_activity_at) : t.never}</td>
+                  <td className="mono optional">
+                    {youth.last_activity_at ? formatDateTime(youth.last_activity_at) : t.never}
+                  </td>
                   <td className="numeric">{youth.validated_skills}</td>
                   <td className="numeric">{youth.pending_skills}</td>
-                  <td>
-                    <span className={youth.share_transcripts ? 'chip chip--on' : 'chip'}>
-                      {youth.share_transcripts ? t.shared : t.notShared}
-                    </span>
+                  <td className="numeric">
+                    <ToDiscuss talents={youth.skills_to_discuss} game={youth.game_changes ?? 0} />
                   </td>
                 </tr>
               ))}

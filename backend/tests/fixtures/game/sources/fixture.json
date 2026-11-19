@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "fixture_source",
+      "title": "Source fictive pour les tests et le serveur de dev",
+      "citation": "Exemple, A. (2000). Source fictive. À ne jamais livrer.",
+      "url": "https://example.org",
+      "licence": "Aucune",
+      "validated": false,
+      "adaptation": "Contenu fictif."
+    }
+  ]
+}

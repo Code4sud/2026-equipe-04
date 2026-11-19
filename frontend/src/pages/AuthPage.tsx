@@ -10,7 +10,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [shareTranscripts, setShareTranscripts] = useState(false);
+  const [acceptSharing, setAcceptSharing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const registering = mode === 'register';
@@ -22,7 +22,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     try {
       signIn(
         registering
-          ? await api.register(displayName, email, password, shareTranscripts)
+          ? await api.register(displayName, email, password, acceptSharing)
           : await api.login(email, password),
       );
     } catch (caught) {
@@ -33,8 +33,11 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <main className="auth">
-      <form className="auth__card stack" onSubmit={submit}>
-        <p className="auth__brand">{fr.appName}</p>
+      <form className="auth__card" onSubmit={submit}>
+        <Link to="/bienvenue" className="brand">
+          <img src="/flaire-mark.png" alt="" className="brand__mark" width="28" height="28" />
+          {fr.appName}
+        </Link>
         <h1>{registering ? fr.auth.registerTitle : fr.auth.loginTitle}</h1>
         {registering && <p className="muted">{fr.auth.registerIntro}</p>}
 
@@ -78,8 +81,9 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
           <label className="toggle">
             <input
               type="checkbox"
-              checked={shareTranscripts}
-              onChange={(event) => setShareTranscripts(event.target.checked)}
+              checked={acceptSharing}
+              onChange={(event) => setAcceptSharing(event.target.checked)}
+              required
             />
             <span>
               <strong>{fr.auth.shareTitle}</strong>
@@ -96,7 +100,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
         <button type="submit" className="button button--primary" disabled={busy}>
           {registering ? fr.auth.register : fr.auth.login}
         </button>
-        <Link className="auth__switch" to={registering ? '/connexion' : '/inscription'}>
+        <Link className="text-link" to={registering ? '/connexion' : '/inscription'}>
           {registering ? fr.auth.toLogin : fr.auth.toRegister}
         </Link>
       </form>

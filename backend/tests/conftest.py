@@ -32,25 +32,44 @@ class FakeStore:
         return not self.fail
 
 
+VARIED_REPLIES = (
+    "Des roues voilées, sacré boulot ! Qui t'a montré ça ?",
+    "Les freins demandent du soin. Tu commences par quoi ?",
+    "Tes copains comptent sur toi ? Raconte une fois précise.",
+    "Pas facile au début, non ? Qu'est-ce qui coinçait ?",
+    "Sympa cette chaîne propre. Combien de temps ça te prend ?",
+    "Et les pneus crevés, tu gères aussi ? Montre-moi comment.",
+)
+
+
 class FakeLLM:
     def __init__(self):
         self.tokens = ["Bien ", "joué !"]
+        self.varied = list(VARIED_REPLIES)
         self.fail = False
         self.chat_calls: list[list[dict]] = []
         self.proposals: list[dict] = []
         self.json_calls: list[tuple[str, str]] = []
         self.reveal = {"citation": "", "savoir_faire": ""}
         self.reveal_calls: list[str] = []
+        self.questions: list[dict] = []
+        self.question_calls: list[str] = []
 
     def chat_stream(self, messages):
         self.chat_calls.append(messages)
         if self.fail:
             raise LLMError("indisponible")
+        if len(self.chat_calls) > 1 and self.tokens == ["Bien ", "joué !"]:
+            yield self.varied[(len(self.chat_calls) - 2) % len(self.varied)]
+            return
         yield from self.tokens
 
-    def generate_json(self, system, user, schema):
+    def generate_json(self, system, user, schema, temperature=None, examples=None):
         if self.fail:
             raise LLMError("indisponible")
+        if "question" in schema["properties"]:
+            self.question_calls.append(user)
+            return self.questions.pop(0) if self.questions else {}
         if "savoir_faire" in schema["properties"]:
             self.reveal_calls.append(user)
             return self.reveal
@@ -108,7 +127,7 @@ def register(client, name="Léa", email=None) -> dict:
     email = email or f"{name.lower().replace('é', 'e')}@example.org"
     response = client.post(
         "/api/auth/register",
-        json={"display_name": name, "email": email, "password": "motdepasse"},
+        json={"display_name": name, "email": email, "password": "motdepasse", "accept_sharing": True},
     )
     assert response.status_code == 201, response.get_json()
     return auth(response.get_json()["access_token"])

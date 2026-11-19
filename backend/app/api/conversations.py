@@ -98,7 +98,7 @@ def close_conversation(conversation_id: uuid.UUID):
 def post_message(conversation_id: uuid.UUID):
     """Enregistre le message du jeune puis diffuse la réponse du compagnon.
 
-    Événements : start, safety (si détresse repérée), delta, done ou error.
+    Événements : start, safety (si détresse repérée), reply, delta, done ou error.
     Avec {"retry": true}, relance la réponse au dernier message resté sans réponse.
     """
     conversation = _own_conversation(conversation_id)
@@ -139,11 +139,12 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         yield _sse("safety", service("guardrails").crisis_card)
 
     # Détresse et sujets sensibles reçoivent un texte relu, jamais une génération libre.
-    prepared = chat.prepared_reply(plan)
+    prepared, kind, revealed = chat.prepared_reply(plan)
+    yield _sse("reply", {"kind": kind})
     if prepared is not None:
         source = _word_by_word(prepared, current_app.config["PREPARED_REPLY_WORD_DELAY"])
     else:
-        source = service("llm").chat_stream(plan.messages)
+        source = _model_words(chat, plan)
 
     parts: list[str] = []
     try:
@@ -176,6 +177,10 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         return
 
     conversation = db.session.get(Conversation, conversation_id)
+    talent = None
+    if revealed is not None:
+        saved = service("extraction").save_revealed(conversation, revealed)
+        talent = saved.to_dict() if saved else None
     scheduled = service("extraction").maybe_schedule(conversation)
     pending = db.session.scalar(
         select(func.count())
@@ -187,6 +192,7 @@ def _reply_stream(conversation_id, youth_id, user_message, plan, crisis):
         {
             "assistant_message": public_message(assistant_message),
             "pending_skills": pending,
+            "talent": talent,
             "extracting": scheduled or conversation.is_extracting,
         },
     )
@@ -197,6 +203,11 @@ def _word_by_word(text: str, delay: float):
         if index and delay:
             time.sleep(delay)
         yield word if index == 0 else f" {word}"
+
+
+def _model_words(chat, plan):
+    # La réponse est vérifiée en entier avant affichage, pour écarter les répétitions.
+    yield from _word_by_word(chat.model_reply(plan), current_app.config["PREPARED_REPLY_WORD_DELAY"])
 
 
 def _save_partial_reply(conversation_id, parts: list[str]) -> None:

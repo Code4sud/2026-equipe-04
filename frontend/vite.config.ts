@@ -14,17 +14,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png', 'flaire-mark.png'],
       manifest: {
-        name: 'Potentiel',
-        short_name: 'Potentiel',
-        description: 'Discute, et découvre les compétences que tu as déjà.',
+        name: 'Flaire',
+        short_name: 'Flaire',
+        description: 'Raconte ta vie et repère les talents que tu as déjà.',
         lang: 'fr',
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        background_color: '#f7f7f5',
-        theme_color: '#f7f7f5',
+        background_color: '#fff8ec',
+        theme_color: '#fff8ec',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -38,7 +38,16 @@ export default defineConfig({
       },
       workbox: {
         // Seule l'interface est mise en cache : jamais les conversations ni les réponses de l'API.
-        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        // Néo et three.js ne sont téléchargés que par ceux qui l'affichent, puis gardés en cache.
+        globIgnores: ['**/stage-*.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/(?:[^/]+\.glb|stage-[^/]+\.js)$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'neo', expiration: { maxEntries: 6 } },
+          },
+        ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,

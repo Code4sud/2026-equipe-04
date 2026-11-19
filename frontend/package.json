@@ -7,18 +7,29 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "mascot": "node scripts/prepare-mascot.mjs"
   },
   "dependencies": {
+    "@fontsource/baloo-2": "5.3.0",
+    "@fontsource/dm-mono": "5.3.0",
+    "@fontsource/figtree": "5.3.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-router-dom": "7.18.5"
+    "react-router-dom": "7.18.5",
+    "three": "0.187.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.187.0",
     "@vitejs/plugin-react": "6.3.0",
+    "meshoptimizer": "1.3.0",
+    "sharp": "0.35.5",
     "typescript": "7.0.2",
     "vite": "8.3.8",
     "vite-plugin-pwa": "2.0.0"

@@ -10,7 +10,8 @@ from werkzeug.security import generate_password_hash
 
 from .demo import YOUTHS
 from .extensions import db
-from .models import Conversation, Role, Skill, SkillStatus, User, YouthProfile, utcnow
+from .game.demo import seed_youth_game
+from .models import Conversation, Role, Skill, SkillAction, SkillOrigin, SkillStatus, User, YouthProfile, utcnow
 from .services import service
 from .services.guardrails import find_quote, name_key
 from .services.transcripts import new_message, new_transcript, transcript_key
@@ -24,7 +25,9 @@ def _create_user(email: str, name: str, password: str, role: Role) -> User:
         role=role,
     )
     if role == Role.YOUTH:
-        user.youth_profile = YouthProfile()
+        # Comme à l'inscription : un compte jeune vaut accord de partage avec le Centre.
+        now = utcnow()
+        user.youth_profile = YouthProfile(share_transcripts=True, share_updated_at=now, consent_at=now)
     db.session.add(user)
     db.session.flush()
     return user
@@ -36,9 +39,7 @@ def _exists(email: str) -> bool:
 
 def _seed_youth(data: dict, email: str, password: str) -> None:
     user = _create_user(email, data["display_name"], password, Role.YOUTH)
-    user.youth_profile.share_transcripts = data["share_transcripts"]
-    if data["share_transcripts"]:
-        user.youth_profile.share_updated_at = utcnow()
+    now = utcnow()
 
     conversation_id = uuid.uuid4()
     key = transcript_key(user.id, conversation_id)
@@ -61,24 +62,35 @@ def _seed_youth(data: dict, email: str, password: str) -> None:
 
     youth_messages = [m for m in transcript["messages"] if m["role"] == "user"]
     for skill in data["skills"]:
-        match = find_quote(skill["quote"], youth_messages)
-        if match is None:
-            raise click.ClickException(f"Citation de démonstration introuvable : {skill['quote']}")
         status = SkillStatus(skill["status"])
-        db.session.add(
-            Skill(
-                youth_id=user.id,
-                conversation_id=conversation_id,
-                source_message_id=match.message_id,
-                name=skill["name"],
-                name_key=name_key(skill["name"]),
-                category=skill["category"],
-                description=skill["description"],
-                source_quote=match.quote,
-                status=status,
-                reviewed_at=None if status == SkillStatus.PENDING else utcnow(),
-            )
+        record = Skill(
+            youth_id=user.id,
+            name=skill.get("renamed_from", skill["name"]),
+            name_key=name_key(skill["name"]),
+            category=skill["category"],
+            description=skill["description"],
+            status=SkillStatus.PENDING,
+            reviewed_at=None if status == SkillStatus.PENDING else now,
         )
+        if skill.get("origin") == "youth":
+            record.origin = SkillOrigin.YOUTH
+            record.status = status
+            record.record(SkillAction.ADDED)
+        else:
+            match = find_quote(skill["quote"], youth_messages)
+            if match is None:
+                raise click.ClickException(f"Citation de démonstration introuvable : {skill['quote']}")
+            record.conversation_id = conversation_id
+            record.source_message_id = match.message_id
+            record.source_quote = match.quote
+            record.record(SkillAction.PROPOSED)
+            if "renamed_from" in skill:
+                record.name = skill["name"]
+                record.record(SkillAction.RENAMED, previous_name=skill["renamed_from"])
+            if status != SkillStatus.PENDING:
+                record.status = status
+                record.record(SkillAction(status.value))
+        db.session.add(record)
 
 
 def register_cli(app: Flask) -> None:
@@ -117,4 +129,10 @@ def register_cli(app: Flask) -> None:
             if not _exists(email):
                 _seed_youth(data, email, youth_password)
         db.session.commit()
+        # À chaque lancement, chaque jeune de démo joue les jeux qu'il n'a pas encore commencés :
+        # un jeu livré depuis le dernier lancement apparaît aussi dans sa fiche.
+        for data in YOUTHS:
+            email = config[data["email_setting"]] if "email_setting" in data else data["email"]
+            user = db.session.scalar(select(User).where(User.email == email.lower()))
+            seed_youth_game(user, data["game"])
         click.echo("Données de démonstration prêtes.")

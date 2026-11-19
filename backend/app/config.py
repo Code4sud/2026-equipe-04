@@ -46,19 +46,22 @@ def load_config() -> dict:
         "S3_BUCKET": os.environ.get("S3_BUCKET", "conversations"),
         "S3_REGION": os.environ.get("S3_REGION", "us-east-1"),
         "OLLAMA_URL": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
-        "OLLAMA_MODEL": os.environ.get("OLLAMA_MODEL", "mistral"),
+        "OLLAMA_MODEL": os.environ.get("OLLAMA_MODEL", "mistral-nemo"),
         "OLLAMA_TIMEOUT": _int("OLLAMA_TIMEOUT", 300),
+        # Embeddings multilingues pour rapprocher le récit du référentiel ROME/ESCO ; vide = désactivé.
+        "OLLAMA_EMBED_MODEL": os.environ.get("OLLAMA_EMBED_MODEL", "bge-m3"),
         "JWT_SECRET_KEY": os.environ.get("JWT_SECRET_KEY", ""),
         "JWT_ACCESS_TOKEN_EXPIRES": timedelta(hours=_int("JWT_EXPIRES_HOURS", 12)),
         "JWT_TOKEN_LOCATION": ["headers"],
         "CORS_ORIGINS": origins,
         "PROMPTS_DIR": os.environ.get("PROMPTS_DIR", str(BACKEND_DIR / "prompts")),
-        "CHAT_HISTORY_MESSAGES": _int("CHAT_HISTORY_MESSAGES", 30),
+        "CHAT_HISTORY_MESSAGES": _int("CHAT_HISTORY_MESSAGES", 12),
         "MAX_MESSAGE_CHARS": _int("MAX_MESSAGE_CHARS", 4000),
         # Rythme d'affichage des réponses déjà écrites, en secondes par mot.
         "PREPARED_REPLY_WORD_DELAY": 0.025,
-        # Nombre de nouveaux messages (jeune + compagnon) avant une analyse automatique.
-        "EXTRACTION_EVERY_MESSAGES": _int("EXTRACTION_EVERY_MESSAGES", 6),
+        # Nombre de nouveaux messages (jeune + compagnon) avant une analyse automatique :
+        # 2 = après chaque message du jeune et la réponse de Néo.
+        "EXTRACTION_EVERY_MESSAGES": _int("EXTRACTION_EVERY_MESSAGES", 2),
         "EXTRACTION_SYNC": False,
         "SEED_PSY_EMAIL": os.environ.get("SEED_PSY_EMAIL", "psy@example.org"),
         "SEED_PSY_PASSWORD": os.environ.get("SEED_PSY_PASSWORD", ""),
