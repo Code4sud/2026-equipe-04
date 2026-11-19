@@ -10,6 +10,7 @@ from test_game import answer, complete, finish_onboarding, start, youth_id
 from test_game_content import normalize, sensitive_patterns
 
 from app.game.catalog import Catalog
+from app.game.scoring import TIER_WEIGHTS, confidence
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 MINE = ("ton_style", "miroir", "grand_tri")
@@ -128,13 +129,28 @@ def test_mirror_keys_stay_balanced(catalog):
     assert all(a["trait"] != b["trait"] for a, b in zip(items, items[1:]))
 
 
-def test_mirror_stability_items_weigh_half_so_two_answers_stay_low(catalog):
+def test_mirror_stability_items_weigh_half_and_less_than_the_quiz(catalog):
     items = items_of(catalog, "miroir")
     weights = {item["id"]: item.get("weight", 1) for item in items}
     stability = {item["id"] for item in items if item["trait"] == "emotional_stability"}
     assert stability == {"ipip09", "ipip14"}
     assert {weights[item_id] for item_id in stability} == {0.5}
     assert {weight for item_id, weight in weights.items() if item_id not in stability} == {1}
+    # Ce qu'annonce la note de cotation : seuls, les deux items restent en confiance faible, mais le
+    # quiz, joué avant le miroir, pèse déjà plus qu'eux sur ce curseur.
+    mirror = sum(weights[item_id] for item_id in stability) * TIER_WEIGHTS["translated"]
+    quiz_signals = [
+        signal
+        for item in items_of(catalog, "onboarding")
+        for signal in item.get("options", [{}])[0].get("signals", [])
+        if signal["trait"] == "emotional_stability"
+    ]
+    assert {signal.get("weight", 1) for signal in quiz_signals} == {1}
+    quiz = len(quiz_signals) * TIER_WEIGHTS["adapted"]
+    assert (mirror, confidence(mirror)) == (0.75, "low")
+    assert (quiz, confidence(quiz)) == (2.5, "medium")
+    note = catalog.instruments["miroir"]["scoring_note"]
+    assert "0,75" in note and "2,5" in note and "seuls" in note
 
 
 def test_mirror_source_says_why_the_published_french_adaptation_is_not_used(catalog):
@@ -316,7 +332,8 @@ def test_mirror_is_locked_until_the_quiz_then_scores_each_scale(
     assert first["source"]["source"]["licence"].startswith("Domaine public")
     assert first["answer_label"] == "Tout à fait moi"
     assert detail["instrument"]["tier_label"] == "Test validé, traduction maison non validée"
-    # Deux items seulement : leur poids propre de 0,5 garde ce curseur en confiance faible.
+    # Le quiz de test ne touche pas ce curseur : seuls, les deux items du miroir (0,75 en tout)
+    # restent en confiance faible. Avec le vrai quiz, c'est lui qui la fait monter.
     stability = client.get(f"{base}/traits/emotional_stability", headers=psychologist).get_json()
     assert [(row["weight"], row["tier"]) for row in stability["signals"]] == [(0.5, "translated")] * 2
     assert stability["cursor"]["confidence"] == "low"
