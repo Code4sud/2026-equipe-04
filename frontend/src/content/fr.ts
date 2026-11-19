@@ -33,7 +33,7 @@ export const fr = {
     email: 'E-mail',
     password: 'Mot de passe',
     passwordHint: '8 caractères minimum',
-    shareTitle: 'J’accepte que mes discussions et mes talents soient transmis au Centre des Possibles et à sa psychologue',
+    shareTitle: 'J’accepte que mes discussions, mes réponses aux jeux et mes talents soient transmis au Centre des Possibles et à sa psychologue',
     shareHint: 'Elle t’aide à faire le point sur ton parcours et peut en parler avec toi.',
     login: 'Se connecter',
     register: 'On part à l’aventure',
@@ -119,7 +119,7 @@ export const fr = {
     intro: 'Ici, c’est toi qui gardes la main.',
     shareTitle: 'Ton parcours est partagé avec le Centre des Possibles',
     shareHint: (date: string | null) =>
-      `${date ? `Accord donné le ${date}. ` : ''}Sa psychologue voit tes discussions, tes talents et tes choix. Pour retirer ton accord, parles-en avec elle.`,
+      `${date ? `Accord donné le ${date}. ` : ''}Sa psychologue voit tes discussions, tes réponses aux jeux, tes talents et tes choix. Pour retirer ton accord, parles-en avec elle.`,
   },
   backoffice: {
     product: 'Pro',
