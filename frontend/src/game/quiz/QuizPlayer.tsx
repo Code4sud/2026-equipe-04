@@ -321,11 +321,11 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const item = current;
   const stored = answers[item.id];
   const alreadyAnswered = stored !== undefined && !stored.skipped;
-  const spot = seriesSpot(sitting, continued, item.id, stored !== undefined);
+  const spot = seriesSpot(sitting, continued, item.id, stored !== undefined, unseen);
   const step = reviewing
     ? t.question.reviewing
     : spot.position !== null
-      ? t.question.series(spot.position + 1, SERIES_SIZE)
+      ? t.question.series(spot.position + 1, spot.size)
       : null;
 
   // Le hook choisit la question suivante, revue des questions passées comprise.

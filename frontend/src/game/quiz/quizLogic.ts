@@ -21,6 +21,8 @@ export function sittingOrder(
 }
 
 export interface SeriesSpot {
+  /** Questions de la série montrée : 10, moins pour la dernière quand il en reste moins à voir. */
+  size: number;
   /** Questions déjà vues dans la série montrée : toutes pour une série terminée. */
   done: number;
   /**
@@ -32,15 +34,26 @@ export interface SeriesSpot {
 
 /**
  * Où en est la série sur l'écran d'une question. `series` : numéro de la série en cours dans la
- * séance (0 pour la première). Une question jamais vue est la prochaine de la série en cours ; une
- * question revue avec « Retour » montre la série d'où elle vient.
+ * séance (0 pour la première) ; `unseen` : questions encore jamais vues. Une question jamais vue
+ * est la prochaine de la série en cours ; une question revue avec « Retour » montre la série d'où
+ * elle vient.
  */
-export function seriesSpot(sitting: string[], series: number, itemId: string, seen: boolean): SeriesSpot {
+export function seriesSpot(
+  sitting: string[],
+  series: number,
+  itemId: string,
+  seen: boolean,
+  unseen: number,
+): SeriesSpot {
   const order = seen ? sitting.indexOf(itemId) : sitting.length;
   const current = Math.min(SERIES_SIZE, sitting.length - series * SERIES_SIZE);
-  if (order === -1) return { done: current, position: null };
-  const finished = Math.floor(order / SERIES_SIZE) < series;
-  return { done: finished ? SERIES_SIZE : current, position: order % SERIES_SIZE };
+  // La série en cours s'arrête plus tôt quand il reste moins de questions que de places.
+  const size = Math.min(SERIES_SIZE, current + unseen);
+  if (order === -1) return { size, done: current, position: null };
+  if (Math.floor(order / SERIES_SIZE) < series) {
+    return { size: SERIES_SIZE, done: SERIES_SIZE, position: order % SERIES_SIZE };
+  }
+  return { size, done: current, position: order % SERIES_SIZE };
 }
 
 /** Durée d'une série, d'après la durée annoncée pour tout le quiz. */
