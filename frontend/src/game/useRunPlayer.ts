@@ -63,7 +63,8 @@ export function useRunPlayer(instrumentId: string) {
   const [startedWith, setStartedWith] = useState<RunStart>(NOTHING_YET);
   const saves = useRef(new Map<string, Save>());
   const lastSeq = useRef(0);
-  const shownAt = useRef(0);
+  /** Chrono de la question affichée ; il s'arrête quand l'onglet est caché. */
+  const clock = useRef({ shownAt: 0, hiddenSince: null as number | null });
 
   const fail = useCallback((caught: unknown) => {
     setError(errorMessage(caught));
@@ -94,13 +95,43 @@ export function useRunPlayer(instrumentId: string) {
     void load();
   }, [load]);
 
+  /** Temps passé sur la question affichée, onglet visible seulement. */
+  const elapsed = useCallback(() => {
+    const now = performance.now();
+    const { shownAt, hiddenSince } = clock.current;
+    return now - shownAt - (hiddenSince === null ? 0 : now - hiddenSince);
+  }, []);
+
+  /** Remet le chrono à zéro : à chaque question affichée et en quittant un écran d'intro ou de chapitre. */
+  const markShown = useCallback(() => {
+    const now = performance.now();
+    clock.current = { shownAt: now, hiddenSince: document.hidden ? now : null };
+  }, []);
+
   useEffect(() => {
-    shownAt.current = performance.now();
-  }, [index]);
+    function onVisibilityChange() {
+      const now = performance.now();
+      const state = clock.current;
+      if (document.hidden) {
+        state.hiddenSince ??= now;
+      } else if (state.hiddenSince !== null) {
+        state.shownAt += now - state.hiddenSince;
+        state.hiddenSince = null;
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
 
   const items: GameItem[] = useMemo(() => payload?.instrument.items ?? [], [payload]);
   const current = items[index] ?? null;
+  const shownId = current?.id;
   const runId = payload?.run.id;
+
+  // Le chrono part quand la question s'affiche, pas au chargement de la partie.
+  useEffect(() => {
+    if (shownId) markShown();
+  }, [shownId, markShown]);
 
   const refreshSaveFailed = useCallback(() => {
     setSaveFailed([...saves.current.values()].some((save) => save.status === 'failed'));
@@ -188,7 +219,7 @@ export function useRunPlayer(instrumentId: string) {
   );
 
   const record = useCallback(
-    (item: GameItem, value: AnswerValue, skipped: boolean) => {
+    (item: GameItem, value: AnswerValue, skipped: boolean, responseMs: number) => {
       if (!runId) return;
       const stored = answers[item.id];
       const unchanged =
@@ -200,7 +231,7 @@ export function useRunPlayer(instrumentId: string) {
       if (!unchanged) {
         after = { ...answers, [item.id]: { item_id: item.id, value: skipped ? null : value, skipped } };
         setAnswers(after);
-        const response_ms = Math.round(performance.now() - shownAt.current);
+        const response_ms = Math.round(responseMs);
         send(runId, item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
       }
       // Après un retour ou une reprise, on ne refait pas défiler les questions déjà vues.
@@ -209,11 +240,15 @@ export function useRunPlayer(instrumentId: string) {
     [runId, answers, items, index, send],
   );
 
+  /**
+   * Répond à la question affichée. `responseMs` sert quand l'appui précède l'envoi (animation du
+   * choix) : le temps est alors mesuré à l'appui.
+   */
   const answer = useCallback(
-    (value: AnswerValue) => {
-      if (current) record(current, value, false);
+    (value: AnswerValue, responseMs = elapsed()) => {
+      if (current) record(current, value, false, responseMs);
     },
-    [current, record],
+    [current, record, elapsed],
   );
 
   /** Passe la question. Une question déjà répondue n'est pas effacée : on avance, sans envoi. */
@@ -221,8 +256,8 @@ export function useRunPlayer(instrumentId: string) {
     if (!current) return;
     const stored = answers[current.id];
     if (stored && !stored.skipped) next();
-    else record(current, null, true);
-  }, [current, answers, next, record]);
+    else record(current, null, true, elapsed());
+  }, [current, answers, next, record, elapsed]);
 
   const back = useCallback(() => setIndex((position) => Math.max(0, position - 1)), []);
   /** Va directement à une question (ou à la fin avec `items.length`). */
@@ -289,6 +324,8 @@ export function useRunPlayer(instrumentId: string) {
     next,
     back,
     goTo,
+    markShown,
+    elapsed,
     pause,
     finish,
     clearError,

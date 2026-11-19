@@ -202,7 +202,11 @@ export function QuestionnairePlayer({
             <button
               type="button"
               className="button button--primary"
-              onClick={() => setStarted(true)}
+              onClick={() => {
+                setStarted(true);
+                // Le temps passé sur l'accueil ne compte pas dans celui de la première question.
+                player.markShown();
+              }}
             >
               {resuming ? t.intro.resume : t.intro.start}
             </button>
@@ -246,7 +250,10 @@ export function QuestionnairePlayer({
             <button
               type="button"
               className="button button--primary"
-              onClick={() => setSeenChapters((seen) => new Set(seen).add(pendingChapter.id))}
+              onClick={() => {
+                setSeenChapters((seen) => new Set(seen).add(pendingChapter.id));
+                player.markShown();
+              }}
             >
               {t.chapter.next}
             </button>
