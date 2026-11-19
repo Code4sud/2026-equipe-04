@@ -34,6 +34,12 @@
   --color-on-talent: #3b2618;
   --color-peach: #ffb89a;
 
+  /* Médaillon de l'archétype : crème dans les deux thèmes, comme une médaille posée sur la fiche.
+     Volontairement absent du thème sombre. */
+  --color-medal: #fff8ec;
+  --color-medal-shine: #ffffff;
+  --color-on-medal: #7a5e4a;
+
   /* Discussion */
   --color-bubble-user: var(--color-accent-soft);
   --color-on-bubble-user: var(--color-text);

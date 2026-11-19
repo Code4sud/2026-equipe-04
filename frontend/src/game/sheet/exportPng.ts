@@ -45,6 +45,9 @@ interface Palette {
   talentStar: string;
   onAccent: string;
   peach: string;
+  /** Médaillon de l'archétype : crème dans les deux thèmes, comme à l'écran. */
+  medal: string;
+  onMedal: string;
   paper: string;
   line: string;
   softLine: string;
@@ -85,6 +88,8 @@ function readPalette(): Palette {
     talentStar: token('--color-talent-star'),
     onAccent: token('--color-on-accent'),
     peach: token('--color-peach'),
+    medal: token('--color-medal'),
+    onMedal: token('--color-on-medal'),
     paper: mix(surface, muted, 0.78),
     line: mix(text, surface, 0.3),
     softLine: mix(text, surface, 0.16),
@@ -261,7 +266,7 @@ function drawArchetypeBadge(
   ctx.stroke();
   const inner = radius * 0.85;
   circle(inner);
-  ctx.fillStyle = p.bg;
+  ctx.fillStyle = p.medal;
   ctx.fill();
   circle(inner - radius * 0.09 - radius * 0.022);
   ctx.lineWidth = radius * 0.044;
@@ -277,7 +282,7 @@ function drawArchetypeBadge(
     ctx.fillText(archetype.emoji, cx, cy + radius * 0.04);
   } else {
     ctx.font = FONTS.heading(Math.round(radius * 0.8));
-    ctx.fillStyle = p.textMuted;
+    ctx.fillStyle = p.onMedal;
     ctx.fillText('?', cx, cy + radius * 0.06);
   }
   ctx.restore();

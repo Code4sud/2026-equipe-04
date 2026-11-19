@@ -1,6 +1,6 @@
 /* Badge d'archétype : médaillon crème, double anneau abricot, filet brun autour, emoji au centre.
-   Uniquement les variables de tokens.css ; le jaune reste aux talents. Chaque écran peut changer
-   --badge-size (voir la fiche). */
+   Uniquement les variables de tokens.css ; le jaune reste aux talents. Le médaillon reste crème
+   en thème sombre (--color-medal). Chaque écran peut changer --badge-size (voir la fiche). */
 
 .archetype-badge {
   --badge-size: 5.5rem;
@@ -27,8 +27,8 @@
   border: calc(var(--badge-size) * 0.075) solid var(--color-peach);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 30%, var(--color-surface) 0 25%, transparent 70%),
-    var(--color-bg);
+    radial-gradient(circle at 50% 30%, var(--color-medal-shine) 0 25%, transparent 70%),
+    var(--color-medal);
   box-shadow:
     0 0 0 max(1px, calc(var(--badge-size) * 0.014)) var(--color-text),
     var(--shadow-card);
@@ -60,7 +60,7 @@
 }
 
 .archetype-badge--unknown .archetype-badge__emoji {
-  color: var(--color-text-muted);
+  color: var(--color-on-medal);
   font-family: var(--font-heading);
   font-weight: var(--weight-heavy);
 }
