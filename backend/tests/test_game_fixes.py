@@ -874,7 +874,8 @@ def test_run_detail_shows_what_was_offered(client, youth, psychologist):
 def test_psy_catalog_gives_weights_and_confidence_thresholds(client, psychologist):
     data = client.get("/api/backoffice/game/catalog", headers=psychologist).get_json()
     assert data["weights"] == {
-        "validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25
+        "validated": 1.0, "performance": 1.0, "translated": 0.75, "adapted": 0.5, "custom": 0.5,
+        "talent": 0.25,
     }
     assert data["confidence_thresholds"] == {"medium": 2.0, "high": 5.0}
     assert all("chapters" in instrument for instrument in data["instruments"])
