@@ -586,6 +586,17 @@
   display: block;
 }
 
+/* Sur téléphone, six détails puis « Voir … autres détails » (COLLAPSED dans Identity.tsx). */
+@media (max-width: 59.99rem) {
+  .sheet-facts:not(.is-open) > .sheet-fact:nth-child(n + 7):not(.is-editing) {
+    display: none;
+  }
+}
+
+.sheet-facts__more {
+  justify-self: start;
+}
+
 .sheet-fact__form {
   display: grid;
   gap: var(--space-2);
@@ -1217,6 +1228,10 @@ p.sheet-attr__hint {
 }
 
 @media (min-width: 60rem) {
+  .sheet-facts__more {
+    display: none;
+  }
+
   .sheet-hero {
     grid-template-columns: auto minmax(0, 1fr) minmax(15rem, 20rem);
     grid-template-areas:

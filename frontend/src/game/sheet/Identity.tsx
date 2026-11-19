@@ -10,6 +10,8 @@ import { sheetFr } from './sheet.fr';
 
 const t = sheetFr.identity;
 const MAX_LENGTH = 120;
+/** Sur téléphone, les premiers détails seulement, pour garder les talents près du haut (voir sheet.css). */
+const COLLAPSED = 6;
 
 export type FactChanges = { value?: string; hidden?: boolean };
 
@@ -154,6 +156,7 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
   const hiddenSummary = useRef<HTMLElement>(null);
   const [focusAfter, setFocusAfter] = useState<{ key: string } | 'hidden' | null>(null);
   const [showError, setShowError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const baseId = useId();
   const ordered = orderFacts(facts);
   const visible = ordered.filter((fact) => !fact.hidden);
@@ -217,7 +220,7 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
       )}
 
       {visible.length > 0 && (
-        <dl className="sheet-facts">
+        <dl id={`${baseId}-facts`} className={`sheet-facts${expanded ? ' is-open' : ''}`}>
           {visible.map((fact) => {
             const labelId = `${baseId}-${fact.key}`;
             const isEditing = editing === fact.key;
@@ -258,6 +261,18 @@ export function Identity({ facts, quizLink, onChange, announce }: Props) {
             );
           })}
         </dl>
+      )}
+
+      {visible.length > COLLAPSED && (
+        <button
+          type="button"
+          className="sheet-text-button sheet-facts__more"
+          aria-expanded={expanded}
+          aria-controls={`${baseId}-facts`}
+          onClick={() => setExpanded((open) => !open)}
+        >
+          {expanded ? t.less : t.more(visible.length - COLLAPSED)}
+        </button>
       )}
 
       {hidden.length > 0 && (

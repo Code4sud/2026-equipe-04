@@ -14,7 +14,7 @@ function RevealHint({ reveal }: { reveal: Reveal | null }) {
   if (!reveal) return <p className="sheet-attr__hint">{t.later}</p>;
   return (
     <Link to={linkFor(reveal)} className="sheet-attr__hint sheet-link">
-      {reveal.kind === 'quiz' ? t.finish(reveal.title) : t.play(reveal.title)}
+      {reveal.kind === 'quiz' ? t.finish(typo(reveal.title)) : t.play(typo(reveal.title))}
     </Link>
   );
 }
@@ -39,7 +39,7 @@ function SharedHint({ attributes }: { attributes: SheetAttribute[] }) {
   return (
     <p className="sheet-box__intro">
       <Link to={linkFor(only)} className="sheet-link">
-        {only.kind === 'quiz' ? t.finishAll(only.title) : t.playAll(only.title)}
+        {only.kind === 'quiz' ? t.finishAll(typo(only.title)) : t.playAll(typo(only.title))}
       </Link>
     </p>
   );

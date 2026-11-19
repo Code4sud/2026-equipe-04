@@ -52,6 +52,8 @@ export const sheetFr = {
     hiddenSummary: (count: number) =>
       `${count} ${plural(count, 'détail masqué', 'détails masqués')} de ta fiche`,
     show: 'Remettre sur ma fiche',
+    more: (count: number) => `Voir ${count} ${plural(count, 'autre détail', 'autres détails')}`,
+    less: 'Voir moins de détails',
     saved: (label: string) => `${quote(label)} est enregistré.`,
     hidden: (label: string) => `${quote(label)} est masqué de ta fiche.`,
     shown: (label: string) => `${quote(label)} est de retour sur ta fiche.`,
