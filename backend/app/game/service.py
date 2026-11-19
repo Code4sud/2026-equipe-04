@@ -57,6 +57,7 @@ XP_PER_ANSWER = 2
 XP_PER_TALENT = 25
 XP_REPLAY = 10
 BALANCED_MARGIN = 8
+BALANCED_LABEL = "Entre les deux"
 # Un attribut de la fiche ne se construit qu'avec des points forts : curseurs à 50 ou plus.
 STRENGTH_FLOOR = 50
 ATTRIBUTE_MIN, ATTRIBUTE_MAX = 10, 20
@@ -67,6 +68,7 @@ TIER_LABELS = {
     "performance": "Tâche cognitive publiée",
     "talent": "Talent validé par le jeune",
 }
+VERDICTS = {"agree", "disagree"}
 
 
 def catalog() -> Catalog:
@@ -77,7 +79,7 @@ def catalog() -> Catalog:
 class YouthData:
     runs: list[GameRun]
     facts: list[GameFact]
-    feedback: dict[str, str]
+    feedback: dict[str, TraitFeedback]
     talents: list[Skill]
 
 
@@ -94,7 +96,7 @@ def load_youth(youth_id: uuid.UUID) -> YouthData:
         .where(Skill.youth_id == youth_id, Skill.status == SkillStatus.VALIDATED)
         .order_by(Skill.reviewed_at.desc())
     ).all()
-    return YouthData(list(runs), list(facts), {f.trait_id: f.verdict for f in feedback}, list(talents))
+    return YouthData(list(runs), list(facts), {f.trait_id: f for f in feedback}, list(talents))
 
 
 # --- Signaux et curseurs ---
@@ -158,6 +160,29 @@ def clan_for(cursors: dict[str, dict]) -> dict | None:
         if value is not None and value > best_value:
             best, best_value = clan, value
     return best
+
+
+def youth_leaning(trait_id: str, value: float | None) -> str | None:
+    """Libellé montré au jeune : le pôle vers lequel il penche, « Entre les deux », ou le nom
+    du curseur s'il n'a qu'un pôle."""
+    trait = catalog().traits[trait_id]
+    if trait["kind"] != "bipolar":
+        return trait["youth"]["label"]
+    if value is None:
+        return None
+    if abs(value - 50) <= BALANCED_MARGIN:
+        return BALANCED_LABEL
+    return trait["youth"]["high"] if value > 50 else trait["youth"]["low"]
+
+
+def verdict_applies(trait_id: str, value: float | None, row: TraitFeedback | None) -> bool:
+    """Un verdict vaut pour ce que le jeune a jugé : sur un curseur bipolaire, le pôle affiché
+    à ce moment-là. Si le curseur a basculé depuis, le jeune peut juger à nouveau."""
+    if row is None:
+        return False
+    if catalog().traits[trait_id]["kind"] != "bipolar":
+        return True
+    return row.label_at_verdict == youth_leaning(trait_id, value)
 
 
 # --- Progression ---
@@ -556,7 +581,7 @@ def pause_run(user: User, run_id: uuid.UUID) -> dict:
     return {"run": run_dict(run, instrument)}
 
 
-def _highlights(cursors: dict[str, dict], feedback: dict[str, str], limit: int = 3) -> list[dict]:
+def _highlights(cursors: dict[str, dict], feedback: dict[str, TraitFeedback], limit: int = 3) -> list[dict]:
     views = []
     for trait_id, cursor in cursors.items():
         view = youth_trait(trait_id, cursor, feedback)
@@ -685,27 +710,23 @@ def game_status(user: User) -> dict:
     }
 
 
-def youth_trait(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict | None:
+def youth_trait(trait_id: str, cursor: dict, feedback: dict[str, TraitFeedback]) -> dict:
     trait = catalog().traits[trait_id]
     value = cursor["value"]
+    row = feedback.get(trait_id)
     view = {
         "id": trait_id,
         "group": trait["group"],
         "kind": trait["kind"],
         "value": value,
         "confidence": cursor["confidence"],
-        "verdict": feedback.get(trait_id),
+        # Null si le jeune n'a rien dit, ou s'il a jugé un autre pôle que celui affiché maintenant.
+        "verdict": row.verdict if verdict_applies(trait_id, value, row) else None,
     }
+    label = youth_leaning(trait_id, value)
     if trait["kind"] == "bipolar":
-        low, high = trait["youth"]["low"], trait["youth"]["high"]
-        leaning = None
-        if value is not None:
-            if abs(value - 50) <= BALANCED_MARGIN:
-                leaning = "Entre les deux"
-            else:
-                leaning = high if value > 50 else low
-        return {**view, "low": low, "high": high, "label": leaning}
-    return {**view, "label": trait["youth"]["label"]}
+        return {**view, "low": trait["youth"]["low"], "high": trait["youth"]["high"], "label": label}
+    return {**view, "label": label}
 
 
 def _attribute_score(parts: list[dict], cursors: dict[str, dict]) -> int | None:
@@ -858,20 +879,70 @@ def update_fact(user: User, key: str, body: dict) -> dict:
     return {"fact": fact_dict(fact)}
 
 
+def _verdict_state(row: TraitFeedback) -> dict:
+    return {
+        "verdict": row.verdict,
+        "label": row.label_at_verdict,
+        "value": row.value_at_verdict,
+        "at": iso(row.updated_at),
+    }
+
+
+def _apply_verdict(user: User, trait_id: str, verdict: str | None, label: str | None, value) -> None:
+    row = db.session.get(
+        TraitFeedback, (user.id, trait_id), with_for_update=True, populate_existing=True
+    )
+    subject = events.trait_subject(trait_id)
+    now = {"verdict": verdict, "label": label, "value": value}
+    if row is None:
+        if verdict is not None:
+            db.session.add(
+                TraitFeedback(
+                    youth_id=user.id,
+                    trait_id=trait_id,
+                    verdict=verdict,
+                    label_at_verdict=label,
+                    value_at_verdict=value,
+                    updated_at=utcnow(),
+                )
+            )
+            events.log(user.id, events.VERDICT_SET, subject, None, now)
+        return
+    before = _verdict_state(row)
+    if verdict is None:
+        # Le retrait laisse une trace : la psychologue sait ce que le jeune avait dit.
+        db.session.delete(row)
+        events.log(user.id, events.VERDICT_WITHDRAWN, subject, before, now)
+        return
+    current = verdict_applies(trait_id, value, row)
+    if current and row.verdict == verdict:
+        return  # Même verdict sur le même pôle : un double appui ne change rien.
+    row.verdict, row.label_at_verdict, row.value_at_verdict = verdict, label, value
+    row.updated_at = utcnow()
+    # Sur un pôle qui a changé depuis, c'est un nouveau verdict ; sinon le jeune change d'avis.
+    events.log(user.id, events.VERDICT_CHANGED if current else events.VERDICT_SET, subject, before, now)
+
+
 def set_trait_feedback(user: User, trait_id: str, verdict) -> dict:
     if trait_id not in catalog().traits:
         raise ApiError(404, "not_found", "Curseur introuvable.")
-    if verdict not in {"agree", "disagree", None}:
+    if verdict is not None and verdict not in VERDICTS:
         raise ApiError(400, "invalid_field", "Le verdict doit être agree, disagree ou null.")
-    row = db.session.get(TraitFeedback, (user.id, trait_id))
-    if verdict is None:
-        if row:
-            db.session.delete(row)
-    elif row:
-        row.verdict, row.updated_at = verdict, utcnow()
-    else:
-        db.session.add(TraitFeedback(youth_id=user.id, trait_id=trait_id, verdict=verdict))
-    db.session.commit()
+    # Ce que le jeune juge est recalculé ici, jamais repris du navigateur.
+    value = cursors_of(load_youth(user.id))[trait_id]["value"]
+    label = youth_leaning(trait_id, value)
+    try:
+        _apply_verdict(user, trait_id, verdict, label, value)
+        db.session.commit()
+    except IntegrityError:
+        # Deux appuis rapprochés : l'autre requête a créé le verdict, celui-ci le remplace.
+        db.session.rollback()
+        try:
+            _apply_verdict(user, trait_id, verdict, label, value)
+            db.session.commit()
+        except IntegrityError as error:
+            db.session.rollback()
+            raise ApiError(409, "verdict_conflict", "Ton avis est en cours d’enregistrement, réessaie.") from error
     return {"trait_id": trait_id, "verdict": verdict}
 
 
@@ -896,9 +967,23 @@ def instrument_info(instrument: dict) -> dict:
     }
 
 
-def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict:
+def verdict_detail(trait_id: str, value: float | None, row: TraitFeedback | None) -> dict | None:
+    """Ce que le jeune a jugé : pôle et valeur au moment du verdict, et s'il a basculé depuis."""
+    if row is None:
+        return None
+    return {
+        "verdict": row.verdict,
+        "label_at_verdict": row.label_at_verdict,
+        "value_at_verdict": row.value_at_verdict,
+        "at": iso(row.updated_at),
+        "stale": not verdict_applies(trait_id, value, row),
+    }
+
+
+def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, TraitFeedback]) -> dict:
     trait = catalog().traits[trait_id]
     value = cursor["value"]
+    row = feedback.get(trait_id)
     view = {
         "id": trait_id,
         "kind": trait["kind"],
@@ -911,7 +996,8 @@ def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict:
         "by_tier": {
             tier: {**detail, "label": TIER_LABELS[tier]} for tier, detail in cursor["by_tier"].items()
         },
-        "verdict": feedback.get(trait_id),
+        "verdict": row.verdict if row else None,
+        "verdict_detail": verdict_detail(trait_id, value, row),
     }
     if trait["kind"] == "bipolar":
         low, high = trait["psy"]["low"], trait["psy"]["high"]

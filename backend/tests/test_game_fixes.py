@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import event, update
-from test_game import answer, complete, finish_onboarding, start, youth_id
+from test_game import answer, complete, cursor, finish_onboarding, start, youth_id
 
 from app.errors import ApiError
 from app.extensions import db
@@ -24,7 +24,17 @@ from app.game import service as game
 from app.game.catalog import Catalog
 from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text, scale_scores
-from app.models import GameAnswer, GameEvent, GameFact, GameRun, GameRunStatus, User, iso, utcnow
+from app.models import (
+    GameAnswer,
+    GameEvent,
+    GameFact,
+    GameRun,
+    GameRunStatus,
+    TraitFeedback,
+    User,
+    iso,
+    utcnow,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
@@ -173,6 +183,15 @@ def raw(client, method, url, headers, text):
     return client.open(url, method=method, data=text, headers={**headers, "Content-Type": "application/json"})
 
 
+def play_questionnaire(client, youth, values: dict) -> dict:
+    run_id = start(client, youth, "fixture_questionnaire")["run"]["id"]
+    for item_id, value in values.items():
+        assert answer(client, youth, run_id, item_id, value).status_code == 200
+    response = complete(client, youth, run_id)
+    assert response.status_code == 200, response.get_json()
+    return response.get_json()
+
+
 @contextmanager
 def written_by_another_request(statement):
     """Une autre requête écrit `statement` juste avant la première écriture de celle-ci."""
@@ -204,6 +223,95 @@ def answer_row(run_id: str, item_id: str, value, label: str):
         signals=[],
         answered_at=utcnow(),
     )
+
+
+# --- 1. Un verdict vaut pour le pôle jugé ---
+
+
+def test_verdict_follows_the_pole_the_youth_judged(client, youth, psychologist):
+    finish_onboarding(client, youth)  # Extraversion à 10 : « Réservé·e ».
+    assert verdict(client, youth, "extraversion", "disagree").status_code == 200
+    trait = youth_traits(sheet(client, youth))["extraversion"]
+    assert trait["label"] == "Réservé·e" and trait["verdict"] == "disagree"
+    detail = cursor(overview(client, psychologist, youth), "extraversion")["verdict_detail"]
+    assert detail["verdict"] == "disagree" and detail["label_at_verdict"] == "Réservé·e"
+    assert detail["value_at_verdict"] == 10.0 and detail["stale"] is False and detail["at"]
+
+    # Le questionnaire fait basculer le curseur vers « Sociable » : l'ancien « Pas moi » ne vaut plus.
+    result = play_questionnaire(client, youth, {"e1": 5, "e2": 1, "c1": 4})
+    highlight = next(trait for trait in result["highlights"] if trait["id"] == "extraversion")
+    assert highlight["label"] == "Sociable" and highlight["verdict"] is None
+    trait = youth_traits(sheet(client, youth))["extraversion"]
+    assert trait["label"] == "Sociable" and trait["verdict"] is None
+
+    psy = cursor(overview(client, psychologist, youth), "extraversion")
+    assert psy["headline"] == {"percent": 82, "label": "Sociable"}
+    assert psy["verdict"] == "disagree"
+    assert psy["verdict_detail"]["stale"] is True
+    assert psy["verdict_detail"]["label_at_verdict"] == "Réservé·e"
+
+    # Le jeune juge le nouveau pôle.
+    assert verdict(client, youth, "extraversion", "agree").status_code == 200
+    assert youth_traits(sheet(client, youth))["extraversion"]["verdict"] == "agree"
+    data = overview(client, psychologist, youth)
+    detail = cursor(data, "extraversion")["verdict_detail"]
+    assert (detail["verdict"], detail["label_at_verdict"], detail["value_at_verdict"], detail["stale"]) == (
+        "agree", "Sociable", 82.0, False
+    )
+    # Juger un pôle qui a changé est un nouveau verdict, pas un changement d'avis.
+    latest = data["events"][0]
+    assert latest["kind"] == "verdict_set"
+    assert latest["before"]["verdict"] == "disagree" and latest["before"]["label"] == "Réservé·e"
+    assert latest["after"] == {"verdict": "agree", "label": "Sociable", "value": 82.0}
+
+
+def test_verdict_label_is_computed_by_the_server(client, youth, psychologist):
+    finish_onboarding(client, youth)
+    response = client.put(
+        "/api/me/game/traits/extraversion/feedback",
+        json={"verdict": "agree", "label": "Sociable", "label_at_verdict": "Sociable", "value_at_verdict": 99},
+        headers=youth,
+    )
+    assert response.status_code == 200
+    assert response.get_json() == {"trait_id": "extraversion", "verdict": "agree"}
+    detail = cursor(overview(client, psychologist, youth), "extraversion")["verdict_detail"]
+    assert detail["label_at_verdict"] == "Réservé·e" and detail["value_at_verdict"] == 10.0
+
+
+def test_withdrawn_verdict_leaves_a_trace(client, youth, psychologist):
+    finish_onboarding(client, youth)
+    for value in ("agree", "agree", "disagree", None):
+        assert verdict(client, youth, "extraversion", value).status_code == 200
+    data = overview(client, psychologist, youth)
+    psy = cursor(data, "extraversion")
+    assert psy["verdict"] is None and psy["verdict_detail"] is None
+    # Le double appui sur « C'est moi » ne laisse qu'une trace.
+    assert [e["kind"] for e in data["events"]] == ["verdict_withdrawn", "verdict_changed", "verdict_set"]
+    withdrawn = data["events"][0]
+    assert withdrawn["subject"] == "Réservé ↔ Sociable"
+    assert withdrawn["ref"] == {"type": "trait", "trait_id": "extraversion"}
+    assert withdrawn["before"]["verdict"] == "disagree" and withdrawn["before"]["label"] == "Réservé·e"
+    assert withdrawn["after"] == {"verdict": None, "label": "Réservé·e", "value": 10.0}
+    assert youth_traits(sheet(client, youth))["extraversion"]["verdict"] is None
+
+
+def test_two_quick_verdict_taps_keep_the_last_one(client, youth, psychologist):
+    finish_onboarding(client, youth)
+    earlier_tap = TraitFeedback.__table__.insert().values(
+        youth_id=uuid.UUID(youth_id(client, youth)),
+        trait_id="extraversion",
+        verdict="agree",
+        label_at_verdict="Réservé·e",
+        value_at_verdict=10.0,
+        updated_at=utcnow(),
+    )
+    with written_by_another_request(earlier_tap) as fired:
+        response = verdict(client, youth, "extraversion", "disagree")
+    assert fired and response.status_code == 200, response.get_json()
+    data = overview(client, psychologist, youth)
+    assert cursor(data, "extraversion")["verdict"] == "disagree"
+    assert data["events"][0]["kind"] == "verdict_changed"
+    assert data["events"][0]["before"]["verdict"] == "agree"
 
 
 # --- 2. La fiche ne montre que des points forts ---
@@ -685,9 +793,18 @@ def test_psychologist_sees_every_change_of_the_youth(client, youth, psychologist
         client.patch("/api/me/game/facts/passion", json=change, headers=youth)
     for hidden in (True, True, False):
         client.patch("/api/me/game/facts/couleur_preferee", json={"hidden": hidden}, headers=youth)
+    skip(client, youth, run_id, "couleur")
+    for item_id, value in [("scooter", "a"), ("agenda", 5)]:
+        answer(client, youth, run_id, item_id, value)
+    assert complete(client, youth, run_id).status_code == 200
+    for value in ("agree", "disagree", None):
+        verdict(client, youth, "extraversion", value)
 
     found = overview(client, psychologist, youth)["events"]
-    assert [e["kind"] for e in found] == ["fact_shown", "fact_hidden", "fact_edited", "answer_changed"]
+    assert [e["kind"] for e in found] == [
+        "verdict_withdrawn", "verdict_changed", "verdict_set", "answer_retracted",
+        "fact_shown", "fact_hidden", "fact_edited", "answer_changed",
+    ]
     by_kind = {e["kind"]: e for e in found}
     changed = by_kind["answer_changed"]
     assert changed["subject"] == "Quiz d'arrivée (fictif) · Une soirée s'organise. Tu fais quoi ?"
@@ -699,6 +816,7 @@ def test_psychologist_sees_every_change_of_the_youth(client, youth, psychologist
     assert (edited["before"]["value"], edited["after"]["value"]) == ("Le skate", "Le roller")
     assert by_kind["fact_hidden"]["subject"] == "Couleur préférée"
     assert (by_kind["fact_hidden"]["after"]["hidden"], by_kind["fact_shown"]["after"]["hidden"]) == (True, False)
+    assert by_kind["verdict_changed"]["before"]["verdict"] == "agree"
     assert all(e["at"] and isinstance(e["id"], int) for e in found)
 
 
