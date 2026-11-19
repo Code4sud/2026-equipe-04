@@ -280,17 +280,21 @@ export function useRunPlayer(instrumentId: string) {
     [current, record, elapsed],
   );
 
-  /** Passe la question. Une question déjà répondue n'est pas effacée : on avance, sans envoi. */
+  /**
+   * Passe la question. Une question déjà vue (répondue ou déjà passée) n'a rien à enregistrer : on
+   * avance comme « Suivant », d'une question ou, pendant la revue, jusqu'à la prochaine à faire.
+   * Une réponse donnée n'est jamais effacée.
+   */
   const skip = useCallback(() => {
     if (!current) return false;
-    const stored = answers[current.id];
-    if (stored && !stored.skipped) {
+    if (answers[current.id]) {
       if (justShown()) return false;
       next();
+      markShown();
       return true;
     }
     return record(current, null, true, elapsed());
-  }, [current, answers, justShown, next, record, elapsed]);
+  }, [current, answers, justShown, next, markShown, record, elapsed]);
 
   const back = useCallback(() => setIndex((position) => Math.max(0, position - 1)), []);
 
