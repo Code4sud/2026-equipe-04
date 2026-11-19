@@ -261,7 +261,7 @@ export function QuestionnairePlayer({
     const missing = Math.max(needed - answeredCount, 0);
     const reviewSkipped = () => {
       const target = items.findIndex((item) => !answers[item.id] || answers[item.id].skipped);
-      for (let step = index; step > Math.max(target, 0); step -= 1) player.back();
+      player.goTo(Math.max(target, 0));
     };
     return (
       <div className="play play--end">
@@ -318,6 +318,7 @@ export function QuestionnairePlayer({
 
   if (!current) return <Loading />;
   const stored = answers[current.id];
+  const answered = stored !== undefined && !stored.skipped;
   const kicker =
     chapterPosition >= 0
       ? t.question.step(chapterPosition + 1, chapters.length, chapters[chapterPosition].title)
@@ -348,7 +349,8 @@ export function QuestionnairePlayer({
           scale={instrument.scale}
           value={stored?.value}
           onAnswer={player.answer}
-          onSkip={player.skip}
+          // Une réponse déjà donnée ne se passe pas : « Suivant » avance sans l'effacer.
+          onSkip={answered ? undefined : player.skip}
         />
       </div>
       <div className="play-nav">
@@ -358,13 +360,9 @@ export function QuestionnairePlayer({
             {t.question.previous}
           </button>
         )}
-        {stored && !stored.skipped && (
-          <button
-            type="button"
-            className="link-button play-nav__keep"
-            onClick={() => player.answer(stored.value)}
-          >
-            {t.question.keep}
+        {answered && (
+          <button type="button" className="link-button play-nav__next" onClick={player.next}>
+            {t.question.next}
             <span aria-hidden="true"> →</span>
           </button>
         )}

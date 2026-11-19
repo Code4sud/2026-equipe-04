@@ -28,6 +28,23 @@ interface Save {
   queue: Promise<void>;
 }
 
+/** Valeur comparable : choix multiples dans n'importe quel ordre, espaces resserrés comme le serveur. */
+function canonical(value: AnswerValue): unknown {
+  if (Array.isArray(value)) return [...value].sort();
+  if (value && typeof value === 'object') return { text: value.text.trim().split(/\s+/).join(' ') };
+  return value;
+}
+
+function sameValue(a: AnswerValue, b: AnswerValue) {
+  return JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
+}
+
+/** Première question jamais vue après `from`, ou la fin. */
+function nextUnseen(items: GameItem[], answers: Answers, from: number) {
+  const found = items.findIndex((item, position) => position > from && !answers[item.id]);
+  return found === -1 ? items.length : found;
+}
+
 /**
  * Pilote une partie : reprise, réponse enregistrée à chaque question, retour, pause et fin.
  * L'écran avance sans attendre le réseau. Les envois d'une même question partent l'un après
@@ -57,17 +74,17 @@ export function useRunPlayer(instrumentId: string) {
     setError(null);
     setErrorCode(null);
     try {
-      const next = await gameApi.startRun(instrumentId);
-      const stored = Object.fromEntries(next.answers.map((a) => [a.item_id, a]));
-      const items = next.instrument.items ?? [];
+      const started = await gameApi.startRun(instrumentId);
+      const stored = Object.fromEntries(started.answers.map((a) => [a.item_id, a]));
+      const items = started.instrument.items ?? [];
       const first = items.findIndex((item) => !stored[item.id]);
       setAnswers(stored);
       setIndex(first === -1 ? items.length : first);
       setStartedWith({
-        answered: next.answers.filter((a) => !a.skipped).length,
-        seen: next.answers.length,
+        answered: started.answers.filter((a) => !a.skipped).length,
+        seen: started.answers.length,
       });
-      setPayload(next);
+      setPayload(started);
     } catch (caught) {
       fail(caught);
     }
@@ -164,15 +181,32 @@ export function useRunPlayer(instrumentId: string) {
     [drain, send],
   );
 
+  /** Question suivante, sans rien enregistrer. */
+  const next = useCallback(
+    () => setIndex((position) => Math.min(position + 1, items.length)),
+    [items.length],
+  );
+
   const record = useCallback(
     (item: GameItem, value: AnswerValue, skipped: boolean) => {
       if (!runId) return;
-      const response_ms = Math.round(performance.now() - shownAt.current);
-      setAnswers((all) => ({ ...all, [item.id]: { item_id: item.id, value, skipped } }));
-      send(runId, item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
-      setIndex((position) => position + 1);
+      const stored = answers[item.id];
+      const unchanged =
+        stored !== undefined &&
+        stored.skipped === skipped &&
+        (skipped || sameValue(stored.value, value));
+      let after = answers;
+      // Une réponse identique ne repart pas : elle garde son temps de réponse d'origine.
+      if (!unchanged) {
+        after = { ...answers, [item.id]: { item_id: item.id, value: skipped ? null : value, skipped } };
+        setAnswers(after);
+        const response_ms = Math.round(performance.now() - shownAt.current);
+        send(runId, item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
+      }
+      // Après un retour ou une reprise, on ne refait pas défiler les questions déjà vues.
+      setIndex(nextUnseen(items, after, index));
     },
-    [runId, send],
+    [runId, answers, items, index, send],
   );
 
   const answer = useCallback(
@@ -181,9 +215,15 @@ export function useRunPlayer(instrumentId: string) {
     },
     [current, record],
   );
+
+  /** Passe la question. Une question déjà répondue n'est pas effacée : on avance, sans envoi. */
   const skip = useCallback(() => {
-    if (current) record(current, null, true);
-  }, [current, record]);
+    if (!current) return;
+    const stored = answers[current.id];
+    if (stored && !stored.skipped) next();
+    else record(current, null, true);
+  }, [current, answers, next, record]);
+
   const back = useCallback(() => setIndex((position) => Math.max(0, position - 1)), []);
   /** Va directement à une question (ou à la fin avec `items.length`). */
   const goTo = useCallback(
@@ -207,9 +247,9 @@ export function useRunPlayer(instrumentId: string) {
       try {
         // Le serveur calcule le résultat sur les réponses reçues : toutes doivent être arrivées.
         await settle(runId);
-        const next = await gameApi.completeRun(runId, trials);
-        setResult(next);
-        return next;
+        const completed = await gameApi.completeRun(runId, trials);
+        setResult(completed);
+        return completed;
       } catch (caught) {
         fail(caught);
         return null;
@@ -246,6 +286,7 @@ export function useRunPlayer(instrumentId: string) {
     finishing,
     answer,
     skip,
+    next,
     back,
     goTo,
     pause,
