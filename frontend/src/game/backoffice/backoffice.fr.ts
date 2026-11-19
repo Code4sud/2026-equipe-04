@@ -270,7 +270,7 @@ export const bo = {
     archetypes: {
       title: 'Archétype montré au jeune',
       paragraphs: [
-        'À la fin du quiz d’arrivée, le jeune découvre un archétype\u00a0: un badge avec un nom, une devise et une description. C’est un habillage ludique de ses curseurs de caractère, recalculé avec toutes ses réponses et ses talents validés\u00a0: il peut changer d’une partie à l’autre, et la fin de partie le signale au jeune.',
+        'À la fin du quiz d’arrivée, le jeune découvre un archétype\u00a0: un badge avec un nom, une devise et une description. C’est un habillage ludique de ses curseurs de caractère, recalculé avec toutes ses réponses et ses talents validés\u00a0: il peut changer d’une partie à l’autre, et la fin de partie le signale au jeune. Avant la fin du quiz, la synthèse le montre déjà, calculé sur ses premières réponses et ses talents validés, mais la fiche du jeune le garde secret jusqu’à la révélation.',
         'L’archétype est celui du pôle vers lequel penche le curseur de caractère le plus éloigné du milieu (50), toutes sources confondues. À égalité, le premier dans l’ordre des curseurs l’emporte. Si aucun curseur de caractère ne s’écarte de plus de 8\u00a0points du milieu, c’est Le Caméléon. Les intérêts et les jeux cognitifs n’entrent pas en compte.',
         'Le jeune voit le nom, la devise, la description et la qualité de son pôle (par exemple «\u00a0Sociable\u00a0»), jamais quel curseur l’a désigné ni sa valeur. Dans la fiche du jeune, la synthèse indique d’après quel curseur l’archétype a été attribué.',
       ],
