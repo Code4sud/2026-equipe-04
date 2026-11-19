@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 import { api, ApiError, streamReply, type ReplyRequest } from '../../api/client';
+import { useAuth } from '../../auth/AuthContext';
 import type {
   ChatEvent,
   Conversation,
@@ -37,6 +38,9 @@ const MAX_COMPOSER_PX = 160;
 const LAUGHTER = /\b(?:(?:ha){2,}h?|(?:hi){2,}|mdr+|ptdr+|xptdr+|lol+)\b/i;
 const LAUGH_COOLDOWN_MS = 120_000;
 const RECENT_REVEAL_MS = 20_000;
+// Après un « Super », la carte suivante attend que Néo ait rangé la précédente.
+const NEXT_CARD_DELAY_MS = 1800;
+const ANNOUNCED_KEY = 'potentiel.talents-annonces';
 const IMPRESSIVE_STORY_WORDS = 12;
 
 // Sur grand écran, Néo quitte la pastille de l'en-tête et se tient en grand à côté du fil.
@@ -50,6 +54,29 @@ function subscribeWide(onChange: () => void) {
 
 function useWideScreen() {
   return useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE_QUERY).matches);
+}
+
+// Talents déjà montrés dans le chat, par compte : un talent trouvé pendant que le jeune était
+// sur une autre page est annoncé à son retour, et aucun n'est annoncé deux fois.
+function readAnnounced(userId: string): Set<string> | null {
+  try {
+    const raw = localStorage.getItem(`${ANNOUNCED_KEY}.${userId}`);
+    return raw ? new Set(JSON.parse(raw) as string[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAnnounced(userId: string, ids: Set<string>) {
+  try {
+    localStorage.setItem(`${ANNOUNCED_KEY}.${userId}`, JSON.stringify([...ids]));
+  } catch {
+    // Stockage bloqué : les cartes restent annoncées pendant la visite.
+  }
+}
+
+function isNews(talent: Skill, announced: Set<string>) {
+  return talent.origin === 'ai' && talent.status === 'validated' && !announced.has(talent.id);
 }
 
 function localMessage(id: string, content: string): Message {
@@ -77,9 +104,15 @@ function FoundTalent({ talent, onClose }: { talent: Skill; onClose: () => void }
 export function ChatPage() {
   const { talents, reload: reloadTalents } = useTalents({ analyseOnOpen: false });
   const wide = useWideScreen();
+  const userId = useAuth().user?.id ?? 'invite';
   // Talent que Néo vient d'épingler : sa carte reste affichée jusqu'au « Super ».
   const [found, setFound] = useState<Skill | null>(null);
-  const seenTalentsRef = useRef<Set<string> | null>(null);
+  // Talents trouvés pendant la discussion qui attendent leur carte, du plus ancien au plus récent.
+  const [waiting, setWaiting] = useState<Skill[]>([]);
+  const [nextCardAt, setNextCardAt] = useState(0);
+  const announcedRef = useRef<Set<string> | null>(null);
+  const foundRef = useRef<Skill | null>(null);
+  foundRef.current = found;
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [safety, setSafety] = useState<SafetyInfo | null>(null);
@@ -156,15 +189,56 @@ export function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
 
-  // Les talents déjà là à l'ouverture ne sont pas réannoncés ; ceux trouvés ensuite, si.
+  const markAnnounced = useCallback(
+    (id: string) => {
+      const announced = announcedRef.current ?? new Set<string>();
+      announced.add(id);
+      announcedRef.current = announced;
+      saveAnnounced(userId, announced);
+    },
+    [userId],
+  );
+
+  // Chaque talent repéré par Néo a sa carte, même s'il arrive quelques secondes après la
+  // réponse : l'analyse tourne en arrière-plan et useTalents la suit.
   useEffect(() => {
     if (!talents) return;
-    const seen = seenTalentsRef.current;
-    seenTalentsRef.current = new Set(talents.map((talent) => talent.id));
-    if (!seen) return;
-    const fresh = talents.find((talent) => !seen.has(talent.id) && talent.origin === 'ai');
-    if (fresh) setFound((current) => current ?? fresh);
-  }, [talents]);
+    if (!announcedRef.current) {
+      const stored = readAnnounced(userId);
+      if (!stored) {
+        // Première ouverture sur cet appareil : les talents déjà là ne sont pas réannoncés.
+        announcedRef.current = new Set(talents.map((talent) => talent.id));
+        saveAnnounced(userId, announcedRef.current);
+        return;
+      }
+      announcedRef.current = stored;
+    }
+    const announced = announcedRef.current;
+    const news = talents
+      .filter((talent) => isNews(talent, announced))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+    if (!news.length) return;
+    setWaiting((current) => {
+      const queued = new Set(current.map((talent) => talent.id));
+      const added = news.filter((talent) => !queued.has(talent.id) && talent.id !== foundRef.current?.id);
+      return added.length ? [...current, ...added] : current;
+    });
+  }, [talents, userId]);
+
+  // Une carte à la fois, jamais pendant que Néo répond.
+  useEffect(() => {
+    if (found || reply !== null || !waiting.length) return;
+    const timer = window.setTimeout(() => {
+      const [next, ...rest] = waiting;
+      markAnnounced(next.id);
+      // Néo refait sa détection pour chaque talent, même juste après le précédent.
+      lastRevealRef.current = 0;
+      setWaiting(rest);
+      setTalentNote(null);
+      setFound(next);
+    }, Math.max(0, nextCardAt - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [found, reply, waiting, nextCardAt, markAnnounced]);
 
   // Un talent repéré : Néo le détecte (sauf s'il vient de l'annoncer), puis sort sa carte.
   useEffect(() => {
@@ -247,8 +321,14 @@ export function ChatPage() {
           setReply(null);
           laughAlong(sentText);
           if (event.data.talent) {
+            // Néo vient de l'annoncer dans sa réponse : sa carte passe devant les autres.
             const talent = event.data.talent;
-            seenTalentsRef.current?.add(talent.id);
+            const shown = foundRef.current;
+            markAnnounced(talent.id);
+            setWaiting((current) => [
+              ...(shown && shown.id !== talent.id ? [shown] : []),
+              ...current.filter((item) => item.id !== talent.id),
+            ]);
             setFound(talent);
           }
           void reloadTalents();
@@ -315,6 +395,7 @@ export function ChatPage() {
 
   function celebrate() {
     setFound(null);
+    setNextCardAt(Date.now() + NEXT_CARD_DELAY_MS);
     setTalentNote(fr.found.kept);
     mascotRef.current?.perform('cardKeep', 'cheer');
   }
