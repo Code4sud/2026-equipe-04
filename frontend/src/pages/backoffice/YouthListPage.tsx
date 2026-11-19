@@ -5,8 +5,22 @@ import type { YouthSummary } from '../../api/types';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { formatDateTime } from '../../components/format';
 import { fr } from '../../content/fr';
+import { bo } from '../../game/backoffice/backoffice.fr';
 
 const t = fr.backoffice;
+
+/** Talents retirés, renommés ou ajoutés, et changements faits dans le quiz et les jeux. */
+function ToDiscuss({ talents, game }: { talents: number; game: number }) {
+  const total = talents + game;
+  if (total === 0) return <>0</>;
+  const detail = bo.toDiscuss(talents, game);
+  return (
+    <span className="status status--waiting" title={detail}>
+      {total}
+      <span className="visually-hidden"> ({detail})</span>
+    </span>
+  );
+}
 
 export function YouthListPage() {
   const [youths, setYouths] = useState<YouthSummary[] | null>(null);
@@ -59,11 +73,7 @@ export function YouthListPage() {
                   <td className="numeric">{youth.validated_skills}</td>
                   <td className="numeric">{youth.pending_skills}</td>
                   <td className="numeric">
-                    {youth.skills_to_discuss > 0 ? (
-                      <span className="status status--waiting">{youth.skills_to_discuss}</span>
-                    ) : (
-                      0
-                    )}
+                    <ToDiscuss talents={youth.skills_to_discuss} game={youth.game_changes ?? 0} />
                   </td>
                 </tr>
               ))}

@@ -40,7 +40,7 @@ export const bo = {
     translated: 'Items d’un test validé, traduits par l’équipe sans étude de la traduction.',
     adapted: 'Questions écrites par l’équipe à partir d’une théorie ou d’un test publiés, sans validation.',
     custom: 'Indicateur créé pour le projet.',
-    talent: 'Talent repéré dans la discussion et validé par le jeune.',
+    talent: 'Talent repéré par Néo dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même ne compte pas dans les curseurs.',
   } satisfies Record<Tier, string>,
   weight: (value: string) => `poids ${value}`,
   kinds: {
@@ -49,6 +49,14 @@ export const bo = {
     performance: 'Jeu cognitif',
   } satisfies Record<InstrumentKind, string>,
   missing: 'non renseigné',
+  /** Liste des jeunes : détail de la colonne « À discuter ». */
+  toDiscuss: (talents: number, game: number) =>
+    [
+      talents > 0 && `${talents} ${plural(talents, 'talent', 'talents')}`,
+      game > 0 && `${game} ${plural(game, 'changement', 'changements')} dans le jeu`,
+    ]
+      .filter(Boolean)
+      .join(', '),
   youth: {
     title: 'Avis et modifications du jeune',
     hint: 'Un désaccord ou une modification est une information à part entière, à explorer avec le jeune.',
@@ -56,7 +64,7 @@ export const bo = {
     agree: 'Se reconnaît',
     edited: 'A modifié',
     hidden: 'A masqué de sa fiche',
-    nothing: 'Le jeune n’a donné aucun avis sur ses curseurs et n’a rien modifié.',
+    nothing: 'Aucun avis sur les curseurs et aucune modification dans le quiz et les jeux. Ses choix sur les talents sont dans le tableau des talents.',
     noVerdict: 'Aucun avis sur les curseurs pour le moment.',
     count: (count: number) => `${count} ${plural(count, 'curseur', 'curseurs')}`,
     stale: (label: string) => `avis sur ${quoted(label)}, curseur changé depuis`,
@@ -79,7 +87,7 @@ export const bo = {
   },
   events: {
     title: 'Historique des modifications',
-    hint: 'Chaque changement du jeune, du plus récent au plus ancien.',
+    hint: 'Chaque changement du jeune dans le quiz, les jeux et sa fiche, du plus récent au plus ancien. Ses choix sur les talents sont datés dans le tableau des talents.',
     more: (count: number) => `Voir tout l’historique (${count})`,
     less: 'Voir moins',
     actions: {
@@ -157,7 +165,7 @@ export const bo = {
     weight: 'Poids',
     date: 'Date',
     runScore: 'Score global de la partie',
-    talentSource: 'Discussion avec le compagnon',
+    talentSource: 'Discussion avec Néo',
     talent: (name: string) => `Talent\u00a0: ${name}`,
     talentHistory: 'Voir l’historique des talents plus haut.',
     position: (value: string) => `position ${value}/100`,

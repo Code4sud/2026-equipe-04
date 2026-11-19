@@ -26,6 +26,7 @@ from ..models import (
     GameRun,
     GameRunStatus,
     Skill,
+    SkillOrigin,
     SkillStatus,
     TraitFeedback,
     User,
@@ -83,6 +84,14 @@ class YouthData:
     feedback: dict[str, TraitFeedback]
     talents: list[Skill]
 
+    @property
+    def found_talents(self) -> list[Skill]:
+        """Talents repérés par Néo et gardés par le jeune : seuls ceux-là comptent pour les
+        curseurs, l'XP et les badges. Un talent que le jeune ajoute lui-même n'a pas de vraie
+        catégorie (la carte lui donne « savoir-faire » par défaut) et ne doit pas se gagner en
+        tapant des noms : il reste sur sa carte et dans le backoffice."""
+        return [talent for talent in self.talents if talent.origin == SkillOrigin.AI]
+
 
 def load_youth(youth_id: uuid.UUID) -> YouthData:
     runs = db.session.scalars(
@@ -134,7 +143,7 @@ def collect_signals(data: YouthData) -> list[dict]:
                 )
         for row in run.signals:
             rows.append({**row, **base, "item_id": None, "prompt": None, "answer": None, "at": iso(run.completed_at)})
-    for talent in data.talents:
+    for talent in data.found_talents:
         for row in cat.skill_signals.get(talent.category, []):
             rows.append(
                 {
@@ -144,7 +153,7 @@ def collect_signals(data: YouthData) -> list[dict]:
                     "item_id": None,
                     "prompt": talent.name,
                     "answer": talent.source_quote,
-                    "at": iso(talent.reviewed_at),
+                    "at": iso(talent.reviewed_at or talent.created_at),
                 }
             )
     return rows
@@ -212,7 +221,7 @@ def level_for(xp: int) -> int:
 
 def total_xp(data: YouthData) -> int:
     cat = catalog()
-    xp = XP_PER_TALENT * len(data.talents)
+    xp = XP_PER_TALENT * len(data.found_talents)
     seen: set[str] = set()
     completions: Counter[str] = Counter()
     for run in data.runs:
@@ -255,7 +264,7 @@ def progress(data: YouthData) -> dict:
     context = {
         "completed": completed,
         "completed_kinds": kinds,
-        "talents": len(data.talents),
+        "talents": len(data.found_talents),
         "facts": len(data.facts),
         "level": level,
     }
@@ -844,6 +853,7 @@ def character_sheet(user: User) -> dict:
                     "category": t.category,
                     "description": t.description,
                     "quote": t.source_quote,
+                    "origin": t.origin.value,
                 }
                 for t in data.talents
             ],
