@@ -26,7 +26,7 @@ export const playFr = {
     xp: (xp: number) => `+${xp} XP`,
     xpLabel: (xp: number) => `${xp} points gagnés pendant ce jeu`,
     previous: 'Question précédente',
-    keep: 'Garder ma réponse',
+    next: 'Suivant',
   },
   chapter: {
     kicker: (index: number, count: number) => `Étape ${index} sur ${count}`,

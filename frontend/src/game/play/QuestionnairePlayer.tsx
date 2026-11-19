@@ -64,7 +64,7 @@ export function QuestionnairePlayer({
   completedBefore = 0,
 }: Props) {
   const player = useRunPlayer(instrumentId);
-  const { instrument, run, items, index, current, answers, result } = player;
+  const { instrument, run, items, index, current, answers, result, reviewing } = player;
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
   const [seenChapters, setSeenChapters] = useState<ReadonlySet<string>>(() => new Set());
@@ -80,13 +80,14 @@ export function QuestionnairePlayer({
     ? chapters.findIndex((chapter) => chapter.id === current.chapter)
     : -1;
 
-  // Une étape qui commence s’annonce une fois, si elle a un mot d’intro.
+  // Une étape qui commence s’annonce une fois, si elle a un mot d’intro. Pendant la revue des
+  // questions passées, on va droit aux questions.
   const pendingChapter: Chapter | null = useMemo(() => {
-    if (!started || !current?.chapter || seenChapters.has(current.chapter)) return null;
+    if (!started || reviewing || !current?.chapter || seenChapters.has(current.chapter)) return null;
     if (index > 0 && items[index - 1]?.chapter === current.chapter) return null;
     const chapter = chapters.find((entry) => entry.id === current.chapter);
     return chapter?.intro ? chapter : null;
-  }, [started, current, index, items, chapters, seenChapters]);
+  }, [started, reviewing, current, index, items, chapters, seenChapters]);
 
   const screen = !started
     ? 'intro'
@@ -102,6 +103,8 @@ export function QuestionnairePlayer({
         ? `chapter:${pendingChapter?.id}`
         : screen;
 
+  // Une question place elle-même le focus sur son énoncé (QuestionCard autoFocus) : seuls
+  // l'accueil, les étapes et la fin ont une cible ici.
   useEffect(() => {
     if (!instrument || result) return;
     window.scrollTo({ top: 0 });
@@ -202,7 +205,11 @@ export function QuestionnairePlayer({
             <button
               type="button"
               className="button button--primary"
-              onClick={() => setStarted(true)}
+              onClick={() => {
+                setStarted(true);
+                // Le temps passé sur l'accueil ne compte pas dans celui de la première question.
+                player.markShown();
+              }}
             >
               {resuming ? t.intro.resume : t.intro.start}
             </button>
@@ -246,7 +253,10 @@ export function QuestionnairePlayer({
             <button
               type="button"
               className="button button--primary"
-              onClick={() => setSeenChapters((seen) => new Set(seen).add(pendingChapter.id))}
+              onClick={() => {
+                setSeenChapters((seen) => new Set(seen).add(pendingChapter.id));
+                player.markShown();
+              }}
             >
               {t.chapter.next}
             </button>
@@ -259,10 +269,6 @@ export function QuestionnairePlayer({
   if (screen === 'end') {
     const needed = instrument.min_answers ?? Math.ceil(total * 0.6);
     const missing = Math.max(needed - answeredCount, 0);
-    const reviewSkipped = () => {
-      const target = items.findIndex((item) => !answers[item.id] || answers[item.id].skipped);
-      for (let step = index; step > Math.max(target, 0); step -= 1) player.back();
-    };
     return (
       <div className="play play--end">
         {topBar}
@@ -291,7 +297,8 @@ export function QuestionnairePlayer({
           )}
           <div className="play-actions">
             {missing > 0 ? (
-              <button type="button" className="button button--primary" onClick={reviewSkipped}>
+              // De question passée en question passée, puis retour ici.
+              <button type="button" className="button button--primary" onClick={player.review}>
                 {t.end.review}
               </button>
             ) : (
@@ -318,6 +325,7 @@ export function QuestionnairePlayer({
 
   if (!current) return <Loading />;
   const stored = answers[current.id];
+  const answered = stored !== undefined && !stored.skipped;
   const kicker =
     chapterPosition >= 0
       ? t.question.step(chapterPosition + 1, chapters.length, chapters[chapterPosition].title)
@@ -333,13 +341,7 @@ export function QuestionnairePlayer({
           {gameFr.question.saveError}
         </p>
       )}
-      <div
-        ref={setFocusTarget}
-        tabIndex={-1}
-        className="play-question"
-        aria-labelledby={`q-${current.id}`}
-        aria-describedby="play-progress-label"
-      >
+      <div className="play-question">
         {kicker && <p className="play-kicker">{kicker}</p>}
         {/* Une carte neuve par question : ni focus ni survol hérités de la précédente. */}
         <QuestionCard
@@ -348,7 +350,10 @@ export function QuestionnairePlayer({
           scale={instrument.scale}
           value={stored?.value}
           onAnswer={player.answer}
-          onSkip={player.skip}
+          // Une réponse déjà donnée ne se passe pas : « Suivant » avance sans l'effacer.
+          onSkip={answered ? undefined : player.skip}
+          autoFocus
+          describedBy="play-progress-label"
         />
       </div>
       <div className="play-nav">
@@ -358,13 +363,9 @@ export function QuestionnairePlayer({
             {t.question.previous}
           </button>
         )}
-        {stored && !stored.skipped && (
-          <button
-            type="button"
-            className="link-button play-nav__keep"
-            onClick={() => player.answer(stored.value)}
-          >
-            {t.question.keep}
+        {answered && (
+          <button type="button" className="link-button play-nav__next" onClick={player.next}>
+            {t.question.next}
             <span aria-hidden="true"> →</span>
           </button>
         )}

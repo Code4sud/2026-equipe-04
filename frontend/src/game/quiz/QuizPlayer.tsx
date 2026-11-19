@@ -4,11 +4,11 @@ import { ErrorState } from '../../components/Feedback';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { QuestionCard } from '../components/QuestionCard';
 import type { AnswerValue } from '../types';
-import { useRunPlayer } from '../useRunPlayer';
+import { isPending, useRunPlayer } from '../useRunPlayer';
 import { ChapterProgress } from './ChapterProgress';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
-import { chapterOf, isPending, nextPendingIndex, QUIZ_ID, XP_PER_ANSWER } from './quizLogic';
+import { chapterOf, QUIZ_ID, XP_PER_ANSWER } from './quizLogic';
 import { QuizReveal } from './QuizReveal';
 import { XpCounter } from './XpCounter';
 
@@ -40,10 +40,9 @@ function Waiting({ text }: { text: string }) {
 export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const player = useRunPlayer(QUIZ_ID);
   const navigate = useNavigate();
-  const { instrument, items, index, current, answers, startedWith } = player;
+  const { instrument, items, index, current, answers, startedWith, reviewing } = player;
   const [welcomed, setWelcomed] = useState(false);
   const [introduced, setIntroduced] = useState<ReadonlySet<string>>(() => new Set());
-  const [reviewing, setReviewing] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [pausing, setPausing] = useState(false);
@@ -128,9 +127,8 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   function startReview() {
     cancelPick();
     player.clearError();
-    setReviewing(true);
     setDirection('forward');
-    player.goTo(nextPendingIndex(items, answers, -1));
+    player.review();
   }
 
   function backToLastQuestion() {
@@ -163,7 +161,14 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <p className="quiz-transparency">{frenchSpacing(t.welcome.transparency)}</p>
         {pauseAlert}
         <div className="quiz-actions">
-          <button type="button" className="button button--primary" onClick={() => setWelcomed(true)}>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() => {
+              setWelcomed(true);
+              player.markShown();
+            }}
+          >
             {t.welcome.start}
           </button>
           {laterButton(t.welcome.later)}
@@ -256,7 +261,11 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
           <button
             type="button"
             className="button button--primary"
-            onClick={() => setIntroduced((done) => new Set(done).add(chapterId))}
+            onClick={() => {
+              setIntroduced((done) => new Set(done).add(chapterId));
+              // Le temps passé sur l'intermède ne compte pas dans celui de la question.
+              player.markShown();
+            }}
           >
             {resuming ? t.chapter.resume : t.chapter.start}
           </button>
@@ -272,41 +281,39 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const alreadyAnswered = stored !== undefined && !stored.skipped;
   const chapterTitle = info?.chapter.title ?? '';
 
-  function afterLeaving(itemId: string) {
-    if (reviewing) player.goTo(nextPendingIndex(items, answers, index, itemId));
-  }
-
-  function commit(value: AnswerValue) {
+  // Le hook choisit la question suivante, revue des questions passées comprise.
+  function commit(value: AnswerValue, responseMs: number) {
+    if (!player.answer(value, responseMs)) return;
     setDirection('forward');
-    player.answer(value);
-    afterLeaving(item.id);
   }
 
   function handleAnswer(value: AnswerValue) {
-    if (pickTimer.current !== undefined) return;
+    // Un appui juste après l'affichage termine un double appui commencé sur l'écran d'avant.
+    if (pickTimer.current !== undefined || player.justShown()) return;
+    // Le temps de réponse s'arrête à l'appui, pas après l'animation du choix.
+    const responseMs = player.elapsed();
     if (typeof value !== 'string') {
-      commit(value);
+      commit(value, responseMs);
       return;
     }
     setPicked(value);
     pickTimer.current = window.setTimeout(() => {
       pickTimer.current = undefined;
       setPicked(null);
-      commit(value);
+      commit(value, responseMs);
     }, PICK_DELAY_MS);
   }
 
   function handleSkip() {
     cancelPick();
+    if (!player.skip()) return;
     setDirection('forward');
-    player.skip();
-    afterLeaving(item.id);
   }
 
   function handleNext() {
     cancelPick();
     setDirection('forward');
-    player.goTo(reviewing ? nextPendingIndex(items, answers, index) : index + 1);
+    player.next();
   }
 
   function handleBack() {
@@ -348,6 +355,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
       )}
       <div key={item.id} className={`quiz-slide quiz-slide--${direction}`}>
         <QuestionCard
+          key={item.id}
           item={item}
           scale={instrument.scale}
           value={picked ?? stored?.value}
