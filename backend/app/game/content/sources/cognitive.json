@@ -8,7 +8,7 @@
       "licence": "Paradigme expérimental libre, sans item protégé. Articles sous droits de leurs éditeurs : rien n’en est reproduit.",
       "validated": false,
       "adaptation": "Version tactile maison : 9 lanternes à des positions propres au jeu (pas la planche d’origine), séquences tirées au hasard sans répétition, 1 lanterne par seconde. Deux chances par longueur, la seconde seulement après une erreur, arrêt après 2 erreurs à une même longueur. Le score total de Kessels et al. n’est pas calculé et leurs normes ne s’appliquent pas.",
-      "note": "Corsi (1972) est une thèse non publiée : son lien d’archive à l’Université McGill n’a pas pu être vérifié, il n’est donc pas donné."
+      "note": "Thèse de Corsi (1972) consultable dans les archives de l’Université McGill (vérifié le 19/11/2026) : https://doi.org/10.82308/6355"
     },
     {
       "id": "jacobs_1887_empan",
@@ -52,10 +52,10 @@
       "title": "International Cognitive Ability Resource (ICAR)",
       "citation": "Condon, D. M., & Revelle, W. (2014). The International Cognitive Ability Resource: Development and initial validation of a public-domain measure. Intelligence, 43, 52–64.",
       "url": "https://doi.org/10.1016/j.intell.2014.01.004",
-      "licence": "Items ICAR diffusés sous licence d’usage scientifique (PsychArchives), réservés à la recherche et à garder hors de la vue du public. Aucun item ICAR n’est reproduit ici.",
+      "licence": "Items ICAR diffusés sur PsychArchives sous licence d’usage scientifique (Scientific Use License), réservés à un usage académique (recherche, enseignement) et à garder hors de la vue du public. Aucun item ICAR n’est reproduit ici.",
       "validated": false,
-      "adaptation": "Inspiration de format seulement : suites de lettres et de nombres, matrices 3×3 de formes avec une case manquante, 6 choix, sans limite de temps. Les 12 énigmes sont originales, écrites pour Potentiel, sans validation ni normes.",
-      "note": "Ce dépôt est public : aucun item ICAR n’y est copié. Conditions d’utilisation : https://sms.statistik.tu-dortmund.de/en/research/projects/completed-research-projects/international-cognitive-ability-resource-icar/"
+      "adaptation": "Inspiration de format seulement : suites de lettres et de nombres, matrices 3×3 de formes avec une case manquante, 6 choix, sans limite de temps. Les 12 énigmes (10 comptées, 2 d’entraînement) sont originales, écrites pour Potentiel, sans validation ni normes.",
+      "note": "Ce dépôt est public : aucun item ICAR n’y est copié. Les 12 énigmes ont été comparées aux 16 items de l’ICAR Sample Test, publiés en annexe A des documents supplémentaires de l’article de 2014 : aucune ne reprend leurs suites ni leurs figures, seuls des types de règles classiques des tests de raisonnement se retrouvent. Conditions d’utilisation : https://sms.statistik.tu-dortmund.de/en/research/projects/completed-research-projects/international-cognitive-ability-resource-icar/ ; dépôt PsychArchives : https://doi.org/10.23668/psycharchives.22167"
     }
   ]
 }

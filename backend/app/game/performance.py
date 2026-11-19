@@ -253,6 +253,35 @@ def score_span(instrument: dict, trials: list[dict]) -> PerformanceResult:
     )
 
 
+def has_run(sequence: list) -> bool:
+    """Trois chiffres qui se suivent, comme 4, 5, 6 ou 6, 5, 4.
+
+    Même règle que le navigateur (frontend/src/game/cognitive/random.ts, hasRun).
+    """
+    return any(
+        b - a == c - b and abs(b - a) == 1
+        for a, b, c in zip(sequence, sequence[1:], sequence[2:])
+    )
+
+
+def span_sequence(symbols: list, length: int, avoid_runs: bool, rng: random.Random) -> list:
+    """Série sans répétition ; pour les chiffres, sans suite évidente comme 4, 5, 6.
+
+    Même tirage que le navigateur (frontend/src/game/cognitive/random.ts, spanSequence).
+    """
+
+    def draw() -> list:
+        if length <= len(symbols):
+            return rng.sample(symbols, length)
+        return [rng.choice(symbols) for _ in range(length)]
+
+    for _ in range(50):
+        sequence = draw()
+        if not avoid_runs or not has_run(sequence):
+            return sequence
+    return draw()
+
+
 def _span_mistake(expected: list, pool: list, rng: random.Random) -> list:
     response = list(expected)
     if len(response) >= 2 and rng.random() < 0.6:
@@ -266,9 +295,15 @@ def _span_mistake(expected: list, pool: list, rng: random.Random) -> list:
 
 
 def demo_span(instrument: dict, rng: random.Random, skill: float) -> list[dict]:
-    """Suit la procédure adaptative du jeu : +1 après une réussite, arrêt après 2 erreurs."""
+    """Suit la procédure adaptative du jeu : +1 après une réussite, arrêt après 2 erreurs.
+
+    Les séries sont tirées comme dans le navigateur, pour que les parties de démonstration
+    suivent la note que lit la psychologue.
+    """
     settings = instrument["performance"]
     pool = list(settings.get("symbols") or range(9))
+    # Le navigateur joue en chiffres toute variante autre que « corsi » (settings.ts).
+    avoid_runs = settings.get("variant") != "corsi"
     trials = []
     for phase in span_phases(settings):
         low, high = phase["min_span"], phase["max_span"]
@@ -276,10 +311,7 @@ def demo_span(instrument: dict, rng: random.Random, skill: float) -> list[dict]:
         extra = {"phase": phase["id"]} if phase["id"] is not None else {}
 
         def trial(length: int, success: bool, practice: bool = False) -> dict:
-            if length <= len(pool):
-                sequence = rng.sample(pool, length)
-            else:
-                sequence = [rng.choice(pool) for _ in range(length)]
+            sequence = span_sequence(pool, length, avoid_runs, rng)
             expected = sequence[::-1] if phase.get("backwards") else list(sequence)
             response = expected if success else _span_mistake(expected, pool, rng)
             rt = int(length * rng.uniform(550, 950) + rng.uniform(400, 1200))

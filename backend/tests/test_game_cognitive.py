@@ -15,7 +15,7 @@ from test_game_content import guardrail_problems, normalize
 from app.extensions import db
 from app.game.catalog import Catalog
 from app.game.demo import seed_youth_game
-from app.game.performance import SCORERS, stroop_sequence
+from app.game.performance import SCORERS, has_run, stroop_sequence
 from app.game.scoring import InvalidAnswer
 from app.models import User
 
@@ -455,6 +455,22 @@ def test_demo_trials_are_realistic_and_score(real, instrument_id):
             assert 0 <= result.signals[0]["value"] <= 100
             values.append(result.signals[0]["value"])
     assert 15 < sum(values) / len(values) < 97
+
+
+def test_demo_draws_digit_series_like_the_game(real):
+    """La psychologue lit la note du jeu à côté des séries : la démo (comptes de démonstration)
+    tire donc comme le navigateur, chiffres de 1 à 9 sans répétition ni suite comme 4, 5, 6."""
+    assert has_run([4, 5, 6]) and has_run([6, 5, 4]) and has_run([1, 3, 7, 8, 9])
+    assert not any(has_run(s) for s in ([4, 5, 7], [4, 6, 8], [5, 4, 5], [9, 1, 2], [3, 4]))
+    series = [
+        trial["sequence"]
+        for seed in range(100)
+        for skill in (0.6, 0.85, 0.95)
+        for trial in demo(real, "digit_span", f"{seed}", skill)
+    ]
+    assert len(series) > 1000
+    assert all(set(s) <= set(range(1, 10)) and len(set(s)) == len(s) for s in series)
+    assert not [s for s in series if has_run(s)]
 
 
 # --- API ---
