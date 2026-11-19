@@ -682,6 +682,8 @@ def instrument_info(instrument: dict) -> dict:
         "tier_label": TIER_LABELS[instrument["tier"]],
         "scoring_note": instrument.get("scoring_note"),
         "sources": [source_dict(s) for s in instrument.get("source_ids", [])],
+        # Titres des chapitres : les réponses ne portent que l'identifiant du chapitre.
+        "chapters": [{"id": c["id"], "title": c["title"]} for c in instrument.get("chapters", [])],
     }
 
 

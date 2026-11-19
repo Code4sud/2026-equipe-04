@@ -5,6 +5,7 @@ import type { YouthSummary } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import { TalentStar } from '../components/Icons';
 import { fr } from '../content/fr';
+import { SourcesNavLink } from '../game/backoffice/routes';
 
 const t = fr.backoffice;
 
@@ -41,6 +42,7 @@ export function BackofficeLayout() {
             ))}
           </ul>
         </nav>
+        <SourcesNavLink />
         <div className="bo__account">
           <span className="bo__user">{user?.display_name}</span>
           <button type="button" className="link-button" onClick={signOut}>
