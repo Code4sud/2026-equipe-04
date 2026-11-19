@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from app.game.catalog import TIERS, Catalog, ContentError
+from app.game.catalog import TIER_STRENGTH, TIERS, Catalog, ContentError
 from app.game.scoring import TIER_WEIGHTS, aggregate, score_answer
 from app.game.service import TIER_LABELS
 
@@ -64,13 +64,14 @@ def test_a_translated_answer_weighs_three_quarters(catalog):
     assert cursor["by_tier"] == {"adapted": {"value": 0.0, "n": 1}, "translated": {"value": 100.0, "n": 1}}
 
 
-def overlay(tmp_path, item: dict):
+def overlay(tmp_path, item: dict, tier: str = "custom"):
     """Contenu réel plus un instrument d'essai à une seule question."""
     folder = tmp_path / "instruments"
     folder.mkdir()
     instrument = {
-        "id": "essai", "version": 1, "kind": "questionnaire", "tier": "custom", "title": "t",
+        "id": "essai", "version": 1, "kind": "questionnaire", "tier": tier, "title": "t",
         "tagline": "t", "icon": "i", "duration_min": 1, "xp": 1, "scale": {"min": 1, "max": 5},
+        "source_ids": [] if tier == "custom" else ["ipip_mini_ipip"],
         "items": [item],
     }
     (folder / "essai.json").write_text(json.dumps(instrument), encoding="utf-8")
@@ -94,9 +95,34 @@ def test_catalog_rejects_an_unknown_signal_tier(tmp_path, item):
         Catalog(overlays=[overlay(tmp_path, item)])
 
 
-def test_catalog_accepts_a_known_signal_tier(tmp_path):
-    item = {"id": "q", "type": "likert", "prompt": "?", "trait": "openness", "tier": "translated"}
-    assert "essai" in Catalog(overlays=[overlay(tmp_path, item)]).instruments
+def test_every_tier_has_a_strength():
+    assert set(TIER_STRENGTH) == TIERS
+    # Même ordre que les poids : un niveau plus solide ne pèse jamais moins.
+    ranked = sorted(TIERS, key=TIER_STRENGTH.get)
+    assert [TIER_WEIGHTS[tier] for tier in ranked] == sorted(TIER_WEIGHTS[tier] for tier in ranked)
+
+
+@pytest.mark.parametrize(
+    ("instrument_tier", "signal_tier"),
+    [("validated", "translated"), ("translated", "adapted"), ("adapted", "custom"), ("custom", "custom")],
+)
+def test_a_signal_may_lower_the_tier_of_its_instrument(tmp_path, instrument_tier, signal_tier):
+    item = {"id": "q", "type": "likert", "prompt": "?", "trait": "openness", "tier": signal_tier}
+    assert "essai" in Catalog(overlays=[overlay(tmp_path, item, instrument_tier)]).instruments
+
+
+@pytest.mark.parametrize(
+    ("instrument_tier", "signal_tier"),
+    [("custom", "adapted"), ("custom", "translated"), ("adapted", "translated"), ("adapted", "validated")],
+)
+def test_a_signal_may_not_raise_the_tier_of_its_instrument(tmp_path, instrument_tier, signal_tier):
+    # Une question maison ne peut pas se présenter comme un test validé à la psychologue.
+    item = {"id": "q", "type": "choice", "prompt": "?", "options": [
+        {"id": "a", "label": "A", "signals": [{"trait": "openness", "value": 50, "tier": signal_tier}]},
+        {"id": "b", "label": "B"},
+    ]}
+    with pytest.raises(ContentError, match="plus solide que celui de l'instrument"):
+        Catalog(overlays=[overlay(tmp_path, item, instrument_tier)])
 
 
 # --- Quiz d'arrivée : l'indicateur maison garde son propre niveau ---
