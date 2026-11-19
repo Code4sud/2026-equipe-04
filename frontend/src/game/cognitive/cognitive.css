@@ -314,8 +314,14 @@ button.cog-lantern {
   cursor: pointer;
 }
 
-.cog-board[data-answering] .cog-lantern:hover {
-  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+@media (hover: hover) {
+  .cog-board[data-answering] .cog-lantern:hover {
+    background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  }
+
+  .cog-option:hover:not([aria-disabled='true']) {
+    border-color: var(--color-accent);
+  }
 }
 
 .cog-lantern[data-lit] {
@@ -678,10 +684,6 @@ button.cog-lantern {
 .cog-options--matrix .cog-option svg {
   width: 72%;
   height: 72%;
-}
-
-.cog-option:hover:not([aria-disabled='true']) {
-  border-color: var(--color-accent);
 }
 
 .cog-option[aria-pressed='true'] {
