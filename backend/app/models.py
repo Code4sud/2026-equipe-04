@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     Enum,
@@ -106,6 +107,9 @@ class YouthProfile(db.Model):
     # Le jeune choisit explicitement de montrer ses conversations à la psychologue.
     share_transcripts: Mapped[bool] = mapped_column(Boolean, default=False)
     share_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Réponses aux jeux et curseurs : None tant que la question n'a pas été posée au jeune.
+    share_game_results: Mapped[bool | None] = mapped_column(Boolean)
+    share_game_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User] = relationship(back_populates="youth_profile")
 
@@ -194,3 +198,97 @@ class Skill(db.Model):
             "created_at": iso(self.created_at),
             "reviewed_at": iso(self.reviewed_at),
         }
+
+
+class GameRunStatus(str, enum.Enum):
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+
+class GameRun(db.Model):
+    """Une partie d'un quiz, d'un questionnaire ou d'un jeu (voir app/game/)."""
+
+    __tablename__ = "game_runs"
+    __table_args__ = (
+        Index("ix_game_runs_youth_instrument", "youth_id", "instrument_id"),
+        Index(
+            "uq_game_runs_one_open_per_instrument",
+            "youth_id",
+            "instrument_id",
+            unique=True,
+            postgresql_where=text("status = 'in_progress'"),
+            sqlite_where=text("status = 'in_progress'"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    youth_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    instrument_id: Mapped[str] = mapped_column(String(60))
+    instrument_version: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[GameRunStatus] = mapped_column(
+        _enum(GameRunStatus), default=GameRunStatus.IN_PROGRESS
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Signaux calculés sur toute la partie (jeux chronométrés).
+    signals: Mapped[list] = mapped_column(JSON, default=list)
+    # Scores bruts par échelle et mesures du jeu, montrés à la psychologue.
+    metrics: Mapped[dict] = mapped_column(JSON, default=dict)
+
+    answers: Mapped[list["GameAnswer"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan", order_by="GameAnswer.position"
+    )
+
+
+class GameAnswer(db.Model):
+    """Réponse brute, avec le texte tel qu'il a été montré et ce qu'elle a apporté aux curseurs."""
+
+    __tablename__ = "game_answers"
+    __table_args__ = (UniqueConstraint("run_id", "item_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("game_runs.id", ondelete="CASCADE"), index=True
+    )
+    item_id: Mapped[str] = mapped_column(String(60))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    prompt: Mapped[str] = mapped_column(Text)
+    value: Mapped[object | None] = mapped_column(JSON)
+    label: Mapped[str | None] = mapped_column(Text)
+    skipped: Mapped[bool] = mapped_column(Boolean, default=False)
+    signals: Mapped[list] = mapped_column(JSON, default=list)
+    response_ms: Mapped[int | None] = mapped_column(Integer)
+    answered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    run: Mapped[GameRun] = relationship(back_populates="answers")
+
+
+class GameFact(db.Model):
+    """Détail simple donné par le jeune (couleur préférée, passion...), modifiable par lui."""
+
+    __tablename__ = "game_facts"
+
+    youth_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String(60), primary_key=True)
+    label: Mapped[str] = mapped_column(String(80))
+    value: Mapped[str] = mapped_column(String(160))
+    source_item_id: Mapped[str | None] = mapped_column(String(60))
+    edited: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TraitFeedback(db.Model):
+    """Le jeune dit s'il se reconnaît dans un curseur."""
+
+    __tablename__ = "game_trait_feedback"
+
+    youth_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    trait_id: Mapped[str] = mapped_column(String(60), primary_key=True)
+    verdict: Mapped[str] = mapped_column(String(10))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -9,6 +9,7 @@ from flask_cors import CORS
 from .config import check_config, load_config
 from .errors import error_response, register_error_handlers
 from .extensions import db, jwt, migrate
+from .game.catalog import Catalog
 from .services.chat import ChatService
 from .services.extraction import ExtractionService
 from .services.guardrails import Guardrails
@@ -69,6 +70,7 @@ def _register_services(app: Flask, overrides: dict) -> None:
         transcripts=transcripts,
         chat=ChatService(llm, transcripts, prompts, guardrails),
         extraction=ExtractionService(app, llm, transcripts, prompts, guardrails),
+        game_catalog=overrides.get("game_catalog") or Catalog(),
     )
 
 

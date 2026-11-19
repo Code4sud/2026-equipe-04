@@ -1,0 +1,15 @@
+{
+  "id": "fixture_span",
+  "version": 1,
+  "order": 20,
+  "kind": "performance",
+  "tier": "performance",
+  "title": "Série fictive",
+  "tagline": "Retiens la suite",
+  "icon": "brain",
+  "duration_min": 2,
+  "xp": 80,
+  "requires": ["onboarding"],
+  "source_ids": ["fixture_source"],
+  "performance": { "scorer": "span", "trait": "working_memory", "min_span": 2, "max_span": 6 }
+}

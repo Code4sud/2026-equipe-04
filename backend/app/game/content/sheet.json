@@ -1,0 +1,19 @@
+{
+  "attributes": [
+    { "id": "audace", "label": "Audace", "description": "Aller vers les autres et se lancer.", "icon": "flame", "traits": [{ "trait": "extraversion" }, { "trait": "riasec_e" }, { "trait": "emotional_stability", "weight": 0.5 }] },
+    { "id": "creativite", "label": "Créativité", "description": "Imaginer ce qui n'existe pas encore.", "icon": "feather", "traits": [{ "trait": "riasec_a" }, { "trait": "openness" }] },
+    { "id": "logique", "label": "Logique", "description": "Comprendre et résoudre.", "icon": "compass", "traits": [{ "trait": "riasec_i" }, { "trait": "reasoning" }, { "trait": "working_memory", "weight": 0.5 }] },
+    { "id": "adresse", "label": "Adresse", "description": "Faire avec précision.", "icon": "hammer", "traits": [{ "trait": "riasec_r" }, { "trait": "visuospatial_memory" }] },
+    { "id": "empathie", "label": "Empathie", "description": "Sentir ce dont les autres ont besoin.", "icon": "hands", "traits": [{ "trait": "riasec_s" }, { "trait": "agreeableness" }] },
+    { "id": "methode", "label": "Méthode", "description": "Tenir le cap jusqu'au bout.", "icon": "key", "traits": [{ "trait": "conscientiousness" }, { "trait": "riasec_c" }, { "trait": "attention_control", "weight": 0.5 }] }
+  ],
+  "level_titles": ["Renardeau", "Curieux·se", "Explorateur·rice", "Pisteur·se", "Aventurier·ère", "Éclaireur·se", "Vétéran·e", "Légende du terrier"],
+  "badges": [
+    { "id": "premiers_pas", "label": "Premiers pas", "description": "Quiz d'arrivée terminé", "icon": "paw", "rule": { "type": "completed", "instrument": "onboarding" } },
+    { "id": "joueur", "label": "Dans le jeu", "description": "Un mini-jeu terminé", "icon": "dice", "rule": { "type": "completed_count", "count": 2 } },
+    { "id": "collection", "label": "Grand tour", "description": "Cinq jeux terminés", "icon": "map", "rule": { "type": "completed_count", "count": 5 } },
+    { "id": "talent_1", "label": "Premier talent", "description": "Un talent gardé sur ta carte", "icon": "star", "rule": { "type": "talents", "count": 1 } },
+    { "id": "talent_5", "label": "Sac à talents", "description": "Cinq talents gardés", "icon": "stars", "rule": { "type": "talents", "count": 5 } },
+    { "id": "niveau_3", "label": "Bien lancé·e", "description": "Niveau 3 atteint", "icon": "flag", "rule": { "type": "level", "count": 3 } }
+  ]
+}

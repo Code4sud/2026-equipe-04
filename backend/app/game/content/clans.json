@@ -1,0 +1,10 @@
+{
+  "clans": [
+    { "id": "batisseurs", "trait": "riasec_r", "name": "Les Bâtisseurs", "motto": "Si ça existe, ça se répare.", "description": "Tu comprends le monde en le touchant. Outils, moteurs, chantiers : avec toi, les choses tiennent debout.", "icon": "hammer" },
+    { "id": "eclaireurs", "trait": "riasec_i", "name": "Les Éclaireurs", "motto": "Pourquoi ? Et après ?", "description": "Tu pars devant pour comprendre. Une énigme te tient éveillé·e bien plus longtemps qu'elle ne devrait.", "icon": "compass" },
+    { "id": "conteurs", "trait": "riasec_a", "name": "Les Conteurs", "motto": "Tout peut devenir une histoire.", "description": "Sons, images, mots : tu transformes le banal en quelque chose qu'on a envie de regarder.", "icon": "feather" },
+    { "id": "passeurs", "trait": "riasec_s", "name": "Les Passeurs", "motto": "Personne ne reste sur le bord.", "description": "Tu repères qui a besoin d'un coup de main, et tu sais expliquer sans faire la leçon.", "icon": "hands" },
+    { "id": "capitaines", "trait": "riasec_e", "name": "Les Capitaines", "motto": "On y va, je m'en occupe.", "description": "Tu lances les idées, tu embarques les autres et tu n'attends pas qu'on te donne le signal.", "icon": "flag" },
+    { "id": "gardiens", "trait": "riasec_c", "name": "Les Gardiens", "motto": "Chaque chose à sa place.", "description": "Rien ne t'échappe. Quand tout le monde s'y perd, c'est toi qui retrouves le fil et les comptes justes.", "icon": "key" }
+  ]
+}

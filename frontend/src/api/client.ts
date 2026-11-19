@@ -47,7 +47,7 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, error?.code ?? 'unknown', error?.message ?? '');
 }
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
