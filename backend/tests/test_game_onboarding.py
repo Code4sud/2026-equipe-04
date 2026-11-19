@@ -11,7 +11,8 @@ from conftest import register
 from app.game.catalog import Catalog
 
 CONTENT = Path(__file__).resolve().parents[1] / "app" / "game" / "content"
-QUIZ_SOURCES = {"goldberg_big_five_markers", "holland_riasec"}
+QUIZ_SOURCES = {"goldberg_big_five_markers", "ipip_neo", "holland_riasec"}
+IPIP_SOURCES = {"goldberg_big_five_markers", "ipip_neo"}
 BIG_FIVE = ["extraversion", "agreeableness", "conscientiousness", "emotional_stability", "openness"]
 INTERESTS = ["riasec_r", "riasec_i", "riasec_a", "riasec_s", "riasec_e", "riasec_c", "interest_digital"]
 REQUIRED_FACTS = {"couleur_preferee", "passion"}
@@ -96,13 +97,14 @@ def test_every_scored_item_is_a_sourced_situation(quiz, catalog):
         assert all(option.get("signals") for option in item["options"]), item["id"]
 
 
-# Facteur visé par un marqueur IPIP (début de `ref`) et types de Holland cités (`original`).
+# Facteur visé par un item IPIP (début de `ref`) et types de Holland cités (`original`).
 IPIP_FACTORS = {
     "Extraversion": "extraversion",
     "Agréabilité": "agreeableness",
     "Conscienciosité": "conscientiousness",
     "Stabilité émotionnelle": "emotional_stability",
     "Intellect ou imagination": "openness",
+    "Ouverture": "openness",
 }
 HOLLAND_TYPES = {
     "Realistic": "riasec_r", "Investigative": "riasec_i", "Artistic": "riasec_a",
@@ -118,7 +120,7 @@ def test_every_option_scores_what_its_source_cites(quiz):
         for option in item["options"]:
             where = f"{item['id']}/{option['id']}"
             traits = {signal["trait"] for signal in option["signals"]}
-            if source["source_id"] == "goldberg_big_five_markers":
+            if source["source_id"] in IPIP_SOURCES:
                 assert IPIP_FACTORS[source["ref"].split(",")[0]] in traits, where
                 continue
             cited = {HOLLAND_TYPES[name] for name in source["original"].split(" / ")}
@@ -132,6 +134,18 @@ def test_every_option_scores_what_its_source_cites(quiz):
 def test_holland_source_says_how_the_clan_is_chosen(catalog):
     # Le clan suit le curseur RIASEC le plus haut, talents validés compris (service.clan_for).
     assert "tous jeux et talents validés confondus" in catalog.sources["holland_riasec"]["note"]
+
+
+def test_the_art_exhibition_cites_an_ipip_item_about_art(quiz):
+    # Aucun des 50 marqueurs de Goldberg (1992) ne parle d'art : l'expo cite la facette O2 de l'IPIP-NEO.
+    expo = next(item for item in quiz["items"] if item["id"] == "weekend_expo")
+    assert "art" in expo["prompt"]
+    assert (expo["source"]["source_id"], expo["source"]["original"]) == (
+        "ipip_neo", "Do not enjoy going to art museums."
+    )
+    cited = [item["id"] for item in quiz["items"] if (item.get("source") or {}).get("source_id") == "ipip_neo"]
+    assert cited == ["weekend_expo"]
+
 
 
 @pytest.mark.parametrize(
@@ -169,7 +183,7 @@ def test_youth_facing_quiz_text_has_no_em_dash(catalog, quiz):
     assert not [text for text in texts if any(dash in text for dash in DASHES)]
 
 
-def test_quiz_sources_file_lists_the_two_verified_references():
+def test_quiz_sources_file_lists_the_verified_references():
     data = json.loads((CONTENT / "sources" / "quiz.json").read_text(encoding="utf-8"))
     sources = {source["id"]: source for source in data["sources"]}
     assert set(sources) == QUIZ_SOURCES
@@ -179,7 +193,9 @@ def test_quiz_sources_file_lists_the_two_verified_references():
         assert source["validated"] is False
         assert source["url"].startswith("https://")
     assert "10.1037/1040-3590.4.1.26" in sources["goldberg_big_five_markers"]["citation"]
-    assert "domaine public" in sources["goldberg_big_five_markers"]["licence"]
+    for source_id in IPIP_SOURCES:
+        assert "domaine public" in sources[source_id]["licence"], source_id
+    assert sources["ipip_neo"]["citation"].startswith("Goldberg, L. R. (1999)")
     assert "Making vocational choices" in sources["holland_riasec"]["citation"]
 
 
