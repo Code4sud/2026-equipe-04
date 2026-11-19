@@ -12,29 +12,30 @@ tb=nt.nodes.new('ShaderNodeTexImage'); tb.image=bpy.data.images.load(S+'/fox_bas
 tn=nt.nodes.new('ShaderNodeTexImage'); tn.image=bpy.data.images.load(S+'/fox_normal.png'); tn.image.colorspace_settings.name='Non-Color'
 nm=nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(tn.outputs[0],nm.inputs['Color']); nt.links.new(nm.outputs[0],b.inputs['Normal'])
 n=len(me.vertices); P=np.zeros(n*3); me.vertices.foreach_get('co',P); P=P.reshape(-1,3); X,Y,Z=P.T
-EYE={'L':(.1093,.529,.0565,.059),'R':(-.110,.529,.0565,.059)}
+EYE={'L':(.120,.447,.065,.073),'R':(-.120,.447,.065,.073)}
 # ---------- bones: name:(head,tail,parent). '.L' is mirrored to '.R'
 V=lambda *a:tuple(a)
-ear=(X>.16)&(Z>.69)&(Y>-.26); ey=float(np.median(Y[ear]))
-C={ 'root':(V(0,-.15,-.945),V(0,-.15,-.85),None),
- 'hips':(V(0,-.15,-.20),V(0,-.15,-.08),'root'),'spine':(V(0,-.15,-.08),V(0,-.15,.05),'hips'),
- 'chest':(V(0,-.15,.05),V(0,-.15,.24),'spine'),'neck':(V(0,-.15,.29),V(0,-.16,.36),'chest'),
- 'head':(V(0,-.16,.36),V(0,-.16,.72),'neck'),
- 'goggles':(V(0,-.37,.715),V(0,-.45,.715),'head'),'card':(V(-.80,-.20,.14),V(-.80,-.20,.24),'root')}
-Sd={'clavicle':(V(.06,-.16,.19),V(.215,-.165,.165),'chest'),
- 'upperarm':(V(.215,-.165,.165),V(.42,-.165,.148),'clavicle'),'forearm':(V(.42,-.165,.148),V(.615,-.167,.15),'upperarm'),
- 'hand':(V(.615,-.167,.15),V(.755,-.167,.145),'forearm'),
- 'thumb1':(V(.6455,-.2385,.135),V(.695,-.2745,.12),'hand'),'thumb2':(V(.695,-.2745,.12),V(.751,-.322,.103),'thumb1'),
- 'index1':(V(.7625,-.225,.142),V(.81,-.231,.137),'hand'),'index2':(V(.81,-.231,.137),V(.855,-.236,.13),'index1'),
- 'middle1':(V(.7625,-.1665,.145),V(.817,-.172,.138),'hand'),'middle2':(V(.817,-.172,.138),V(.8705,-.178,.132),'middle1'),
- 'pinky1':(V(.749,-.106,.145),V(.80,-.106,.138),'hand'),'pinky2':(V(.80,-.106,.138),V(.848,-.106,.132),'pinky1'),
- 'thigh':(V(.125,-.14,-.22),V(.135,-.14,-.52),'hips'),'shin':(V(.135,-.14,-.52),V(.15,-.14,-.76),'thigh'),
- 'foot':(V(.15,-.14,-.76),V(.19,-.30,-.89),'shin'),'toe':(V(.19,-.30,-.89),V(.19,-.46,-.90),'foot'),
- 'ear1':(V(.20,ey,.70),V(.262,ey,.82),'head'),'ear2':(V(.262,ey,.82),V(.315,ey,.945),'ear1'),
- 'eye':(V(EYE['L'][0],-.40,EYE['L'][1]),V(EYE['L'][0],-.46,EYE['L'][1]),'head')}
+ear=(X>.15)&(Z>.62)&(Y>-.2); ey=float(np.median(Y[ear]))
+C={ 'root':(V(0,-.11,-.95),V(0,-.11,-.855),None),
+ 'hips':(V(0,-.11,-.25),V(0,-.11,-.10),'root'),'spine':(V(0,-.11,-.10),V(0,-.11,.04),'hips'),
+ 'chest':(V(0,-.11,.04),V(0,-.11,.20),'spine'),'neck':(V(0,-.11,.22),V(0,-.12,.29),'chest'),
+ 'head':(V(0,-.12,.29),V(0,-.12,.70),'neck'),
+ 'goggles':(V(0,-.33,.674),V(0,-.41,.674),'head'),'card':(V(-.80,-.20,.14),V(-.80,-.20,.24),'root')}
+Sd={'clavicle':(V(.06,-.11,.12),V(.215,-.105,.095),'chest'),
+ 'upperarm':(V(.215,-.105,.095),V(.40,-.105,.085),'clavicle'),'forearm':(V(.40,-.105,.085),V(.575,-.105,.08),'upperarm'),
+ 'hand':(V(.575,-.105,.08),V(.70,-.10,.09),'forearm'),
+ 'thumb1':(V(.63,-.20,.06),V(.672,-.208,.056),'hand'),'thumb2':(V(.672,-.208,.056),V(.714,-.21,.052),'thumb1'),
+ 'index1':(V(.71,-.162,.095),V(.75,-.162,.093),'hand'),'index2':(V(.75,-.162,.093),V(.792,-.162,.09),'index1'),
+ 'middle1':(V(.706,-.10,.10),V(.761,-.10,.098),'hand'),'middle2':(V(.761,-.10,.098),V(.816,-.10,.094),'middle1'),
+ 'ring1':(V(.706,-.034,.098),V(.748,-.035,.096),'hand'),'ring2':(V(.748,-.035,.096),V(.79,-.036,.092),'ring1'),
+ 'pinky1':(V(.70,.0,.093),V(.715,.0,.092),'hand'),'pinky2':(V(.715,.0,.092),V(.73,-.002,.09),'pinky1'),
+ 'thigh':(V(.14,-.11,-.27),V(.145,-.11,-.47),'hips'),'shin':(V(.145,-.11,-.47),V(.15,-.10,-.70),'thigh'),
+ 'foot':(V(.15,-.10,-.70),V(.16,-.26,-.88),'shin'),'toe':(V(.16,-.26,-.88),V(.16,-.35,-.90),'foot'),
+ 'ear1':(V(.21,ey,.62),V(.255,ey,.79),'head'),'ear2':(V(.255,ey,.79),V(.30,ey,.94),'ear1'),
+ 'eye':(V(EYE['L'][0],-.36,EYE['L'][1]),V(EYE['L'][0],-.42,EYE['L'][1]),'head')}
 # tail: refine a guessed centre line on the actual tail vertices
-T=(Y>.035)&(Z<-.165); Tp=P[T]
-base=np.array([-.04,.0,-.24]); D=np.linalg.norm(Tp-base,axis=1); Dm=np.percentile(D,99.5); G=[base]
+T=(Y>.085)&(Z<-.27)&(X<.12); Tp=P[T]
+base=np.array([-.03,.06,-.30]); D=np.linalg.norm(Tp-base,axis=1); Dm=np.percentile(D,99.5); G=[base]
 for c in (.2,.4,.6,.8): G.append(Tp[np.abs(D-c*Dm)<.05*Dm].mean(0))
 G.append(Tp[D>.95*Dm].mean(0)); G=np.array(G)
 pts=list(G); print('tail',np.round(pts,3).tolist())
@@ -63,25 +64,25 @@ def segd(Q,a,b):
     a,b=np.array(a),np.array(b); d=b-a; t=np.clip(((Q-a)*d).sum(1)/(d@d),0,1); return np.linalg.norm(Q-(a+t[:,None]*d),axis=1)
 def soft(Q,bs,p,side=None,f=lambda x:x):
     D=np.stack([segd(Q,*[np.array(c) for c in B[b][:2]])+.004 for b in bs],1)**-p; D/=D.sum(1,keepdims=True); return {b:D[:,i] for i,b in enumerate(bs)}
-a=sm(-.14,-.04,Z); b_=sm(0,.10,Z)
+a=sm(-.19,-.09,Z); b_=sm(-.03,.07,Z)
 W[:,I['hips']]=1-a; W[:,I['spine']]=a*(1-b_); W[:,I['chest']]=a*b_
-over(sm(.26,.31,Z)*(1-sm(.11,.15,abs(X)))*(1-sm(-.05,-.01,Y)),{'neck':np.ones(n)})
-zt=.335+np.clip(Y+.1,0,.3)*.25-.032*(1-sm(-.34,-.30,Y)); over(sm(zt,zt+.035,Z),{'head':np.ones(n)})
+over(sm(.19,.24,Z)*(1-sm(.11,.15,abs(X)))*(1-sm(-.02,.02,Y)),{'neck':np.ones(n)})
+zt=.255+np.clip(Y+.1,0,.3)*.2-.02*(1-sm(-.30,-.26,Y)); over(sm(zt,zt+.035,Z),{'head':np.ones(n)})
 for s,sx in (('L',1),('R',-1)):
     x=X*sx; Q=P*[sx,1,1]; g=lambda k:k+'.'+s
     # leg
-    m=(1-sm(-.30,-.20,Z))*sm(.0,.03,x)*(Y<.05)
-    kn=sm(-.56,-.50,Z); an=1-sm(-.79,-.73,Z); to=an*(1-sm(-.34,-.26,Y))
+    m=(1-sm(-.33,-.23,Z))*sm(.0,.03,x)*(Y<.08)
+    kn=sm(-.50,-.44,Z); an=1-sm(-.73,-.67,Z); to=an*(1-sm(-.30,-.22,Y))
     over(m,{g('thigh'):kn,g('shin'):(1-kn)*(1-an),g('foot'):an-to,g('toe'):to})
     # arm
-    m=sm(.20,.29,x)*sm(.02,.07,Z)*(1-sm(.255,.30,Z))*(1-sm(-.03,.03,Y))
-    c=1-sm(.22,.30,x); e=sm(.39,.45,x); h=sm(.60,.625,x)
+    m=sm(.19,.27,x)*sm(-.06,-.01,Z)*(1-sm(.19,.235,Z))*(1-sm(.0,.04,Y))
+    c=1-sm(.21,.29,x); e=sm(.37,.43,x); h=sm(.555,.575,x)
     over(m,{g('clavicle'):c,g('upperarm'):(1-c)*(1-e),g('forearm'):(1-c)*e*(1-h),g('hand'):h})
     # hand and fingers
-    fs=[g(k) for k in ('hand','thumb1','thumb2','index1','index2','middle1','middle2','pinky1','pinky2')]
-    over(sm(.60,.625,x)*(np.abs(Z-.14)<.12),{fs[i]:v for i,v in enumerate(soft(Q,[k[:-2]+'.L' for k in fs],6).values())})
+    fs=[g(k) for k in ('hand','thumb1','thumb2','index1','index2','middle1','middle2','ring1','ring2','pinky1','pinky2')]
+    over(sm(.555,.575,x)*(np.abs(Z-.08)<.12),{fs[i]:v for i,v in enumerate(soft(Q,[k[:-2]+'.L' for k in fs],6).values())})
     # ear
-    m=(x>.16)&(Z>.69)&(Y>-.26); h0,t0=np.array(Sd['ear1'][0]),np.array(Sd['ear2'][1]); ax=t0-h0; t=((Q-h0)*ax).sum(1)/(ax@ax)
+    m=(x>.15)&(Z>.60)&(Y>-.2); h0,t0=np.array(Sd['ear1'][0]),np.array(Sd['ear2'][1]); ax=t0-h0; t=((Q-h0)*ax).sum(1)/(ax@ax)
     u=sm(.42,.58,t); over(m*sm(.0,.12,t),{g('ear1'):1-u,g('ear2'):u})
     # eye warp
     ex,ez,rx,rz=EYE[s]; r=np.sqrt(((X-ex)/rx)**2+((Z-ez)/rz)**2)
@@ -145,7 +146,7 @@ for s,(cx,cz,rx,rz) in EYE.items():
             cb.append(dict(b=(x,Sy(x,zb),zb),c=c2,joy=(x,Sy(x,z2),z2),eyes_smile=(x,Sy(x,zs),zs)))
         up.append(ca);lw.append(cb)
     grid(up);grid(lw)
-line=lambda x:.391+.031*min(abs(x)/.102,1.1)**2.4
+line=lambda x:.307+.012*min(abs(x)/.078,1.1)**2
 MC,MR=19,7; col_=[]
 def mouthcol(p,v):
     e=abs(p)>.86 or v>.93
@@ -159,15 +160,15 @@ for i in range(MC):
     for j in range(MR):
         v=j/(MR-1); x0=p*.018; b=(x0,Sy(x0,line(x0),.006),line(x0))
         d={'b':b,'c':mouthcol(p,v)}
-        for k,w,h in(('mouth_talk',.040,.024),('mouth_wide',.084,.040)):
+        for k,w,h in(('mouth_talk',.032,.020),('mouth_wide',.066,.034)):
             x=p*w; zt=line(x)-.001; z=zt-h*v*max(1-p*p,0)**.55; d[k]=(x,Sy(x,z,.006),z)
         c.append(d)
     rows.append(c)
 grid(rows)
 # lens glints: stars collapsed at rest, opened by the 'glint' morph, carried by the goggles
 WHITE=(1,1,.94)
-for lx in (.113,-.115):
-    o_=Vector((lx,-1,.728)); h_=tree.ray_cast(o_,Vector((0,1,0)),2); nn=h_[1].normalized(); nn=nn if nn.y<0 else -nn
+for lx in (.141,-.141):
+    o_=Vector((lx,-1,.674)); h_=tree.ray_cast(o_,Vector((0,1,0)),2); nn=h_[1].normalized(); nn=nn if nn.y<0 else -nn
     c0=h_[0]+nn*.009; ux=Vector((1,0,0)); uz=nn.cross(ux).normalized(); uz=uz if uz.z>0 else -uz
     col=[]
     for i in range(17):
@@ -212,11 +213,11 @@ import bmesh
 bm=bmesh.new(); bm.from_mesh(me); bm.faces.ensure_lookup_table(); uvl=bm.loops.layers.uv.active
 def isgog(f):
     c=f.calc_center_median()
-    if not(abs(c.x)<.207 and .63<c.z<.80 and c.y<-.19): return False
+    if not(abs(c.x)<.25 and .54<c.z<.80 and c.y<-.17): return False
     u=sum((l[uvl].uv for l in f.loops),Vector((0,0)))/3; px=_px[int(np.clip(u.y,0,.9999)*_h),int(np.clip(u.x,0,.9999)*_w)]
     return px[0]-px[2]<.30
 C_={f.index for f in bm.faces if isgog(f)}
-seed=[lo.ray_cast(Vector((x_,-1,.72)),Vector((0,1,0)))[3] for x_ in(.113,-.115)]
+seed=[lo.ray_cast(Vector((x_,-1,.674)),Vector((0,1,0)))[3] for x_ in(.141,-.141)]
 G_=set(); st=[i for i in seed if i in C_]
 while st:
     i=st.pop()
@@ -226,10 +227,10 @@ while st:
         for f in e.link_faces:
             if f.index in C_ and f.index not in G_: st.append(f.index)
 for _ in range(3):
-    add=[f.index for f in bm.faces if f.index not in G_ and abs(f.calc_center_median().x)<.215 and sum(1 for e in f.edges for g in e.link_faces if g is not f and g.index in G_)>=2]
+    add=[f.index for f in bm.faces if f.index not in G_ and abs(f.calc_center_median().x)<.255 and sum(1 for e in f.edges for g in e.link_faces if g is not f and g.index in G_)>=2]
     G_|=set(add)
 def inb(f):
-    c=f.calc_center_median(); return abs(c.x)<.23 and .62<c.z<.84 and c.y<-.13
+    c=f.calc_center_median(); return abs(c.x)<.27 and .52<c.z<.82 and c.y<-.10
 B_={f.index for f in bm.faces if inb(f)}-G_; seen=set()
 for i0 in list(B_):
     if i0 in seen: continue
@@ -259,10 +260,10 @@ inner=[v for v in bm.verts if v.link_faces and all(f.index in G_ for f in v.link
 for _ in range(40):
     new={v:sum((e.other_vert(v).co for e in v.link_edges),Vector())/len(v.link_edges) for v in inner}
     for v,c in new.items(): v.co=c
-ctr=Vector((0,-.08,.62))
+ctr=Vector((0,-.05,.55))
 for v in inner: v.co+=(ctr-v.co).normalized()*.03
 for i in G_|H_: bm.faces[i].material_index=1
 bm.to_mesh(me); bm.free()
-band=bpy.data.materials.new('Fox_Band'); band.use_nodes=True; pb_=band.node_tree.nodes['Principled BSDF']; pb_.inputs['Base Color'].default_value=(*lin((74,46,33)),1); pb_.inputs['Metallic'].default_value=0; pb_.inputs['Roughness'].default_value=.85; me.materials.append(band)
+band=bpy.data.materials.new('Fox_Band'); band.use_nodes=True; pb_=band.node_tree.nodes['Principled BSDF']; pb_.inputs['Base Color'].default_value=(*lin((214,92,26)),1); pb_.inputs['Metallic'].default_value=0; pb_.inputs['Roughness'].default_value=.85; me.materials.append(band)
 print('bones',len(names),'face verts',len(Vs),'body',n,'unweighted',int((W.sum(1)<.5).sum()))
 bpy.ops.wm.save_as_mainfile(filepath=S+'/rig.blend')
