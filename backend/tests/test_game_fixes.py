@@ -14,7 +14,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from sqlalchemy import event, update
+from conftest import register
+from sqlalchemy import event, select, update
 from test_game import answer, complete, cursor, finish_onboarding, start, youth_id
 
 from app.errors import ApiError
@@ -22,6 +23,7 @@ from app.extensions import db
 from app.game import events
 from app.game import service as game
 from app.game.catalog import Catalog
+from app.game.demo import seed_youth_game
 from app.game.performance import SCORERS, drop_percents
 from app.game.scoring import InvalidAnswer, UnsafeText, clean_text, scale_scores
 from app.models import (
@@ -30,6 +32,7 @@ from app.models import (
     GameFact,
     GameRun,
     GameRunStatus,
+    Role,
     TraitFeedback,
     User,
     iso,
@@ -458,6 +461,104 @@ def test_scale_scores_skip_values_that_are_not_on_the_scale():
     assert scale_scores(instrument, answers) == {
         "extraversion": {"n": 1, "raw_sum": 2, "raw_min": 1, "raw_max": 5, "percent": 25.0}
     }
+
+
+# --- 5. La démo ajoute ce qui manque, à chaque lancement ---
+
+
+def runs_by_instrument(youth_uuid: uuid.UUID) -> dict[str, list[uuid.UUID]]:
+    runs: dict[str, list[uuid.UUID]] = {}
+    for run in db.session.scalars(select(GameRun).where(GameRun.youth_id == youth_uuid).order_by(GameRun.started_at)):
+        runs.setdefault(run.instrument_id, []).append(run.id)
+    return runs
+
+
+PERSONA = {"skill": 0.8, "bias": {"extraversion": 30, "riasec_r": 80}, "facts": {"passion": "Skate"}}
+
+
+def test_seed_adds_new_games_only_and_is_idempotent(app, client, youth, catalog):
+    span = catalog.instruments.pop("fixture_span")
+    target = uuid.UUID(youth_id(client, youth))
+    with app.app_context():
+        user = db.session.get(User, target)
+        seed_youth_game(user, PERSONA)
+        first = runs_by_instrument(target)
+        assert set(first) == {"onboarding", "fixture_questionnaire"}
+
+        catalog.instruments["fixture_span"] = span  # Un jeu livré depuis le dernier lancement.
+        seed_youth_game(user, PERSONA)
+        second = runs_by_instrument(target)
+        assert set(second) == {"onboarding", "fixture_questionnaire", "fixture_span"}
+        assert {key: second[key] for key in first} == first
+
+        seed_youth_game(user, PERSONA)
+        assert runs_by_instrument(target) == second
+
+
+def test_seed_plays_requirements_first_whatever_the_catalog_order(app, client, youth, catalog):
+    catalog.instruments["fixture_questionnaire"]["order"] = -10  # Avant le quiz qu'il exige.
+    target = uuid.UUID(youth_id(client, youth))
+    with app.app_context():
+        seed_youth_game(db.session.get(User, target), PERSONA)
+        runs = db.session.scalars(select(GameRun).where(GameRun.youth_id == target)).all()
+    assert {run.instrument_id for run in runs} == {"onboarding", "fixture_questionnaire", "fixture_span"}
+    assert all(run.status == GameRunStatus.COMPLETED for run in runs)
+
+
+def test_seed_completes_a_half_seeded_youth_and_leaves_open_runs_alone(app, client, youth):
+    finish_onboarding(client, youth)
+    started = register(client, "Noa")
+    start(client, started)  # Quiz commencé mais pas fini : rien ne se débloque.
+    with app.app_context():
+        done = uuid.UUID(youth_id(client, youth))
+        seed_youth_game(db.session.get(User, done), PERSONA)
+        assert {k: len(v) for k, v in runs_by_instrument(done).items()} == {
+            "onboarding": 1, "fixture_questionnaire": 1, "fixture_span": 1
+        }
+        waiting = uuid.UUID(youth_id(client, started))
+        seed_youth_game(db.session.get(User, waiting), PERSONA)
+        runs = db.session.scalars(select(GameRun).where(GameRun.youth_id == waiting)).all()
+        assert [(run.instrument_id, run.status) for run in runs] == [("onboarding", GameRunStatus.IN_PROGRESS)]
+
+
+def test_seed_answers_do_not_depend_on_what_was_seeded_before(app, client, youth):
+    target = uuid.UUID(youth_id(client, youth))
+
+    def questionnaire_answers():
+        run = db.session.scalar(
+            select(GameRun).where(GameRun.youth_id == target, GameRun.instrument_id == "fixture_questionnaire")
+        )
+        return [(a.item_id, a.value) for a in run.answers]
+
+    with app.app_context():
+        user = db.session.get(User, target)
+        seed_youth_game(user, PERSONA)
+        before = questionnaire_answers()
+        db.session.delete(
+            db.session.scalar(
+                select(GameRun).where(GameRun.youth_id == target, GameRun.instrument_id == "fixture_questionnaire")
+            )
+        )
+        db.session.commit()
+        seed_youth_game(user, PERSONA)
+        assert questionnaire_answers() == before
+
+
+def test_seed_demo_command_brings_new_games_to_every_demo_youth(app, catalog):
+    app.config.update(SEED_PSY_PASSWORD="motdepasse", SEED_YOUTH_PASSWORD="motdepasse")
+    span = catalog.instruments.pop("fixture_span")
+    runner = app.test_cli_runner()
+    assert runner.invoke(args=["seed-demo"]).exit_code == 0
+    catalog.instruments["fixture_span"] = span
+    result = runner.invoke(args=["seed-demo"])
+    assert result.exit_code == 0, result.output
+    assert runner.invoke(args=["seed-demo"]).exit_code == 0
+    with app.app_context():
+        youths = db.session.scalars(select(User).where(User.role == Role.YOUTH)).all()
+        assert len(youths) == 2
+        for user in youths:
+            counts = {k: len(v) for k, v in runs_by_instrument(user.id).items()}
+            assert counts == {"onboarding": 1, "fixture_questionnaire": 1, "fixture_span": 1}, user.email
 
 
 # --- 6. Le jeune ne reçoit que ses réussites ---

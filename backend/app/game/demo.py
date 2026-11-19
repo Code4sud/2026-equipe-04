@@ -4,9 +4,10 @@ from __future__ import annotations
 import random
 import uuid
 
-from ..errors import ApiError
+from sqlalchemy import select
+
 from ..extensions import db
-from ..models import User
+from ..models import GameRun, GameRunStatus, User
 from .catalog import likert_parts
 from .performance import SCORERS
 from .scoring import item_scale
@@ -52,34 +53,49 @@ def _answer(instrument: dict, item: dict, persona: dict, rng: random.Random):
     return {"text": facts.get(item["fact"], "Découvrir de nouveaux trucs")}
 
 
+def _play(user: User, instrument: dict, persona: dict) -> None:
+    # Un tirage propre à chaque jeu : le résultat ne dépend pas des jeux déjà joués avant.
+    rng = random.Random(f"{user.email}:game:{instrument['id']}")
+    payload, _ = game.start_run(user, instrument["id"])
+    run_uuid = uuid.UUID(payload["run"]["id"])
+    body = {}
+    if instrument["kind"] == "performance":
+        scorer = SCORERS[instrument["performance"]["scorer"]]
+        body = {"trials": scorer.demo(instrument, rng, persona.get("skill", 0.85))}
+    else:
+        for item in instrument["items"]:
+            value = _answer(instrument, item, persona, rng)
+            game.save_answer(
+                user,
+                run_uuid,
+                item["id"],
+                {"value": value, "response_ms": rng.randint(1800, 9000)},
+            )
+    game.complete_run(user, run_uuid, body)
+
+
 def seed_youth_game(user: User, persona: dict) -> None:
-    """Joue tous les jeux disponibles pour un jeune fictif, de façon reproductible."""
-    rng = random.Random(f"{user.email}:game")
-    completed: set[str] = set()
-    for instrument in game.catalog().ordered_instruments():
-        # Un jeu dont le prérequis manque au contenu (quiz pas encore livré) reste verrouillé.
-        if any(required not in completed for required in instrument.get("requires", [])):
-            continue
-        try:
-            payload, _ = game.start_run(user, instrument["id"])
-        except ApiError as error:
-            if error.code == "locked":
+    """Joue, pour un jeune fictif, chaque jeu qu'il n'a pas encore commencé, prérequis d'abord.
+
+    Relancer la commande ne rejoue rien : elle ajoute seulement les jeux livrés depuis, ou ceux
+    qu'un lancement interrompu n'a pas atteints. Les réponses sont reproductibles.
+    """
+    rows = db.session.execute(
+        select(GameRun.instrument_id, GameRun.status).where(GameRun.youth_id == user.id)
+    ).all()
+    started = {instrument_id for instrument_id, _ in rows}
+    completed = {instrument_id for instrument_id, status in rows if status == GameRunStatus.COMPLETED}
+    pending = [i for i in game.catalog().ordered_instruments() if i["id"] not in started]
+    # Un jeu peut venir avant son prérequis dans l'ordre du catalogue : on repasse tant qu'un jeu
+    # se débloque. Un jeu dont le prérequis manque au contenu (quiz pas encore livré) reste de côté.
+    progressed = True
+    while pending and progressed:
+        progressed = False
+        for instrument in list(pending):
+            if any(required not in completed for required in instrument.get("requires", [])):
                 continue
-            raise
-        run_uuid = uuid.UUID(payload["run"]["id"])
-        body = {}
-        if instrument["kind"] == "performance":
-            scorer = SCORERS[instrument["performance"]["scorer"]]
-            body = {"trials": scorer.demo(instrument, rng, persona.get("skill", 0.85))}
-        else:
-            for item in instrument["items"]:
-                value = _answer(instrument, item, persona, rng)
-                game.save_answer(
-                    user,
-                    run_uuid,
-                    item["id"],
-                    {"value": value, "response_ms": rng.randint(1800, 9000)},
-                )
-        game.complete_run(user, run_uuid, body)
-        completed.add(instrument["id"])
+            _play(user, instrument, persona)
+            completed.add(instrument["id"])
+            pending.remove(instrument)
+            progressed = True
     db.session.commit()
