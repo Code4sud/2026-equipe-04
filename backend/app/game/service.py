@@ -41,7 +41,8 @@ MAX_RESPONSE_MS = 600_000
 BALANCED_MARGIN = 8
 TIER_LABELS = {
     "validated": "Test validé",
-    "adapted": "Inspiré d'un test validé",
+    "translated": "Test validé, traduction maison non validée",
+    "adapted": "Inspiré de travaux publiés, non validé",
     "custom": "Indicateur maison",
     "performance": "Tâche cognitive publiée",
     "talent": "Talent validé par le jeune",

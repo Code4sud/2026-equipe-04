@@ -7,7 +7,7 @@ from pathlib import Path
 DEFAULT_CONTENT_DIR = Path(__file__).resolve().parent / "content"
 
 KINDS = {"quiz", "questionnaire", "performance"}
-TIERS = {"validated", "adapted", "custom", "performance"}
+TIERS = {"validated", "translated", "adapted", "custom", "performance"}
 ITEM_TYPES = {"likert", "choice", "text"}
 PUBLIC_ITEM_FIELDS = (
     "id", "type", "chapter", "prompt", "hint", "illustration",
@@ -94,6 +94,12 @@ class Catalog:
             self._check_trait(signal["trait"], where)
             if not 0 <= signal["value"] <= 100:
                 raise ContentError(f"{where} : valeur hors de 0-100")
+            self._check_signal_tier(signal, where)
+
+    def _check_signal_tier(self, signal: dict, where: str) -> None:
+        """Un signal peut porter son propre niveau de preuve, qui remplace celui de l'instrument."""
+        if "tier" in signal and signal["tier"] not in TIERS:
+            raise ContentError(f"{where} : niveau de preuve inconnu « {signal['tier']} »")
 
     def _check_source(self, source_id: str, where: str) -> None:
         if source_id not in self.sources:
@@ -148,6 +154,7 @@ class Catalog:
                     self._check_trait(part["trait"], where)
                     if part.get("keyed", "+") not in {"+", "-"}:
                         raise ContentError(f"{where} : keyed invalide")
+                    self._check_signal_tier(part, where)
             elif item["type"] == "choice":
                 options = item.get("options", [])
                 if len(options) < 2 or len({o["id"] for o in options}) != len(options):
@@ -185,5 +192,8 @@ def likert_parts(item: dict) -> list[dict]:
     if "traits" in item:
         return item["traits"]
     if "trait" in item:
-        return [{"trait": item["trait"], "keyed": item.get("keyed", "+"), "weight": item.get("weight", 1)}]
+        part = {"trait": item["trait"], "keyed": item.get("keyed", "+"), "weight": item.get("weight", 1)}
+        if "tier" in item:
+            part["tier"] = item["tier"]
+        return [part]
     return []

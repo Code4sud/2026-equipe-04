@@ -10,7 +10,9 @@ from dataclasses import dataclass
 
 from .catalog import Catalog, likert_parts
 
-TIER_WEIGHTS = {"validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25}
+TIER_WEIGHTS = {
+    "validated": 1.0, "performance": 1.0, "translated": 0.75, "adapted": 0.5, "custom": 0.5, "talent": 0.25
+}
 MAX_TEXT_FACT = 120
 
 
@@ -45,7 +47,7 @@ def _score_likert(instrument: dict, item: dict, value) -> ScoredAnswer:
             part["trait"],
             position if part.get("keyed", "+") == "+" else 100 - position,
             part.get("weight", 1),
-            instrument["tier"],
+            part.get("tier", instrument["tier"]),
         )
         for part in likert_parts(item)
     ]
@@ -70,7 +72,7 @@ def _score_choice(instrument: dict, item: dict, value) -> ScoredAnswer:
     ):
         raise InvalidAnswer("Choix inconnu.")
     signals = [
-        signal(s["trait"], s["value"], s.get("weight", 1), instrument["tier"])
+        signal(s["trait"], s["value"], s.get("weight", 1), s.get("tier", instrument["tier"]))
         for option_id in chosen
         for s in options[option_id].get("signals", [])
     ]

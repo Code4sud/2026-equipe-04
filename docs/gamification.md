@@ -33,7 +33,7 @@
 {
   "id": "mon_jeu", "version": 1, "order": 10,
   "kind": "quiz | questionnaire | performance",
-  "tier": "validated | adapted | custom | performance",
+  "tier": "validated | translated | adapted | custom | performance",
   "title": "…", "tagline": "…", "icon": "…", "duration_min": 5, "xp": 80,
   "requires": ["onboarding"], "replayable": true, "min_answers": 12,
   "source_ids": ["ipip_mini"], "source_note": "Montré au jeune",
@@ -61,21 +61,24 @@ Types de questions :
 
 `relation` vaut `verbatim`, `translated`, `adapted` ou `inspired`. Une source contient `id`, `title`, `citation`, `url`, `licence`, `validated`, `adaptation` et éventuellement `note`.
 
+Un signal (option d'un choix, ou partie d'une question Likert) peut porter son propre `tier`, qui remplace celui de l'instrument : `{ "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }` marque un indicateur maison glissé dans une question sourcée.
+
 ### Niveaux de preuve et poids dans les curseurs
 
-| `tier` | Sens | Poids |
-|---|---|---|
-| `validated` | Items d'un test publié et validé, sans changement de sens | 1 |
-| `performance` | Tâche cognitive publiée, score propre à ce jeu | 1 |
-| `adapted` | Question du quotidien inspirée d'un test | 0,5 |
-| `custom` | Indicateur créé pour le projet | 0,5 |
-| `talent` | Talent validé par le jeune dans la discussion | 0,25 |
+| `tier` | Libellé vu par la psychologue | Sens | Poids |
+|---|---|---|---|
+| `validated` | Test validé | Items d'un test publié et validé, sans changement de sens | 1 |
+| `performance` | Tâche cognitive publiée | Tâche cognitive publiée, score propre à ce jeu | 1 |
+| `translated` | Test validé, traduction maison non validée | Items d'un test validé, traduits par l'équipe sans étude de la traduction | 0,75 |
+| `adapted` | Inspiré de travaux publiés, non validé | Questions écrites par l'équipe à partir d'une théorie ou d'un test publiés | 0,5 |
+| `custom` | Indicateur maison | Indicateur créé pour le projet | 0,5 |
+| `talent` | Talent validé par le jeune | Talent validé par le jeune dans la discussion | 0,25 |
 
-Une traduction maison d'un test validé reste une traduction non validée : `adaptation` doit le dire.
+Une traduction maison d'un test validé prend le niveau `translated`, et `adaptation` dit qu'elle n'est pas validée. Citer une théorie (Holland, par exemple) justifie « inspiré de », jamais « test validé ».
 
 ## Calcul
 
-Chaque réponse produit des signaux de 0 à 100. Un curseur est leur moyenne pondérée par `poids du signal × poids du niveau`. Les réponses du quiz comptent dès qu'elles sont données ; celles des autres instruments comptent quand la partie est terminée. Les jeux chronométrés envoient leurs essais à la fin, et le serveur recalcule leur score (`backend/app/game/performance.py`).
+Chaque réponse produit des signaux de 0 à 100. Un curseur est leur moyenne pondérée par `poids du signal × poids du niveau` (le niveau du signal s'il en porte un, sinon celui de l'instrument). Les réponses du quiz comptent dès qu'elles sont données ; celles des autres instruments comptent quand la partie est terminée. Les jeux chronométrés envoient leurs essais à la fin, et le serveur recalcule leur score (`backend/app/game/performance.py`).
 
 ## API
 
