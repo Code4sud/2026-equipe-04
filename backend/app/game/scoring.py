@@ -12,6 +12,9 @@ from dataclasses import dataclass
 from .catalog import Catalog, likert_parts
 
 TIER_WEIGHTS = {"validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25}
+# Poids total minimal pour chaque niveau de confiance : en dessous de « medium », c'est « low »
+# (« none » sans aucune donnée).
+CONFIDENCE_THRESHOLDS = {"medium": 2.0, "high": 5.0}
 MAX_TEXT_FACT = 120
 # Caractères de contrôle (sauf les espaces, remplacés avant) et moitiés de paire UTF-16 isolées :
 # Postgres les refuse, et ils n'ont rien à faire dans une réponse.
@@ -155,9 +158,9 @@ def _weighted(rows: list[dict]) -> tuple[float | None, float]:
 def confidence(total_weight: float) -> str:
     if total_weight <= 0:
         return "none"
-    if total_weight < 2:
+    if total_weight < CONFIDENCE_THRESHOLDS["medium"]:
         return "low"
-    return "medium" if total_weight < 5 else "high"
+    return "medium" if total_weight < CONFIDENCE_THRESHOLDS["high"] else "high"
 
 
 def aggregate(catalog: Catalog, signals: list[dict]) -> dict[str, dict]:

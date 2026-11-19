@@ -34,11 +34,14 @@ from .catalog import Catalog
 from .discovery import reveal_with
 from .performance import SCORERS, finite_ms, youth_metrics
 from .scoring import (
+    CONFIDENCE_THRESHOLDS,
     MAX_TEXT_FACT,
+    TIER_WEIGHTS,
     InvalidAnswer,
     UnsafeText,
     aggregate,
     clean_text,
+    item_scale,
     scale_scores,
     score_answer,
     signal,
@@ -342,7 +345,15 @@ def _clean_response_ms(value) -> int | None:
     return finite_ms(value)
 
 
-def _save_fact(user: User, item: dict, fact: tuple[str, str, str]) -> None:
+def _scale_snapshot(instrument: dict, item: dict) -> dict | None:
+    """Échelle d'une question Likert telle que proposée au jeune."""
+    if item["type"] != "likert":
+        return None
+    scale = item_scale(instrument, item)
+    return {"min": scale["min"], "max": scale["max"], "labels": list(scale.get("labels") or [])}
+
+
+def _save_fact(user: User, instrument: dict, item: dict, fact: tuple[str, str, str]) -> None:
     key, label, value = fact
     row = db.session.get(GameFact, (user.id, key))
     if row is None:
@@ -353,12 +364,14 @@ def _save_fact(user: User, item: dict, fact: tuple[str, str, str]) -> None:
                 label=label,
                 value=value,
                 original_value=value,
+                source_instrument_id=instrument["id"],
                 source_item_id=item["id"],
             )
         )
         return
     # Une nouvelle réponse au jeu met à jour l'origine, sans écraser la correction du jeune.
-    row.label, row.original_value, row.source_item_id = label, value, item["id"]
+    row.label, row.original_value = label, value
+    row.source_instrument_id, row.source_item_id = instrument["id"], item["id"]
     if not row.edited:
         row.value = value
     row.updated_at = utcnow()
@@ -404,7 +417,7 @@ def save_answer(user: User, run_id: uuid.UUID, item_id: str, body: dict) -> dict
     answer.response_ms = _clean_response_ms(body.get("response_ms"))
     answer.answered_at = utcnow()
     if fact:
-        _save_fact(user, item, fact)
+        _save_fact(user, instrument, item, fact)
     try:
         db.session.commit()
     except IntegrityError as error:  # Double envoi : la première réponse est déjà enregistrée.
@@ -621,8 +634,8 @@ def _attributes(cursors: dict[str, dict], completed: set[str]) -> list[dict]:
     return attributes
 
 
-def fact_dict(fact: GameFact) -> dict:
-    return {
+def fact_dict(fact: GameFact, psy: bool = False) -> dict:
+    row = {
         "key": fact.key,
         "label": fact.label,
         "value": fact.value,
@@ -630,7 +643,12 @@ def fact_dict(fact: GameFact) -> dict:
         "edited": fact.edited,
         "hidden": fact.hidden,
         "updated_at": iso(fact.updated_at),
+        "edited_at": iso(fact.edited_at),
     }
+    if psy:
+        row["source_instrument_id"] = fact.source_instrument_id
+        row["source_item_id"] = fact.source_item_id
+    return row
 
 
 def _is_shown_to_youth(view: dict, group: dict) -> bool:
@@ -707,7 +725,7 @@ def update_fact(user: User, key: str, body: dict) -> dict:
             {"label": fact.label, "value": fact.value},
             {"label": fact.label, "value": value},
         )
-        fact.value, fact.edited = value, True
+        fact.value, fact.edited, fact.edited_at = value, True, now
         changed = True
     if isinstance(hidden, bool) and hidden != fact.hidden:
         events.log(
@@ -867,7 +885,7 @@ def psy_overview(user: User) -> dict:
             }
             for group in cat.trait_groups
         ],
-        "facts": [fact_dict(f) for f in data.facts],
+        "facts": [fact_dict(f, psy=True) for f in data.facts],
         "runs": runs,
         "events": psy_events(data, user.id),
     }
@@ -888,18 +906,29 @@ def _item_source(instrument: dict | None, item: dict | None) -> dict | None:
     return {**reference, "source": source_dict(reference["source_id"])}
 
 
+def _hidden_items(facts) -> set[tuple[str | None, str | None]]:
+    """Questions dont le jeune a masqué le détail : un identifiant de question n'est unique que
+    dans son instrument."""
+    return {(f.source_instrument_id, f.source_item_id) for f in facts if f.hidden}
+
+
+def _offered_options(item: dict | None) -> list[dict] | None:
+    if not item or item["type"] != "choice":
+        return None
+    return [{"id": option["id"], "label": option["label"]} for option in item["options"]]
+
+
 def psy_run_detail(user: User, run_id: uuid.UUID) -> dict:
     run = db.session.get(GameRun, run_id)
     if run is None or run.youth_id != user.id:
         raise ApiError(404, "not_found", "Partie introuvable.")
     cat = catalog()
     instrument = cat.instruments.get(run.instrument_id)
-    hidden_items = {
-        f.source_item_id
-        for f in db.session.scalars(
+    hidden = _hidden_items(
+        db.session.scalars(
             select(GameFact).where(GameFact.youth_id == user.id, GameFact.hidden.is_(True))
         )
-    }
+    )
     answers = {answer.item_id: answer for answer in run.answers}
     items = instrument.get("items", []) if instrument else []
     ordered = [item["id"] for item in items] + [i for i in answers if i not in {x["id"] for x in items}]
@@ -917,8 +946,11 @@ def psy_run_detail(user: User, run_id: uuid.UUID) -> dict:
                 "status": "unanswered" if answer is None else "skipped" if answer.skipped else "answered",
                 "answer_label": answer.label if answer else None,
                 "value": answer.value if answer else None,
+                # Ce qui était proposé au jeune : choix possibles, ou échelle et ses libellés.
+                "options": _offered_options(item),
+                "scale": _scale_snapshot(instrument, item) if instrument and item else None,
                 # Le jeune a masqué ce détail de sa fiche : la psychologue le voit quand même.
-                "hidden_by_youth": item_id in hidden_items,
+                "hidden_by_youth": (run.instrument_id, item_id) in hidden,
                 "response_ms": answer.response_ms if answer else None,
                 "answered_at": iso(answer.answered_at) if answer else None,
                 "signals": []
@@ -940,7 +972,7 @@ def psy_trait_detail(user: User, trait_id: str) -> dict:
     if trait_id not in cat.traits:
         raise ApiError(404, "not_found", "Curseur introuvable.")
     data = load_youth(user.id)
-    hidden_items = {f.source_item_id for f in data.facts if f.hidden}
+    hidden = _hidden_items(data.facts)
     signals = collect_signals(data)
     cursors = aggregate(cat, signals)
     rows = []
@@ -953,7 +985,8 @@ def psy_trait_detail(user: User, trait_id: str) -> dict:
                 **row,
                 "tier_label": TIER_LABELS.get(row["tier"], row["tier"]),
                 "instrument_title": instrument["title"] if instrument else None,
-                "hidden_by_youth": row["item_id"] is not None and row["item_id"] in hidden_items,
+                "hidden_by_youth": row["item_id"] is not None
+                and (row["instrument_id"], row["item_id"]) in hidden,
             }
         )
     return {"cursor": psy_cursor(trait_id, cursors[trait_id], data.feedback), "signals": rows}
@@ -964,4 +997,8 @@ def psy_catalog() -> dict:
     return {
         "instruments": [instrument_info(i) for i in cat.ordered_instruments()],
         "sources": list(cat.sources.values()),
+        # Poids de chaque niveau de preuve dans les curseurs, et poids total minimal de chaque
+        # niveau de confiance (en dessous de « medium » : « low », sans donnée : « none »).
+        "weights": dict(TIER_WEIGHTS),
+        "confidence_thresholds": dict(CONFIDENCE_THRESHOLDS),
     }

@@ -2,6 +2,7 @@
 au jeune, entrées invalides, verrous, champs du backoffice et historique des modifications."""
 from __future__ import annotations
 
+import copy
 import io
 import json
 import random
@@ -24,6 +25,35 @@ from app.models import GameEvent, iso, utcnow
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
 FRONT_RESULTS = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive" / "results.ts"
 COGNITIVE = ("corsi", "digit_span", "stroop", "logic")
+
+# Un autre jeu qui pose la même question de détail, avec le même identifiant de question.
+ECHO = {
+    "id": "fixture_echo",
+    "version": 1,
+    "order": 30,
+    "kind": "questionnaire",
+    "tier": "custom",
+    "title": "Écho fictif",
+    "tagline": "Pour tester",
+    "icon": "mirror",
+    "duration_min": 1,
+    "xp": 20,
+    "min_answers": 1,
+    "items": [
+        {
+            "id": "couleur", "type": "choice", "prompt": "Et ta couleur aujourd'hui ?",
+            "fact": "couleur_preferee", "fact_label": "Couleur préférée",
+            "options": [
+                {"id": "vert", "label": "Vert", "signals": [{"trait": "openness", "value": 70}]},
+                {"id": "bleu", "label": "Bleu", "signals": [{"trait": "openness", "value": 60}]},
+            ],
+        },
+        {
+            "id": "calme", "type": "likert", "prompt": "Je garde mon calme.",
+            "trait": "emotional_stability", "keyed": "+", "scale": {"min": 1, "max": 5},
+        },
+    ],
+}
 
 
 @pytest.fixture(autouse=True)
@@ -277,6 +307,71 @@ def test_game_requests_are_capped_at_256_kb(app, client, youth):
     assert small.status_code == 200, small.get_json()
     assert answer(client, youth, run_id, "groupe", "a").status_code == 200
     assert app.config.get("MAX_CONTENT_LENGTH") is None
+
+
+# --- 9. Champs demandés par le backoffice ---
+
+
+def test_facts_say_where_they_come_from_and_when_the_youth_edited_them(client, youth, psychologist):
+    finish_onboarding(client, youth)
+    facts = {f["key"]: f for f in overview(client, psychologist, youth)["facts"]}
+    color = facts["couleur_preferee"]
+    assert (color["source_instrument_id"], color["source_item_id"], color["edited_at"]) == (
+        "onboarding", "couleur", None
+    )
+    client.patch("/api/me/game/facts/couleur_preferee", json={"hidden": True}, headers=youth)
+    client.patch("/api/me/game/facts/passion", json={"value": "Le skate"}, headers=youth)
+    facts = {f["key"]: f for f in overview(client, psychologist, youth)["facts"]}
+    assert facts["couleur_preferee"]["edited_at"] is None  # Masquer n'est pas corriger.
+    assert facts["passion"]["edited_at"] and facts["passion"]["edited"] is True
+    mine = facts_of(client, youth)["passion"]
+    assert mine["edited_at"] == facts["passion"]["edited_at"]
+    assert "source_instrument_id" not in mine and "source_item_id" not in mine
+
+
+def test_hidden_flag_matches_the_instrument_and_the_item(client, youth, psychologist, catalog):
+    catalog.instruments["fixture_echo"] = copy.deepcopy(ECHO)
+    onboarding = start(client, youth)["run"]["id"]
+    echo = start(client, youth, "fixture_echo")["run"]["id"]
+    answer(client, youth, echo, "couleur", "vert")
+    answer(client, youth, echo, "calme", 4)
+    assert complete(client, youth, echo).status_code == 200
+    # Le quiz répond ensuite à sa propre question « couleur » : le détail vient de lui.
+    for item_id, value in [("couleur", "jaune"), ("groupe", "c"), ("scooter", "a"), ("agenda", 5)]:
+        answer(client, youth, onboarding, item_id, value)
+    assert complete(client, youth, onboarding).status_code == 200
+    client.patch("/api/me/game/facts/couleur_preferee", json={"hidden": True}, headers=youth)
+
+    assert run_rows(client, psychologist, youth, onboarding)["couleur"]["hidden_by_youth"] is True
+    assert run_rows(client, psychologist, youth, echo)["couleur"]["hidden_by_youth"] is False
+    trail = client.get(f"{psy_base(client, youth)}/traits/openness", headers=psychologist).get_json()
+    assert [(row["instrument_id"], row["hidden_by_youth"]) for row in trail["signals"]] == [
+        ("fixture_echo", False)
+    ]
+
+
+def test_run_detail_shows_what_was_offered(client, youth, psychologist):
+    run_id, _ = finish_onboarding(client, youth)
+    rows = run_rows(client, psychologist, youth, run_id)
+    assert rows["couleur"]["options"] == [{"id": "jaune", "label": "Jaune"}, {"id": "bleu", "label": "Bleu"}]
+    assert rows["couleur"]["scale"] is None
+    assert rows["agenda"]["scale"] == {
+        "min": 1, "max": 5, "labels": ["Jamais", "Rarement", "Parfois", "Souvent", "Toujours"]
+    }
+    assert rows["agenda"]["options"] is None
+    assert rows["passion"]["options"] is None and rows["passion"]["scale"] is None
+    questionnaire = start(client, youth, "fixture_questionnaire")["run"]["id"]
+    scale = run_rows(client, psychologist, youth, questionnaire)["e1"]["scale"]
+    assert scale["min"] == 1 and scale["max"] == 5 and scale["labels"][0] == "Pas du tout"
+
+
+def test_psy_catalog_gives_weights_and_confidence_thresholds(client, psychologist):
+    data = client.get("/api/backoffice/game/catalog", headers=psychologist).get_json()
+    assert data["weights"] == {
+        "validated": 1.0, "performance": 1.0, "adapted": 0.5, "custom": 0.5, "talent": 0.25
+    }
+    assert data["confidence_thresholds"] == {"medium": 2.0, "high": 5.0}
+    assert all("chapters" in instrument for instrument in data["instruments"])
 
 
 # --- 10. Historique des modifications, pour la psychologue seulement ---
