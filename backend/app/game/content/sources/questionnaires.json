@@ -13,18 +13,6 @@
       "note": "Items tirés des 50 marqueurs Big Five de l’IPIP (Goldberg, L. R., 1992, The development of markers for the Big-Five factor structure, Psychological Assessment, 4, 26–42). Numéros des items dans l’ordre de passation de Donnellan et al. (2006). L’IPIP recense une traduction française des 50 marqueurs (Gibson & Boucher), dont la page n’était pas accessible le 19/11/2026 : elle n’est pas utilisée."
     },
     {
-      "id": "iip_riasec_markers",
-      "title": "Marqueurs RIASEC du domaine public, version A (activités)",
-      "authors": "Patrick Ian Armstrong, Wyndolyn Allison, James Rounds",
-      "year": 2008,
-      "citation": "Armstrong, P. I., Allison, W., & Rounds, J. (2008). Development and initial validation of brief public domain RIASEC marker scales. Journal of Vocational Behavior, 73(2), 287–299. https://doi.org/10.1016/j.jvb.2008.06.003",
-      "url": "https://doi.org/10.1016/j.jvb.2008.06.003",
-      "licence": "Domaine public selon les auteurs (titre et résumé de l’article). Le manuel du O*NET Interest Profiler (Rounds, Hoff & Lewis, 2021) les présente aussi comme des mesures RIASEC brèves du domaine public.",
-      "validated": false,
-      "adaptation": "Traduction française de l’équipe, non validée : le manuel O*NET recommande une traduction et une rétro-traduction par des experts, non faites ici. 46 items sur 48 : « Help people who have problems with drugs or alcohol » et « Help people with family-related problems » (type Social) sont retirés, car le jeu n’aborde ni la santé ni la famille. Réponses en 5 points, de « Pas du tout » à « Carrément ». Items présentés en alternant les six types.",
-      "note": "Les items viennent du O*NET Interest Profiler (USDOL/ETA). Les outils O*NET eux-mêmes sont aujourd’hui diffusés sous CC BY-ND 4.0 ou sous une licence développeur qui exige une étude de validation avant toute version modifiée ou traduite : c’est pourquoi le Mini-IP O*NET n’est pas utilisé. Liste des 48 items vérifiée dans l’annexe de Daker, R. J., Slipenkyj, M. S., Green, A. E., & Lyons, I. M. (2023), Scientific Reports, 13, 3294 (https://doi.org/10.1038/s41598-023-29834-z), qui utilise la version A, et recoupée avec le O*NET Interest Profiler Short Form ; les numéros (R1 à C8) suivent l’ordre de cette annexe. Ces marqueurs sont parfois attribués à Liao, Armstrong & Rounds (2008), article qui porte en fait sur les Basic Interest Markers."
-    },
-    {
       "id": "mccrae_costa_1989",
       "title": "Le MBTI relu à travers le modèle en cinq facteurs",
       "authors": "Robert R. McCrae, Paul T. Costa Jr.",

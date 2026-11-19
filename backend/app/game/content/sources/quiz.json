@@ -15,9 +15,9 @@
       "title": "Typologie RIASEC des intérêts professionnels de Holland",
       "citation": "Holland, J. L. (1997). Making vocational choices: A theory of vocational personalities and work environments (3rd ed.). Odessa, FL: Psychological Assessment Resources. ISBN 0-911907-27-0.",
       "url": "https://openlibrary.org/isbn/0911907270",
-      "licence": "Théorie publiée, citée sans reproduction. Aucun item du Self-Directed Search ni d'un autre questionnaire de Holland édité par PAR n'est repris : les situations du quiz sont des créations originales qui visent les six types R, I, A, S, E et C.",
+      "licence": "Théorie publiée, citée sans reproduction. Aucun item du Self-Directed Search ni d’un autre questionnaire de Holland édité par PAR n’est repris, pas plus que ceux du O*NET Interest Profiler ou des marqueurs RIASEC d’Armstrong, Allison & Rounds (2008) : les situations du quiz et les activités du Grand Tri sont des créations originales qui visent les six types R, I, A, S, E et C.",
       "validated": false,
-      "adaptation": "Situations originales en français, rattachées à un ou plusieurs types RIASEC (ref et original). La plupart sont des dilemmes entre deux types : l'option choisie monte un type et baisse l'autre, l'option mixte donne une valeur moyenne aux deux. Sans étalonnage : le quiz donne une tendance, pas un code Holland.",
+      "adaptation": "Situations et activités originales en français, rattachées à un ou plusieurs types RIASEC (ref et original). Dans le quiz, la plupart des situations sont des dilemmes entre deux types : l’option choisie monte un type et baisse l’autre, l’option mixte donne une valeur moyenne aux deux. Le Grand Tri propose 48 activités, 8 par type, notées de 1 à 5. Le livre expose une théorie, pas un test : sans validation ni étalonnage, ces jeux donnent une tendance, pas un code Holland.",
       "note": "Le clan révélé au jeune correspond à son curseur RIASEC le plus haut, tous jeux et talents validés confondus."
     }
   ]
