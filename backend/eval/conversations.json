@@ -1,5 +1,5 @@
 {
-  "note": "Conversations réalistes (messages du jeune seulement). 'attendus' : entrées du référentiel qu'un bon repérage doit trouver (rappel). 'acceptables' : trouvailles justes mais non exigées (précision). 'interdits' : ce qui ne doit jamais sortir. Une conversation sans attendus doit donner zéro talent.",
+  "note": "Conversations réalistes (messages du jeune seulement). 'attendus' : entrées du référentiel qu'un bon repérage doit trouver (rappel). 'acceptables' : trouvailles justes mais non exigées (précision). 'interdits' : ce qui ne doit jamais sortir. Une conversation sans attendus doit donner zéro talent. Référentiel v2 (2026-11-19) : quelques entrées nouvelles ajoutées aux « acceptables » quand elles décrivent bien le récit (calcul, petit business, démarches, arbitrage, leadership) ; les « attendus » n'ont pas changé.",
   "conversations": [
     {
       "id": "capture-mecanique",
@@ -17,7 +17,7 @@
       "id": "vinted",
       "messages": ["je revends des fringues sur Vinted", "je fais des photos propres et je négocie les prix", "j'ai mis 300 euros de côté comme ça"],
       "attendus": ["vente", "negociation", "budget"],
-      "acceptables": ["video_image", "initiative", "rigueur", "reseaux_sociaux"]
+      "acceptables": ["video_image", "initiative", "rigueur", "reseaux_sociaux", "entrepreneuriat"]
     },
     {
       "id": "foot-coach",
@@ -53,13 +53,13 @@
       "id": "voisine",
       "messages": ["je fais les courses pour la voisine du 3e", "elle a du mal avec les papiers alors je l'aide à remplir les formulaires"],
       "attendus": ["aide_personnes", "entraide"],
-      "acceptables": ["ecoute", "fiabilite", "responsabilite", "entretien_logement"]
+      "acceptables": ["ecoute", "fiabilite", "responsabilite", "entretien_logement", "demarches"]
     },
     {
       "id": "tournoi-quartier",
       "messages": ["avec des potes on a organisé un tournoi de foot dans le quartier", "j'ai fait les équipes, le planning des matchs et les affiches sur Canva"],
       "attendus": ["evenement", "organisation_temps", "dessin"],
-      "acceptables": ["travail_equipe", "initiative", "sport", "animation", "creativite", "responsabilite"]
+      "acceptables": ["travail_equipe", "initiative", "sport", "animation", "creativite", "responsabilite", "leadership"]
     },
     {
       "id": "chantier",

@@ -1,10 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "sources": {
     "rome": "ROME 4.0 de France Travail : savoir-être professionnels et grands domaines de métiers (open data, francetravail.io)",
     "esco": "ESCO v1.2 de la Commission européenne : compétences transversales (open data, esco.ec.europa.eu)"
   },
-  "note": "Sous-ensemble écrit pour des jeunes de 16 à 25 ans : chaque entrée part d'une compétence ROME ou ESCO, reformulée en mots simples et positifs. 'indices' : termes repérés dans les messages (même syntaxe que garde_fous.json, * = n'importe quelle fin de mot). 'exemples' : phrases typiques, utilisées pour le rapprochement par embeddings. Aucune entrée ne touche à la santé, l'origine, la religion ou la famille.",
+  "note": "Sous-ensemble écrit pour des jeunes de 16 à 25 ans : chaque entrée part d'une compétence ROME ou ESCO, reformulée en mots simples et positifs. 'indices' : termes repérés dans les messages (même syntaxe que garde_fous.json, * = n'importe quelle fin de mot). 'exemples' : phrases typiques, utilisées pour le rapprochement par embeddings. Aucune entrée ne touche à la santé, l'origine, la religion ou la famille. Version 2 (2026-11-19) : 19 entrées ajoutées pour couvrir le calcul, la restauration, la sécurité, l'électricité, le leadership, les démarches, l'entrepreneuriat, les arts de la scène et l'engagement associatif.",
   "competences": [
     {
       "id": "mecanique",
@@ -1292,6 +1292,465 @@
         "j'ai appris en regardant faire mon oncle",
         "il m'a montré et après j'ai fait pareil",
         "j'observe et je reproduis"
+      ]
+    },
+    {
+      "id": "calcul",
+      "nom": "Calculer de tête et manier les chiffres",
+      "categorie": "resolution_problemes",
+      "description": "Faire des calculs rapides, compter juste et rendre la monnaie sans se tromper.",
+      "source": "ESCO – compétences de base (calcul) ; ROME D – tenue de caisse",
+      "indices": [
+        "calcul*",
+        "de tete",
+        "rendre la monnaie",
+        "rends la monnaie",
+        "monnaie",
+        "compter",
+        "je compte",
+        "pourcentage*",
+        "maths",
+        "chiffres",
+        "additionn*"
+      ],
+      "exemples": [
+        "je calcule de tête direct",
+        "je rends la monnaie sans calculatrice",
+        "je compte la caisse à la fin de la journée",
+        "je calcule les promos de tête"
+      ]
+    },
+    {
+      "id": "service_salle",
+      "nom": "Servir en salle ou au comptoir",
+      "categorie": "savoir_faire",
+      "description": "Prendre les commandes et servir les clients dans un restaurant, un snack ou un bar.",
+      "source": "ROME G – Hôtellerie-restauration (service en salle, restauration rapide)",
+      "indices": [
+        "serveu*",
+        "service en salle",
+        "en salle",
+        "plateau*",
+        "prendre les commandes",
+        "prends les commandes",
+        "restau*",
+        "snack*",
+        "kebab*",
+        "fast food",
+        "mcdo",
+        "burger king",
+        "buvette",
+        "comptoir"
+      ],
+      "exemples": [
+        "je fais le service dans un snack",
+        "je prends les commandes et je sers les plats",
+        "j'ai bossé au mcdo en salle",
+        "je tiens la buvette du club"
+      ]
+    },
+    {
+      "id": "hygiene_securite",
+      "nom": "Respecter les règles d'hygiène et de sécurité",
+      "categorie": "organisation",
+      "description": "Appliquer les consignes pour travailler proprement et sans danger.",
+      "source": "ROME savoir-être : respect des règles ; ESCO – santé et sécurité au travail",
+      "indices": [
+        "hygiene",
+        "consigne* de securite",
+        "regles de securite",
+        "normes",
+        "gants",
+        "charlotte",
+        "casque",
+        "chaussures de securite",
+        "extincteur*",
+        "plan de travail",
+        "desinfect*"
+      ],
+      "exemples": [
+        "je mets les gants et je nettoie le plan de travail",
+        "je respecte les consignes de sécurité sur le chantier",
+        "je porte toujours le casque et les chaussures de sécurité"
+      ]
+    },
+    {
+      "id": "conduite",
+      "nom": "Conduire un véhicule",
+      "categorie": "savoir_faire",
+      "description": "Conduire en respectant le code et en restant attentif à la route.",
+      "source": "ROME N – Transport et logistique (conduite) ; permis de conduire",
+      "indices": [
+        "conduire",
+        "conduis",
+        "conduit",
+        "permis",
+        "conduite accompagnee",
+        "code de la route",
+        "voiture sans permis",
+        "je roule"
+      ],
+      "exemples": [
+        "je conduis le scooter pour aller bosser",
+        "je révise le code de la route",
+        "je fais de la conduite accompagnée",
+        "j'ai eu mon permis du premier coup"
+      ]
+    },
+    {
+      "id": "electricite",
+      "nom": "Faire de petits travaux d'électricité",
+      "categorie": "savoir_faire",
+      "description": "Changer une prise ou une ampoule, brancher et installer des appareils en sécurité.",
+      "source": "ROME F – Construction, bâtiment (électricité) ; ROME I – Installation et maintenance",
+      "indices": [
+        "electri*",
+        "prise*",
+        "ampoule*",
+        "cable*",
+        "disjonct*",
+        "interrupteur*",
+        "fil electrique",
+        "luminaire*",
+        "tableau electrique",
+        "rallonge*",
+        "multiprise*"
+      ],
+      "exemples": [
+        "j'ai changé une prise électrique",
+        "je branche les lumières et les enceintes pour les soirées",
+        "j'ai réparé le câble de la lampe"
+      ]
+    },
+    {
+      "id": "arbitrage",
+      "nom": "Faire respecter des règles",
+      "categorie": "relationnel",
+      "description": "Arbitrer, rappeler les règles et rester juste avec tout le monde.",
+      "source": "ROME G – Loisirs et animation sportive (arbitrage) ; ESCO – compétences sociales",
+      "indices": [
+        "arbitr*",
+        "faire respecter",
+        "fais respecter",
+        "les regles",
+        "sifflet",
+        "equitable",
+        "triche*"
+      ],
+      "exemples": [
+        "j'arbitre les matchs des petits au foot",
+        "je fais respecter les règles quand on joue",
+        "je vérifie que personne ne triche"
+      ]
+    },
+    {
+      "id": "leadership",
+      "nom": "Mener un groupe",
+      "categorie": "relationnel",
+      "description": "Prendre la tête d'une équipe, donner la direction et motiver les autres.",
+      "source": "ROME savoir-être : faire preuve de leadership ; ESCO – diriger d'autres personnes",
+      "indices": [
+        "capitaine",
+        "chef",
+        "leader*",
+        "diriger",
+        "dirige",
+        "mener",
+        "je mene",
+        "les calls",
+        "fais les calls",
+        "shotcall*",
+        "guilde",
+        "je motive",
+        "motiver l equipe"
+      ],
+      "exemples": [
+        "je suis capitaine de mon équipe de foot",
+        "c'est moi qui fais les calls dans ma team",
+        "je dirige le groupe quand on prépare un projet",
+        "je motive les autres quand on perd"
+      ]
+    },
+    {
+      "id": "prise_decision",
+      "nom": "Prendre des décisions",
+      "categorie": "resolution_problemes",
+      "description": "Choisir vite et assumer son choix quand la situation l'exige.",
+      "source": "ESCO – compétences de réflexion (prendre des décisions) ; ROME savoir-être : réactivité",
+      "indices": [
+        "decid*",
+        "decision*",
+        "trancher",
+        "je tranche",
+        "faire un choix",
+        "choisir vite",
+        "choisis vite"
+      ],
+      "exemples": [
+        "c'est moi qui décide quand on attaque",
+        "je dois choisir vite quoi faire quand ça part en vrille",
+        "j'ai pris la décision de tout recommencer"
+      ]
+    },
+    {
+      "id": "memorisation",
+      "nom": "Retenir beaucoup d'informations",
+      "categorie": "apprentissage",
+      "description": "Mémoriser des listes, des commandes ou des paroles sans les noter.",
+      "source": "ESCO – autogestion (apprendre à apprendre) ; capacités cognitives",
+      "indices": [
+        "retenir",
+        "retiens",
+        "memoire",
+        "par coeur",
+        "memoris*",
+        "je me souviens",
+        "sans noter"
+      ],
+      "exemples": [
+        "je retiens toutes les commandes sans les noter",
+        "je connais toutes les paroles par cœur",
+        "je mémorise les cartes du jeu en deux parties"
+      ]
+    },
+    {
+      "id": "patience",
+      "nom": "Faire preuve de patience",
+      "categorie": "relationnel",
+      "description": "Prendre le temps, réexpliquer et rester calme avec les autres.",
+      "source": "ROME savoir-être : sens du service ; ESCO – compétences sociales",
+      "indices": [
+        "patien*",
+        "prendre le temps",
+        "prends le temps",
+        "sans m enerver",
+        "sans m enerve",
+        "reexpliqu*",
+        "dix fois",
+        "calmement"
+      ],
+      "exemples": [
+        "je réexplique dix fois sans m'énerver",
+        "faut être patient avec les petits",
+        "je prends le temps de lui montrer"
+      ]
+    },
+    {
+      "id": "esprit_critique",
+      "nom": "Vérifier une information",
+      "categorie": "resolution_problemes",
+      "description": "Comparer les sources, repérer les arnaques et les fausses infos.",
+      "source": "ESCO – compétences numériques (évaluer l'information) ; pensée critique",
+      "indices": [
+        "fake news",
+        "fake",
+        "source*",
+        "arnaque*",
+        "comparer",
+        "compare",
+        "les avis",
+        "fiable*",
+        "faux compte*"
+      ],
+      "exemples": [
+        "je vérifie toujours les avis avant d'acheter",
+        "je repère les fake news sur TikTok",
+        "je compare les prix sur plusieurs sites"
+      ]
+    },
+    {
+      "id": "bureautique",
+      "nom": "Utiliser les outils de bureautique",
+      "categorie": "savoir_faire",
+      "description": "Écrire un document, faire un tableau et l'envoyer par mail.",
+      "source": "ESCO – compétences numériques (utiliser des outils bureautiques) ; ROME M – Support à l'entreprise",
+      "indices": [
+        "word",
+        "excel",
+        "powerpoint",
+        "tableur*",
+        "google docs",
+        "pdf",
+        "traitement de texte",
+        "par mail",
+        "envoyer un mail",
+        "un tableau"
+      ],
+      "exemples": [
+        "je fais des tableaux sur Excel",
+        "j'envoie les documents par mail en PDF",
+        "j'ai tapé le compte rendu sur Word",
+        "j'ai fait mon CV sur Word"
+      ]
+    },
+    {
+      "id": "demarches",
+      "nom": "Faire des démarches administratives",
+      "categorie": "autonomie",
+      "description": "Remplir des papiers, constituer un dossier et prendre des rendez-vous.",
+      "source": "ESCO – compétences de base (gérer des démarches) ; ROME M – Secrétariat et assistance",
+      "indices": [
+        "papiers",
+        "dossier*",
+        "formulaire*",
+        "administrati*",
+        "caf",
+        "france travail",
+        "pole emploi",
+        "rendez vous",
+        "demarche*",
+        "impots",
+        "mission locale",
+        "ameli"
+      ],
+      "exemples": [
+        "je remplis les papiers pour la CAF",
+        "j'ai monté mon dossier tout seul",
+        "je prends les rendez-vous en ligne",
+        "je gère les démarches à la mission locale"
+      ]
+    },
+    {
+      "id": "entrepreneuriat",
+      "nom": "Monter un projet ou un petit business",
+      "categorie": "autonomie",
+      "description": "Lancer une activité, acheter et revendre, trouver des clients et suivre ses gains.",
+      "source": "ESCO – esprit d'entreprise ; ROME savoir-être : prise d'initiative",
+      "indices": [
+        "business",
+        "entreprise*",
+        "auto entrepreneur",
+        "micro entreprise",
+        "benefice*",
+        "marge*",
+        "investi*",
+        "mon projet",
+        "lancer mon",
+        "j ai lance mon",
+        "petit commerce",
+        "en gros"
+      ],
+      "exemples": [
+        "j'ai lancé mon petit business de revente de sneakers",
+        "j'achète en gros et je revends avec une marge",
+        "j'ai monté un projet avec des potes",
+        "je me suis mis auto-entrepreneur"
+      ]
+    },
+    {
+      "id": "mode_style",
+      "nom": "Avoir l'œil pour le style",
+      "categorie": "creativite",
+      "description": "Assortir des tenues, suivre les tendances et conseiller sur le look.",
+      "source": "ROME B – Arts et façonnage (stylisme) ; ROME D – conseil en vente de mode",
+      "indices": [
+        "style*",
+        "mode",
+        "look*",
+        "tenue*",
+        "sape*",
+        "assortir",
+        "assorti*",
+        "outfit*",
+        "tendance*"
+      ],
+      "exemples": [
+        "mes potes me demandent conseil pour leurs tenues",
+        "je sais assortir les fringues",
+        "je fais des outfits pour mes copines"
+      ]
+    },
+    {
+      "id": "danse",
+      "nom": "Danser et créer des chorégraphies",
+      "categorie": "creativite",
+      "description": "Apprendre des pas, inventer une chorégraphie et la présenter devant d'autres.",
+      "source": "ROME L – Spectacle (danse)",
+      "indices": [
+        "choregraph*",
+        "choree*",
+        "chore",
+        "battle*",
+        "breakdance",
+        "krump",
+        "hip hop",
+        "afro dance",
+        "danseu*"
+      ],
+      "exemples": [
+        "je fais de la danse hip-hop",
+        "j'ai créé une choré pour TikTok",
+        "on a fait un battle de danse au quartier"
+      ]
+    },
+    {
+      "id": "theatre",
+      "nom": "Jouer la comédie et improviser",
+      "categorie": "creativite",
+      "description": "Jouer un rôle, improviser et faire réagir un public.",
+      "source": "ROME L – Spectacle (art dramatique) ; ROME savoir-être : sens de la communication",
+      "indices": [
+        "theatre",
+        "impro*",
+        "comedie*",
+        "sketch*",
+        "jouer un role",
+        "sur scene",
+        "acteur*",
+        "actrice*",
+        "stand up"
+      ],
+      "exemples": [
+        "je fais du théâtre au centre social",
+        "je fais des sketchs avec mes potes",
+        "j'ai joué un rôle dans la pièce de fin d'année"
+      ]
+    },
+    {
+      "id": "benevolat",
+      "nom": "S'engager dans une association",
+      "categorie": "relationnel",
+      "description": "Donner de son temps pour une cause ou une association, régulièrement.",
+      "source": "ESCO – compétences sociales (engagement citoyen) ; ROME K – Intervention socio-éducative",
+      "indices": [
+        "benevol*",
+        "associati*",
+        "asso",
+        "maraude*",
+        "collecte*",
+        "restos du coeur",
+        "secours populaire",
+        "croix rouge",
+        "solidari*",
+        "engage*"
+      ],
+      "exemples": [
+        "je fais des maraudes avec une asso",
+        "j'aide aux Restos du cœur le samedi",
+        "j'ai participé à une collecte de vêtements",
+        "je suis bénévole au club"
+      ]
+    },
+    {
+      "id": "securite",
+      "nom": "Veiller à la sécurité des gens",
+      "categorie": "organisation",
+      "description": "Surveiller un lieu, contrôler les entrées et garder un œil sur tout le monde.",
+      "source": "ROME K – Sécurité (prévention et sécurité)",
+      "indices": [
+        "securite",
+        "vigile*",
+        "agent de securite",
+        "fouill*",
+        "controle des entrees",
+        "controler les entrees",
+        "surveill*",
+        "veiller"
+      ],
+      "exemples": [
+        "je fais la sécurité dans les concerts",
+        "je contrôle les entrées à la soirée",
+        "je surveille la piscine l'été"
       ]
     }
   ]

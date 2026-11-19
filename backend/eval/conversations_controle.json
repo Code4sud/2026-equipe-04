@@ -1,11 +1,11 @@
 {
-  "note": "Jeu de contrôle : écrit après le réglage du moteur sur conversations.json et jamais utilisé pour régler indices ou seuils. Sert à vérifier que le rappel ne vient pas d'un sur-ajustement.",
+  "note": "Jeu de contrôle : écrit après le réglage du moteur sur conversations.json et jamais utilisé pour régler indices ou seuils. Sert à vérifier que le rappel ne vient pas d'un sur-ajustement. Référentiel v2 (2026-11-19) : quelques entrées nouvelles ajoutées aux « acceptables » quand elles décrivent bien le récit (calcul, petit business, démarches, arbitrage, leadership) ; les « attendus » n'ont pas changé.",
   "conversations": [
     {
       "id": "marche-fruits",
       "messages": ["le dimanche je bosse sur le marché avec un pote de mon oncle", "je mets les fruits en place, je sers les gens et je rends la monnaie"],
       "attendus": ["vente", "manutention"],
-      "acceptables": ["fiabilite", "rigueur", "accueil", "travail_equipe", "budget"]
+      "acceptables": ["fiabilite", "rigueur", "accueil", "travail_equipe", "budget", "calcul"]
     },
     {
       "id": "velo-quartier",
@@ -17,7 +17,7 @@
       "id": "serveur-discord",
       "messages": ["je modère un serveur Discord de 800 personnes", "quand ça part en clash entre deux membres c'est moi qui calme le jeu"],
       "attendus": ["reseaux_sociaux", "mediation"],
-      "acceptables": ["responsabilite", "programmation", "ecoute"]
+      "acceptables": ["responsabilite", "programmation", "ecoute", "arbitrage", "leadership"]
     },
     {
       "id": "anglais-series",
@@ -29,7 +29,7 @@
       "id": "patisserie",
       "messages": ["je fais des cupcakes que je vends au lycée", "j'ai dû recommencer plein de fois avant que la recette soit bonne"],
       "attendus": ["cuisine", "vente", "perseverance"],
-      "acceptables": ["initiative", "budget", "apprendre_experience", "creativite"]
+      "acceptables": ["initiative", "budget", "apprendre_experience", "creativite", "entrepreneuriat"]
     },
     {
       "id": "colo-animateur",
@@ -60,7 +60,7 @@
       "id": "jeu-strategie",
       "messages": ["je suis dans le top 500 sur Overwatch", "je fais les calls pour mon équipe et je prépare les compos avant les matchs"],
       "attendus": ["strategie_jeu", "travail_equipe"],
-      "acceptables": ["responsabilite", "communication", "perseverance", "oral", "organisation_temps"]
+      "acceptables": ["responsabilite", "communication", "perseverance", "oral", "organisation_temps", "leadership", "prise_decision"]
     }
   ]
 }
