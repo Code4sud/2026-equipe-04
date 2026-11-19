@@ -276,6 +276,23 @@ def test_lint_reads_every_field_sent_to_the_youth(catalog):
     ]
 
 
+def test_no_text_mentions_a_clan_any_more():
+    # Le clan a laissé place à l'archétype : ni le contenu ni les écrans n'en parlent encore.
+    clan = re.compile(r"\bclans?\b")
+    content = Path(__file__).resolve().parents[1] / "app" / "game" / "content"
+    found = [
+        str(path.relative_to(content))
+        for path in sorted(content.rglob("*.json"))
+        if clan.search(fold(path.read_text(encoding="utf-8")))
+    ]
+    found += [
+        str(path.relative_to(GAME_FRONT))
+        for path in sorted(GAME_FRONT.rglob("*.fr.ts"))
+        if clan.search(fold(path.read_text(encoding="utf-8")))
+    ]
+    assert not found, found
+
+
 def test_front_youth_texts_respect_guardrails():
     texts = front_youth_texts()
     files = {where.split(":")[0] for where, _ in texts}

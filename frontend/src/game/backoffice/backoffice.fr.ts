@@ -117,9 +117,13 @@ export const bo = {
   },
   summary: {
     title: 'Synthèse',
-    clan: 'Clan',
-    clanBasis: (interest: string) => `Attribué d’après l’intérêt le plus élevé\u00a0: ${interest}`,
-    noClan: 'Pas encore attribué',
+    archetype: 'Archétype',
+    /** « 72 % sociable » : le titre du curseur qui a désigné l'archétype. */
+    archetypeBasis: (headline: string) =>
+      `Habillage ludique, attribué d’après le curseur de caractère le plus marqué\u00a0: ${headline}. Ce n’est pas un type de personnalité validé.`,
+    archetypeBalanced:
+      'Habillage ludique. Aucun curseur de caractère ne s’écarte de plus de 8 points du milieu. Ce n’est pas un type de personnalité validé.',
+    noArchetype: 'Pas encore attribué',
     level: 'Niveau',
     levelValue: (level: number, title: string) => (title ? `${level} · ${title}` : String(level)),
     xp: (xp: number) => `${xp} points d’expérience`,

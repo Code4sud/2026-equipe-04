@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gameApi } from '../api';
+import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
+import { frenchSpacing } from '../components/frenchSpacing';
 import { gameEmoji } from '../hub/gameEmoji';
 import { NeoSlot } from '../hub/NeoSlot';
 import { XpBar } from '../hub/XpBar';
@@ -211,23 +213,16 @@ function WhatStandsOut({
   );
 }
 
-/** Le clan suit l'intérêt le plus fort : une partie peut faire passer le jeune dans un autre. */
-function ClanChange({ result }: { result: RunResult }) {
-  const { clan, previous_clan: previous } = result;
-  if (!clan || !previous) return null;
+/** L'archétype suit le trait de caractère le plus marqué : une partie peut le faire changer. */
+function ArchetypeChange({ result }: { result: RunResult }) {
+  const { archetype, previous_archetype: previous } = result;
+  if (!archetype || !previous) return null;
   return (
-    <section className="play-panel" aria-labelledby="play-clan-title">
-      <h2 id="play-clan-title">{t.result.clanTitle}</h2>
-      <p className="play-badge">
-        <span className="play-badge__icon" aria-hidden="true">
-          {gameEmoji(clan.icon)}
-        </span>
-        <span>
-          <strong>{clan.name}</strong>
-          <small>{t.result.clanBefore(previous.name)}</small>
-        </span>
-      </p>
-      <p className="play-panel__hint">{t.result.clanHint}</p>
+    <section className="play-panel play-archetype" aria-labelledby="play-archetype-title">
+      <h2 id="play-archetype-title">{t.result.archetypeTitle}</h2>
+      <ArchetypeBadge archetype={archetype} size="medium" caption />
+      <p className="play-archetype__before">{frenchSpacing(t.result.archetypeBefore(previous.name))}</p>
+      <p className="play-panel__hint">{frenchSpacing(t.result.archetypeHint)}</p>
     </section>
   );
 }
@@ -301,7 +296,7 @@ export function RunResults({ instrument, result, answerXp, exitTo }: Props) {
         </section>
       )}
 
-      <ClanChange result={result} />
+      <ArchetypeChange result={result} />
 
       <WhatStandsOut instrumentId={instrument.id} highlights={result.highlights} />
 

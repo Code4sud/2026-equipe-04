@@ -8,7 +8,7 @@ import { quizFr } from './quiz.fr';
 import { strongestTraits } from './quizLogic';
 import { QuizReveal } from './QuizReveal';
 
-/** Quiz déjà terminé : on rappelle le clan et les temps forts au lieu d'afficher une erreur. */
+/** Quiz déjà terminé : on rappelle l'archétype et les temps forts au lieu d'afficher une erreur. */
 export function QuizSummary() {
   const [sheet, setSheet] = useState<CharacterSheet | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export function QuizSummary() {
   return (
     <QuizReveal
       mode="summary"
-      clan={sheet.identity.clan}
+      archetype={sheet.identity.archetype}
       highlights={strongestTraits(sheet.trait_groups.flatMap((group) => group.traits))}
       progress={sheet.progress}
       badges={sheet.progress.badges.filter((badge) => badge.earned)}

@@ -1,5 +1,5 @@
 /**
- * Dessins de la fiche : emblèmes des clans, attributs, badges et petits ornements.
+ * Dessins de la fiche : emblèmes des attributs, badges et petits ornements.
  * Tout est décrit en chemins SVG sur une grille de 24, pour servir aussi au dessin sur canvas.
  */
 
@@ -23,7 +23,7 @@ export function starPath(cx: number, cy: number, outer: number, inner = outer * 
 }
 
 export const GLYPHS: Record<string, GlyphPath[]> = {
-  // Clans et attributs
+  // Attributs
   // Marteau penché : manche vers le bas à gauche, tête effilée d'un côté.
   hammer: [
     { d: 'M11.3 4.2l9.3 7.7-3.1 3.1-7.7-9.3z' },
@@ -154,28 +154,6 @@ export function ActionIcon({ name }: { name: keyof typeof ACTIONS }) {
   return (
     <svg className="sheet-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <GlyphShapes paths={ACTIONS[name]} strokeWidth={2} />
-    </svg>
-  );
-}
-
-/** Écu du clan : bouclier à double filet et emblème au centre. */
-export const CREST_SHIELD = 'M32 3l26 8v21c0 18-11 30-26 37C17 62 6 50 6 32V11z';
-export const CREST_INNER = 'M32 9.3l20.2 6.2V32c0 14.2-8.4 24-20.2 30C20.2 56 11.8 46.2 11.8 32V15.5z';
-
-export function Crest({ icon }: { icon: string | null }) {
-  return (
-    <svg className="sheet-crest" viewBox="0 0 64 72" aria-hidden="true" focusable="false">
-      <path className="sheet-crest__shield" d={CREST_SHIELD} />
-      <path className="sheet-crest__inner" d={CREST_INNER} />
-      {icon ? (
-        <g className="sheet-crest__emblem" transform="translate(17.6 19.6) scale(1.2)">
-          <GlyphShapes paths={glyphFor(icon)} strokeWidth={1.7} />
-        </g>
-      ) : (
-        <text className="sheet-crest__unknown" x="32" y="45" textAnchor="middle">
-          ?
-        </text>
-      )}
     </svg>
   );
 }

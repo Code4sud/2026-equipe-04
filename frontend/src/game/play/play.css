@@ -256,6 +256,23 @@
   line-height: var(--leading-snug);
 }
 
+/* Nouvel archétype : le badge au centre, l'ancien nommé dessous. */
+.play-archetype {
+  justify-items: center;
+  text-align: center;
+}
+
+.play-archetype > h2 {
+  justify-self: stretch;
+  text-align: left;
+}
+
+.play-archetype__before {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
 .play-xp-total {
   color: var(--color-accent-text);
   font-family: var(--font-mono);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArchetypeBadge, ArchetypeQuality } from '../archetype/ArchetypeBadge';
 import { frenchSpacing } from '../components/frenchSpacing';
-import type { Badge, Clan, Progress, YouthTrait } from '../types';
-import { ClanCrest } from './ClanCrest';
+import type { Archetype, Badge, Progress, YouthTrait } from '../types';
 import { useCountUp, usePrefersReducedMotion } from './motion';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
@@ -14,7 +14,7 @@ const SUSPENSE_MS = 1400;
 interface Props {
   /** `reveal` juste après le quiz, `summary` quand on rouvre un quiz déjà terminé. */
   mode: 'reveal' | 'summary';
-  clan: Clan | null;
+  archetype: Archetype | null;
   highlights: YouthTrait[];
   progress: Progress;
   /** Badges à montrer : les nouveaux après le quiz, tous ceux gagnés dans le résumé. */
@@ -68,8 +68,8 @@ function LevelCard({ progress, xpGained = 0, leveledUp }: Pick<Props, 'progress'
   );
 }
 
-/** Cérémonie de révélation du clan, ou rappel du résultat quand le quiz est déjà fait. */
-export function QuizReveal({ mode, clan, highlights, progress, badges, xpGained, leveledUp }: Props) {
+/** Cérémonie de révélation de l'archétype, ou rappel du résultat quand le quiz est déjà fait. */
+export function QuizReveal({ mode, archetype, highlights, progress, badges, xpGained, leveledUp }: Props) {
   const reduced = usePrefersReducedMotion();
   const [suspense, setSuspense] = useState(mode === 'reveal' && !reduced);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -97,25 +97,26 @@ export function QuizReveal({ mode, clan, highlights, progress, badges, xpGained,
     <div className={`quiz-screen quiz-reveal quiz-reveal--${mode}`}>
       <header className="quiz-reveal__head">
         <p className="quiz-kicker">{mode === 'summary' ? quizFr.done.kicker : t.kicker}</p>
-        {clan ? (
+        {archetype ? (
           <>
-            <div className="quiz-reveal__crest">
-              <ClanCrest icon={clan.icon} label={t.crest(clan.name)} />
+            <div className="quiz-reveal__badge">
+              <ArchetypeBadge archetype={archetype} size="large" />
               <NeoSlot mood="cheer" />
             </div>
             <h1 ref={heading} tabIndex={-1}>
-              {clan.name}
+              {archetype.name}
             </h1>
-            <p className="quiz-reveal__motto">{frenchSpacing(`« ${clan.motto} »`)}</p>
-            <p className="quiz-reveal__description">{frenchSpacing(clan.description)}</p>
+            <ArchetypeQuality quality={archetype.quality} />
+            <p className="quiz-reveal__motto">{frenchSpacing(`« ${archetype.motto} »`)}</p>
+            <p className="quiz-reveal__description">{frenchSpacing(archetype.description)}</p>
           </>
         ) : (
           <>
             <NeoSlot mood="thinking" />
             <h1 ref={heading} tabIndex={-1}>
-              {t.noClanTitle}
+              {t.noArchetypeTitle}
             </h1>
-            <p className="quiz-reveal__description">{t.noClan}</p>
+            <p className="quiz-reveal__description">{t.noArchetype}</p>
           </>
         )}
         {mode === 'summary' && <p className="quiz-reveal__intro">{frenchSpacing(quizFr.done.intro)}</p>}

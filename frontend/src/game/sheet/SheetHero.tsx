@@ -1,19 +1,21 @@
+import { ArchetypeBadge, ArchetypeQuality } from '../archetype/ArchetypeBadge';
+import { frenchSpacing } from '../components/frenchSpacing';
 import type { CharacterSheet } from '../types';
-import { Crest, Seal } from './glyphs';
+import { Seal } from './glyphs';
 import { quote, sheetFr, typo } from './sheet.fr';
 
 const t = sheetFr.hero;
 
-/** En-tête de la fiche : écu du clan, nom, niveau et expérience. */
+/** En-tête de la fiche : badge d'archétype, nom, niveau et expérience. */
 export function SheetHero({ sheet }: { sheet: CharacterSheet }) {
-  const { display_name: name, clan } = sheet.identity;
+  const { display_name: name, archetype } = sheet.identity;
   const { xp, level, level_title: title, level_xp: floor, next_level_xp: next } = sheet.progress;
   const ratio = Math.min(1, Math.max(0, (xp - floor) / Math.max(1, next - floor)));
 
   return (
     <header className="sheet-hero">
-      <div className="sheet-hero__crest">
-        <Crest icon={clan?.icon ?? null} />
+      <div className="sheet-hero__badge">
+        <ArchetypeBadge archetype={archetype} />
       </div>
 
       <div className="sheet-hero__id">
@@ -21,19 +23,20 @@ export function SheetHero({ sheet }: { sheet: CharacterSheet }) {
         <h2 id="sheet-name" className="sheet-hero__name">
           {name}
         </h2>
-        {clan ? (
+        {archetype ? (
           <>
-            <p className="sheet-hero__clan">
-              <span className="sheet-label">{t.clan}</span> {typo(clan.name)}
+            <p className="sheet-hero__archetype">
+              <span className="sheet-label">{t.archetype}</span> <span>{typo(archetype.name)}</span>{' '}
+              <ArchetypeQuality quality={archetype.quality} />
             </p>
-            <p className="sheet-hero__motto">{quote(typo(clan.motto))}</p>
+            <p className="sheet-hero__motto">{quote(frenchSpacing(typo(archetype.motto)))}</p>
           </>
         ) : (
           <>
-            <p className="sheet-hero__clan">
-              <span className="sheet-label">{t.clan}</span> {t.noClan}
+            <p className="sheet-hero__archetype">
+              <span className="sheet-label">{t.archetype}</span> {t.noArchetype}
             </p>
-            <p className="sheet-hero__motto">{t.noClanHint}</p>
+            <p className="sheet-hero__motto">{t.noArchetypeHint}</p>
           </>
         )}
       </div>
@@ -67,9 +70,10 @@ export function SheetHero({ sheet }: { sheet: CharacterSheet }) {
         </div>
       </div>
 
-      {clan && (
+      {archetype && (
         <p className="sheet-hero__description">
-          {typo(clan.description)} <span className="sheet-hero__note">{t.clanNote}</span>
+          {frenchSpacing(typo(archetype.description))}{' '}
+          <span className="sheet-hero__note">{frenchSpacing(t.archetypeNote)}</span>
         </p>
       )}
     </header>

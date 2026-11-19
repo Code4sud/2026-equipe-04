@@ -140,9 +140,9 @@ export default function SheetPage() {
   const completed = status
     ? new Set(status.instruments.filter((instrument) => instrument.completed_count > 0).map((item) => item.id))
     : null;
-  // Une image vaut d'être gardée dès qu'il y a un clan, un détail ou un talent.
+  // Une image vaut d'être gardée dès qu'il y a un archétype, un détail ou un talent.
   const hasContent =
-    Boolean(sheet.identity.clan) ||
+    Boolean(sheet.identity.archetype) ||
     sheet.facts.some((fact) => !fact.hidden) ||
     sheet.talents.validated.length > 0;
   const quizPending = quest === 'quiz-start' || quest === 'quiz-resume';

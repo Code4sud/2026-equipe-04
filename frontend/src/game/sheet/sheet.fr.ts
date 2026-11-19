@@ -15,10 +15,11 @@ export const sheetFr = {
 
   hero: {
     kicker: 'Fiche d’aventure',
-    clan: 'Clan',
-    noClan: 'encore secret',
-    noClanHint: 'Ton clan se révèle à la fin du quiz d’arrivée.',
-    clanNote: 'Il suit ce qui t’attire le plus : il peut changer au fil de tes jeux et de tes talents.',
+    archetype: 'Archétype',
+    noArchetype: 'encore secret',
+    noArchetypeHint: 'Ton archétype se révèle à la fin du quiz d’arrivée.',
+    archetypeNote:
+      'Il suit le trait de caractère qui ressort le plus de tes réponses : il peut évoluer au fil de tes jeux.',
     level: 'Niv.',
     levelFull: (level: number) => `Niveau ${level}`,
     xp: (xp: number, next: number) => `${xp} / ${next} XP`,
@@ -30,7 +31,7 @@ export const sheetFr = {
   quest: {
     kicker: 'Prochaine quête',
     quizTitle: 'Le quiz d’arrivée',
-    quizText: 'Il remplit ton identité et révèle ton clan. Tu peux faire une pause quand tu veux.',
+    quizText: 'Il remplit ton identité et révèle ton archétype. Tu peux faire une pause quand tu veux.',
     quizStart: 'Commencer le quiz',
     quizResume: 'Reprendre le quiz',
     gamesTitle: 'Les mini-jeux',

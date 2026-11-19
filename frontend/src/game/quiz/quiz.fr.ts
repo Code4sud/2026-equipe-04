@@ -8,7 +8,7 @@ export const quizFr = {
     kicker: 'Quiz d’arrivée',
     title: 'Salut, moi c’est Truffe !',
     intro:
-      'Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton clan.',
+      'Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton archétype.',
     rulesLabel: 'Comment ça marche',
     duration: (minutes: number) => `Environ ${minutes} minutes`,
     rules: [
@@ -38,8 +38,8 @@ export const quizFr = {
     next: 'Suivant',
     later: 'Continuer plus tard',
     pausing: 'Je mets de côté…',
-    enough: 'C’est bon, tu as assez de réponses pour découvrir ton clan.',
-    toEnd: 'Voir mon clan',
+    enough: 'C’est bon, tu as assez de réponses pour découvrir ton archétype.',
+    toEnd: 'Voir mon archétype',
     saveError: 'Ta réponse n’est pas encore enregistrée, je réessaie plus tard.',
     pauseError: 'Impossible de mettre en pause pour l’instant. Vérifie ta connexion et réessaie.',
   },
@@ -51,26 +51,26 @@ export const quizFr = {
   },
   end: {
     title: 'Tu as fait le tour !',
-    text: 'Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton clan ?',
+    text: 'Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton archétype ?',
     count: (answered: number, total: number) =>
       `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total} questions.`,
-    reveal: 'Révéler mon clan',
+    reveal: 'Révéler mon archétype',
     skipped: (count: number) =>
       `Tu as passé ${count} ${plural(count, 'question', 'questions')}. Tu peux y revenir si tu veux.`,
     review: 'Revoir les questions passées',
     back: 'Revenir à la dernière question',
     missingTitle: 'Encore un petit effort',
     missing: (count: number) =>
-      `Il me manque encore ${count} ${plural(count, 'réponse', 'réponses')} pour te révéler ton clan.`,
+      `Il me manque encore ${count} ${plural(count, 'réponse', 'réponses')} pour te révéler ton archétype.`,
     reviewMissing: 'Reprendre les questions passées',
     thinking: 'Truffe rassemble tes réponses…',
   },
   reveal: {
-    suspense: 'Roulement de tambour…',
-    kicker: 'Ton clan',
-    crest: (name: string) => `Blason des ${name.replace(/^Les\s+/i, '')}`,
-    noClanTitle: 'Ton clan se dessine encore',
-    noClan: 'Je n’ai pas encore assez d’indices pour te placer dans un clan. Les jeux vont m’aider à y voir plus clair.',
+    suspense: 'Roulement de tambour… Je dessine ton badge d’archétype.',
+    kicker: 'Ton archétype',
+    noArchetypeTitle: 'Ton archétype se dessine encore',
+    noArchetype:
+      'Je n’ai pas encore assez d’indices pour te trouver un archétype. Les jeux vont m’aider à y voir plus clair.',
     highlightsTitle: 'Ce que j’ai repéré chez toi',
     highlightsHint: 'Sur ta fiche, tu pourras dire « C’est moi » ou « Pas moi » sur chaque curseur.',
     groups: {

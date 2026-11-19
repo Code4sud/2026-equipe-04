@@ -36,7 +36,7 @@ function Waiting({ text }: { text: string }) {
   );
 }
 
-/** Le quiz d'arrivée : accueil, chapitres, une question par écran, puis révélation du clan. */
+/** Le quiz d'arrivée : accueil, chapitres, une question par écran, puis révélation de l'archétype. */
 export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const player = useRunPlayer(QUIZ_ID);
   const navigate = useNavigate();
@@ -91,7 +91,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     return (
       <QuizReveal
         mode="reveal"
-        clan={result.clan}
+        archetype={result.archetype}
         highlights={result.highlights}
         progress={result.progress}
         badges={result.new_badges}

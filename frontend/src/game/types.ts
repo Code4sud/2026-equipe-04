@@ -125,17 +125,36 @@ export interface GameStatus {
   instruments: InstrumentSummary[];
 }
 
-export interface Clan {
+/**
+ * Archétype : badge ludique tiré du curseur de caractère le plus marqué, recalculé à chaque
+ * réponse (backend/app/game/service.py, archetype_for). Le jeune ne voit ni le curseur, ni le
+ * pôle, ni la valeur qui le désignent.
+ */
+export interface Archetype {
   id: string;
   name: string;
   motto: string;
   description: string;
-  icon: string;
+  emoji: string;
+  /** Pôle tel que le jeune le voit (« Sociable », « Posé·e »), ou « Entre les deux » pour Le Caméléon. */
+  quality: string;
 }
 
-/** Côté psychologue, le clan dit aussi quel curseur l'a désigné. */
-export interface PsyClan extends Clan {
-  trait: string;
+/** Côté psychologue : le curseur et le pôle qui désignent l'archétype (GET /backoffice/game/catalog). */
+export interface PsyArchetypeInfo extends Archetype {
+  /** Null pour l'archétype équilibré, qu'aucun curseur ne désigne. */
+  trait: string | null;
+  pole: 'low' | 'high' | 'balanced';
+  /** « Réservé ↔ Sociable » ; null pour l'archétype équilibré. */
+  trait_label: string | null;
+  /** « Sociable », ou « Entre les deux » pour l'archétype équilibré. */
+  pole_label: string;
+}
+
+/** Archétype d'un jeune pour la psychologue, avec la valeur du curseur qui l'a désigné. */
+export interface PsyArchetype extends PsyArchetypeInfo {
+  /** Valeur brute de 0 à 100 du curseur ; null pour l'archétype équilibré. */
+  value: number | null;
 }
 
 /** Un curseur à un seul pôle n'apparaît au jeune que comme point fort (valeur de 50 ou plus). */
@@ -161,9 +180,12 @@ export interface RunResult {
   progress: Progress;
   leveled_up: boolean;
   new_badges: Badge[];
-  clan: Clan | null;
-  /** Clan d'avant quand cette partie l'a fait changer (il suit l'intérêt le plus fort), sinon null. */
-  previous_clan?: Clan | null;
+  archetype: Archetype | null;
+  /**
+   * Archétype d'avant quand cette partie l'a fait changer (il suit le trait de caractère le plus
+   * marqué), sinon null, comme pour le résultat redemandé d'une partie déjà terminée.
+   */
+  previous_archetype?: Archetype | null;
   highlights: YouthTrait[];
   /**
    * Jeux chronométrés : les réussites du jeune seulement (record, séries, meilleure série,
@@ -215,7 +237,7 @@ export interface SheetTalent {
 }
 
 export interface CharacterSheet {
-  identity: { display_name: string; clan: Clan | null };
+  identity: { display_name: string; archetype: Archetype | null };
   progress: Progress;
   facts: GameFact[];
   attributes: SheetAttribute[];
@@ -337,7 +359,8 @@ export interface GameEvent {
 export interface PsyOverview {
   youth: { id: string; display_name: string };
   progress: { xp: number; level: number; level_title: string };
-  clan: PsyClan | null;
+  /** Null tant qu'aucun curseur de caractère n'a de valeur. */
+  archetype: PsyArchetype | null;
   cursor_groups: { id: string; label: string; cursors: PsyCursor[] }[];
   /** Tous les détails, y compris ceux que le jeune a masqués de sa fiche. */
   facts: GameFact[];

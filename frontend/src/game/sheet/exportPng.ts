@@ -4,10 +4,10 @@
  * Les détails masqués par le jeune ne figurent jamais sur l'image.
  */
 import { fr } from '../../content/fr';
-import type { CharacterSheet, GameFact } from '../types';
+import type { Archetype, CharacterSheet, GameFact } from '../types';
 import { isColorFact, swatchFor } from './colors';
 import { orderFacts } from './facts';
-import { CREST_INNER, CREST_SHIELD, glyphFor, sealPath, type GlyphPath } from './glyphs';
+import { glyphFor, sealPath, type GlyphPath } from './glyphs';
 import { quote, sheetFr, typo } from './sheet.fr';
 
 // Portrait, de 1080 x 1350 à environ 1080 x 1930 selon ce que la fiche contient.
@@ -26,6 +26,7 @@ const FONTS = {
   heading: (size: number, weight = 800) => `${weight} ${size}px "Baloo 2", sans-serif`,
   body: (size: number, weight = 600) => `${weight} ${size}px Figtree, sans-serif`,
   mono: (size: number, weight = 500) => `${weight} ${size}px "DM Mono", monospace`,
+  emoji: (size: number) => `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`,
 };
 
 interface Palette {
@@ -43,6 +44,7 @@ interface Palette {
   talentText: string;
   talentStar: string;
   onAccent: string;
+  peach: string;
   paper: string;
   line: string;
   softLine: string;
@@ -82,6 +84,7 @@ function readPalette(): Palette {
     talentText: token('--color-talent-text'),
     talentStar: token('--color-talent-star'),
     onAccent: token('--color-on-accent'),
+    peach: token('--color-peach'),
     paper: mix(surface, muted, 0.78),
     line: mix(text, surface, 0.3),
     softLine: mix(text, surface, 0.16),
@@ -235,36 +238,81 @@ function drawPaper(ctx: CanvasRenderingContext2D, p: Palette, height: number) {
   }
 }
 
-function drawHeader(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterSheet) {
-  const clan = sheet.identity.clan;
-  const crestX = MARGIN;
-  const crestY = 120;
-  const scale = 2.4;
+/** Même badge que ArchetypeBadge : double anneau abricot, médaillon crème, emoji ou « ? ». */
+function drawArchetypeBadge(
+  ctx: CanvasRenderingContext2D,
+  p: Palette,
+  cx: number,
+  cy: number,
+  radius: number,
+  archetype: Archetype | null,
+) {
+  const ring = archetype ? p.peach : p.border;
+  const circle = (r: number) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  };
   ctx.save();
-  ctx.translate(crestX, crestY);
-  ctx.scale(scale, scale);
-  const shield = new Path2D(CREST_SHIELD);
-  ctx.fillStyle = p.accentSoft;
-  ctx.fill(shield);
+  circle(radius);
+  ctx.fillStyle = ring;
+  ctx.fill();
+  ctx.lineWidth = radius * 0.028;
   ctx.strokeStyle = p.text;
-  ctx.lineWidth = 2.2;
-  ctx.lineJoin = 'round';
-  ctx.stroke(shield);
-  ctx.strokeStyle = p.accent;
-  ctx.lineWidth = 1.8;
-  ctx.lineCap = 'round';
-  ctx.setLineDash([0.1, 3.4]);
-  ctx.stroke(new Path2D(CREST_INNER));
-  ctx.restore();
-  if (clan) {
-    drawPaths(ctx, glyphFor(clan.icon), crestX + 17.6 * scale, crestY + 19.6 * scale, scale * 1.2, p.text, 1.7);
+  ctx.stroke();
+  const inner = radius * 0.85;
+  circle(inner);
+  ctx.fillStyle = p.bg;
+  ctx.fill();
+  circle(inner - radius * 0.09 - radius * 0.022);
+  ctx.lineWidth = radius * 0.044;
+  ctx.strokeStyle = ring;
+  if (!archetype) ctx.setLineDash([radius * 0.08, radius * 0.06]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  if (archetype) {
+    ctx.font = FONTS.emoji(Math.round(radius * 0.88));
+    ctx.fillStyle = p.text;
+    ctx.fillText(archetype.emoji, cx, cy + radius * 0.04);
   } else {
-    ctx.font = FONTS.heading(64);
+    ctx.font = FONTS.heading(Math.round(radius * 0.8));
     ctx.fillStyle = p.textMuted;
-    ctx.textAlign = 'center';
-    ctx.fillText('?', crestX + 32 * scale, crestY + 45 * scale);
-    ctx.textAlign = 'left';
+    ctx.fillText('?', cx, cy + radius * 0.06);
   }
+  ctx.restore();
+}
+
+const QUALITY_FONT = FONTS.body(22, 600);
+
+function qualityWidth(ctx: CanvasRenderingContext2D, text: string) {
+  ctx.save();
+  ctx.font = QUALITY_FONT;
+  const width = ctx.measureText(text).width + 32;
+  ctx.restore();
+  return width;
+}
+
+/** Pastille de la qualité de l'archétype (« Sociable »), posée sur la ligne de base du nom. */
+function drawQuality(ctx: CanvasRenderingContext2D, p: Palette, text: string, x: number, baseline: number) {
+  const width = qualityWidth(ctx, text);
+  ctx.save();
+  ctx.font = QUALITY_FONT;
+  ctx.fillStyle = p.accentSoft;
+  ctx.strokeStyle = p.accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, baseline - 28, width, 38, 19);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = p.accentText;
+  ctx.fillText(text, x + 16, baseline - 1);
+  ctx.restore();
+}
+
+function drawHeader(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterSheet) {
+  const { archetype } = sheet.identity;
+  drawArchetypeBadge(ctx, p, MARGIN + 86, 216, 86, archetype);
 
   const x = 300;
   const width = WIDTH - MARGIN - x;
@@ -274,11 +322,26 @@ function drawHeader(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterS
   ctx.font = FONTS.heading(88);
   ctx.fillStyle = p.text;
   ctx.fillText(wrap(ctx, sheet.identity.display_name, width, 1)[0], x, 244);
+  // « ARCHÉTYPE » en petites capitales, puis le nom et sa qualité, comme sur la fiche.
+  const gap = 18;
+  const label = sheetFr.hero.archetype.toUpperCase();
+  ctx.font = FONTS.mono(20);
+  ctx.fillStyle = p.textMuted;
+  ctx.fillText(label, x, 298);
+  const nameX = x + ctx.measureText(label).width + gap;
   ctx.font = FONTS.heading(38, 700);
-  ctx.fillText(clan ? typo(clan.name) : `${sheetFr.hero.clan} ${sheetFr.hero.noClan}`, x, 300);
+  ctx.fillStyle = p.text;
+  if (archetype) {
+    const room = WIDTH - MARGIN - nameX - qualityWidth(ctx, archetype.quality) - gap;
+    const name = wrap(ctx, typo(archetype.name), room, 1)[0];
+    ctx.fillText(name, nameX, 300);
+    drawQuality(ctx, p, archetype.quality, nameX + ctx.measureText(name).width + gap, 300);
+  } else {
+    ctx.fillText(sheetFr.hero.noArchetype, nameX, 300);
+  }
   ctx.font = FONTS.body(27, 400);
   ctx.fillStyle = p.textMuted;
-  const motto = clan ? quote(typo(clan.motto)) : sheetFr.hero.noClanHint;
+  const motto = archetype ? quote(typo(archetype.motto)) : sheetFr.hero.noArchetypeHint;
   wrap(ctx, motto, width, 2).forEach((text, index) => ctx.fillText(text, x, 344 + index * 36));
 }
 

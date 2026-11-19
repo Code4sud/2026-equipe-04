@@ -290,6 +290,28 @@
   line-height: var(--leading-snug);
 }
 
+/* Archétype : petit badge à côté du nom, et l'explication sous les deux. */
+.bog-archetype {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.bog-summary__archetype .bog-archetype {
+  margin-block: var(--space-1);
+}
+
+.bog-archetype__emoji {
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+@media (min-width: 48rem) {
+  .bog-summary__archetype {
+    grid-column: span 2;
+  }
+}
+
 .bog-section > .bog-facts-block {
   margin-top: var(--space-5);
 }

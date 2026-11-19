@@ -1,6 +1,7 @@
-import type { PsyClan, PsyCursor, PsyRun } from '../types';
+import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
+import type { PsyArchetype, PsyCursor, PsyRun } from '../types';
 import { bo } from './backoffice.fr';
-import { cursorName, formatLongDate, headlineText, lowerFirst } from './format';
+import { formatLongDate, formatPercent, headlineText, lowerFirst } from './format';
 import { Flag } from './parts';
 
 /**
@@ -56,14 +57,27 @@ function latestActivity(runs: PsyRun[]): string | null {
   return latest;
 }
 
+/**
+ * D'après quoi l'archétype a été attribué : le titre du curseur qui l'a désigné (« 72 % sociable »),
+ * repris du tableau des curseurs pour dire exactement la même chose, ou recalculé de sa valeur.
+ */
+function archetypeBasis(archetype: PsyArchetype, cursors: PsyCursor[]): string {
+  const t = bo.summary;
+  if (archetype.pole === 'balanced' || archetype.value === null) return t.archetypeBalanced;
+  const cursor = cursors.find((item) => item.id === archetype.trait);
+  const percent = archetype.pole === 'low' ? 100 - archetype.value : archetype.value;
+  const headline = (cursor && headlineText(cursor)) ?? `${formatPercent(percent)} ${lowerFirst(archetype.pole_label)}`;
+  return t.archetypeBasis(headline);
+}
+
 export function Summary({
-  clan,
+  archetype,
   progress,
   runs,
   cursors,
   facts,
 }: {
-  clan: PsyClan | null | undefined;
+  archetype: PsyArchetype | null | undefined;
   progress: { xp: number; level: number; level_title: string } | undefined;
   runs: PsyRun[];
   cursors: PsyCursor[];
@@ -73,18 +87,25 @@ export function Summary({
   const completed = runs.filter((run) => run.status === 'completed').length;
   const open = runs.length - completed;
   const last = latestActivity(runs);
-  const clanCursor = clan ? cursors.find((cursor) => cursor.id === clan.trait) : undefined;
-  const clanText = clanCursor ? (headlineText(clanCursor) ?? lowerFirst(cursorName(clanCursor))) : null;
 
   return (
     <section className="bog-section" aria-labelledby="bog-summary-title">
       <h3 id="bog-summary-title">{t.title}</h3>
       <dl className="bog-summary">
-        <div>
-          <dt>{t.clan}</dt>
+        <div className="bog-summary__archetype">
+          <dt>{t.archetype}</dt>
           <dd>
-            <strong>{clan?.name ?? t.noClan}</strong>
-            {clanText && <span className="bog-sub">{t.clanBasis(clanText)}</span>}
+            {archetype ? (
+              <>
+                <span className="bog-archetype">
+                  <ArchetypeBadge archetype={archetype} size="small" />
+                  <strong>{archetype.name}</strong>
+                </span>
+                <span className="bog-sub">{archetypeBasis(archetype, cursors)}</span>
+              </>
+            ) : (
+              <strong>{t.noArchetype}</strong>
+            )}
           </dd>
         </div>
         <div>

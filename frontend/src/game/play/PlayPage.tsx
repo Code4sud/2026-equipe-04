@@ -76,7 +76,7 @@ export default function PlayPage() {
   if (!found) return <Loading />;
 
   const { game, shared } = found;
-  // Le quiz d’arrivée a son propre écran (consentement, chapitres, clan).
+  // Le quiz d’arrivée a son propre écran (consentement, chapitres, archétype).
   if (game.id === QUIZ_ID) return <Navigate to={QUIZ_PATH} replace />;
   if (game.locked) {
     return (

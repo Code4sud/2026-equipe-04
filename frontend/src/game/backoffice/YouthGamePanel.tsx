@@ -124,7 +124,7 @@ function Panel({ youthId }: { youthId: string }) {
         <MethodContext value={method}>
           <YouthReactions cursors={cursors} facts={facts} events={events} runs={runsById} />
           <Summary
-            clan={overview.clan}
+            archetype={overview.archetype}
             progress={overview.progress}
             runs={runs}
             cursors={cursors}
