@@ -38,11 +38,11 @@
       "je ne fais rien"
     ],
     "reponses": [
-      "Tu peux passer si tu veux. Sinon, t'as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?",
-      "Ok, on part d'hier alors. T'as fait quoi entre ton réveil et midi ?",
+      "Tu peux passer si tu veux. Sinon, t’as déjà réparé, organisé ou appris un truc tout seul, même tout petit ?",
+      "Ok, on part d’hier alors. T’as fait quoi entre ton réveil et midi ?",
       "Pas de souci. Y a un jeu, une série ou un sport sur lequel tu passes du temps ?",
-      "Pas besoin d'une grande histoire. La dernière fois qu'on t'a demandé un coup de main, c'était pour quoi ?",
-      "On y va tranquille. Tu fais quoi quand tu t'ennuies ?"
+      "Pas besoin d’une grande histoire. La dernière fois qu’on t’a demandé un coup de main, c’était pour quoi ?",
+      "On y va tranquille. Tu fais quoi quand tu t’ennuies ?"
     ],
     "messages_passifs": [
       "dors",
@@ -74,17 +74,17 @@
       "ca va et toi"
     ],
     "reponses": [
-      "Salut ! Ça fait plaisir. C'est quoi le dernier truc que t'as fait aujourd'hui, même tout bête ?",
-      "Hey ! On reprend tranquille. Qu'est-ce qui t'a occupé ces derniers jours ?",
+      "Salut ! Ça fait plaisir. C’est quoi le dernier truc que t’as fait aujourd’hui, même tout bête ?",
+      "Hey ! On reprend tranquille. Qu’est-ce qui t’a occupé ces derniers jours ?",
       "Salut toi. Raconte-moi un moment de ta semaine, même un tout petit."
     ]
   },
   "rebonds": [
     "Ça marche. Raconte-moi un autre truc que tu fais souvent, même sans y penser.",
-    "Ok. Et quand un pote a besoin d'un coup de main, il vient te voir pour quoi ?",
+    "Ok. Et quand un pote a besoin d’un coup de main, il vient te voir pour quoi ?",
     "Je vois. Y a un truc que tu fais mieux que les gens autour de toi, même un détail ?",
-    "D'accord. C'est quoi la dernière chose que t'as apprise tout seul, sur un écran ou ailleurs ?",
-    "Ça me va. Si tu devais montrer un truc à quelqu'un demain, ce serait quoi ?",
+    "D’accord. C’est quoi la dernière chose que t’as apprise tout seul, sur un écran ou ailleurs ?",
+    "Ça me va. Si tu devais montrer un truc à quelqu’un demain, ce serait quoi ?",
     "On peut changer de sujet si tu veux. Tu passes du temps sur quoi quand personne ne te demande rien ?"
   ],
   "identite": {
@@ -104,32 +104,32 @@
       "chat gpt",
       "un bot"
     ],
-    "reponse": "Moi c'est Néo, une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu'est-ce qui t'occupe en ce moment ?"
+    "reponse": "Moi c’est Néo, une intelligence artificielle, pas une vraie personne. Je suis là pour discuter de ce que tu fais au quotidien, sans te juger. Qu’est-ce qui t’occupe en ce moment ?"
   },
   "tours": {
     "revelation_tous_les": 3,
     "mots_minimum_revelation": 8,
-    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu'elle vient d'écrire, sans rien ajouter ni supposer, puis {angle} Une seule question courte, avec tes propres mots, différente de celles déjà posées. Ne parle ni de compétences, ni d'avenir.",
+    "ecoute": "Pour cette réponse : reprends en quelques mots ce qu’elle vient d’écrire, sans rien ajouter ni supposer, puis {angle} Une seule question courte, avec tes propres mots, différente de celles déjà posées. Ne parle ni de compétences, ni d’avenir.",
     "formules_revelation": [
-      "Attends, je crois que j'ai trouvé un talent. Quand tu dis « {citation} », je vois quelqu'un qui sait {savoir_faire}. Tu te reconnais là-dedans ?",
+      "Attends, je crois que j’ai trouvé un talent. Quand tu dis « {citation} », je vois quelqu’un qui sait {savoir_faire}. Tu te reconnais là-dedans ?",
       "Tiens, un talent sur la route : « {citation} », ça veut dire que tu sais {savoir_faire}. Tu te reconnais là-dedans ?",
-      "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C'est toi, ça ?"
+      "Encore un pour ta carte : quand tu dis « {citation} », ça montre que tu sais {savoir_faire}. C’est toi, ça ?"
     ],
     "angles_ecoute": [
-      "demande-lui comment ça s'est passé concrètement.",
+      "demande-lui comment ça s’est passé concrètement.",
       "demande-lui ce qui a été le plus compliqué.",
       "demande-lui comment elle a appris à faire ça.",
-      "demande-lui un exemple précis, une fois où ça s'est passé.",
-      "demande-lui ce qu'elle fait quand ça ne marche pas.",
-      "demande-lui si quelqu'un compte sur elle pour ça."
+      "demande-lui un exemple précis, une fois où ça s’est passé.",
+      "demande-lui ce qu’elle fait quand ça ne marche pas.",
+      "demande-lui si quelqu’un compte sur elle pour ça."
     ],
     "pistes_question": [
       "pour qui ou pour quoi la personne fait cela",
-      "une décision qu'elle prend dans cette situation",
-      "ce qu'elle fait quand ça coince",
+      "une décision qu’elle prend dans cette situation",
+      "ce qu’elle fait quand ça coince",
       "comment elle a appris à le faire",
       "ce à quoi elle doit faire attention",
-      "ce que les autres lui demandent ou attendent d'elle"
+      "ce que les autres lui demandent ou attendent d’elle"
     ],
     "questions_passe_partout": [
       "comment tu t y prends",
@@ -176,14 +176,14 @@
       "sers a rien"
     ],
     "avec_citation": [
-      "Je ne suis pas d'accord avec toi : « {citation} », ça compte vraiment. C'était quoi le plus dur là-dedans ?",
-      "Tu en as plus que tu ne crois. Rien que « {citation} », ça ne vient pas tout seul. Qu'est-ce que tu as dû gérer ?",
-      "On passe tous à côté de ce qu'on sait faire. Toi, tu m'as dit « {citation} » : qu'est-ce que ça t'a appris ?"
+      "Je ne suis pas d’accord avec toi : « {citation} », ça compte vraiment. C’était quoi le plus dur là-dedans ?",
+      "Tu en as plus que tu ne crois. Rien que « {citation} », ça ne vient pas tout seul. Qu’est-ce que tu as dû gérer ?",
+      "On passe tous à côté de ce qu’on sait faire. Toi, tu m’as dit « {citation} » : qu’est-ce que ça t’a appris ?"
     ],
     "sans_citation": [
       "Tu en as sûrement plus que tu ne crois, et on va les trouver ensemble. Raconte-moi un truc que tu as fait cette semaine, même tout petit.",
-      "Personne ne part de zéro, toi non plus. Tes potes viennent te demander quoi, quand ils ont besoin d'un coup de main ?",
-      "On passe tous à côté de ce qu'on sait faire. La dernière fois qu'on t'a dit merci, c'était pour quoi ?"
+      "Personne ne part de zéro, toi non plus. Tes potes viennent te demander quoi, quand ils ont besoin d’un coup de main ?",
+      "On passe tous à côté de ce qu’on sait faire. La dernière fois qu’on t’a dit merci, c’était pour quoi ?"
     ]
   },
   "phrases_interdites": [

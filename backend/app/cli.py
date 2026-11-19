@@ -25,7 +25,9 @@ def _create_user(email: str, name: str, password: str, role: Role) -> User:
         role=role,
     )
     if role == Role.YOUTH:
-        user.youth_profile = YouthProfile()
+        # Comme à l'inscription : un compte jeune vaut accord de partage avec le Centre.
+        now = utcnow()
+        user.youth_profile = YouthProfile(share_transcripts=True, share_updated_at=now, consent_at=now)
     db.session.add(user)
     db.session.flush()
     return user
@@ -38,9 +40,6 @@ def _exists(email: str) -> bool:
 def _seed_youth(data: dict, email: str, password: str) -> None:
     user = _create_user(email, data["display_name"], password, Role.YOUTH)
     now = utcnow()
-    user.youth_profile.share_transcripts = True
-    user.youth_profile.share_updated_at = now
-    user.youth_profile.consent_at = now
 
     conversation_id = uuid.uuid4()
     key = transcript_key(user.id, conversation_id)

@@ -120,7 +120,7 @@ export const fr = {
     intro: 'Ici, c’est toi qui gardes la main.',
     shareTitle: 'Ton parcours est partagé avec le Centre des Possibles',
     shareHint: (date: string | null) =>
-      `${date ? `Accord donné le ${date}. ` : ''}Sa psychologue voit tes discussions, tes réponses aux jeux, tes talents et tes choix. Pour retirer ton accord, parles-en avec elle.`,
+      `${date ? `Accord donné le ${date.replace(/\.$/, '')}. ` : ''}Sa psychologue voit tes discussions, tes réponses aux jeux, tes talents et tes choix. Pour retirer ton accord, parles-en avec elle.`,
   },
   backoffice: {
     product: 'Pro',
@@ -153,6 +153,7 @@ export const fr = {
       rejected: 'retiré par le jeune',
       renamed: 'renommé par le jeune',
     },
+    noQuote: 'Sans extrait de discussion',
     renamedFrom: (name: string) => `avant : « ${name} »`,
     noTalents: 'Aucun talent pour le moment.',
     discussHint: 'Les talents marqués « À discuter » ont été retirés, renommés ou ajoutés par le jeune.',

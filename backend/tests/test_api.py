@@ -259,8 +259,8 @@ def test_skill_is_revealed_every_third_turn_with_the_youth_exact_words(client, y
     llm.reveal = {"citation": "RÈGLE aussi les freins", "savoir_faire": "Entretenir un vélo."}
     reply = reveal_reply(client, youth)
     assert reply == (
-        "Attends, je crois que j'ai trouvé un talent. Quand tu dis « règle aussi les freins », "
-        "je vois quelqu'un qui sait entretenir un vélo. Tu te reconnais là-dedans ?"
+        "Attends, je crois que j’ai trouvé un talent. Quand tu dis « règle aussi les freins », "
+        "je vois quelqu’un qui sait entretenir un vélo. Tu te reconnais là-dedans ?"
     )
     assert len(llm.reveal_calls) == 1
     assert len(llm.chat_calls) == 2
@@ -548,3 +548,12 @@ def test_revealed_talent_is_pinned_right_away_and_shown_to_the_psychologist(clie
     pinned = detail["skills"][0]
     assert [event["action"] for event in pinned["history"]] == ["proposed"]
     assert pinned["to_discuss"] is False
+
+
+def test_nul_character_is_refused_without_a_server_error(client, youth):
+    added = client.post("/api/me/skills", json={"name": "Cui\x00siner"}, headers=youth)
+    assert added.status_code == 400
+    kept = client.post("/api/me/skills", json={"name": "Cuisiner", "description": "le\x00 soir"}, headers=youth)
+    assert kept.status_code == 201 and kept.get_json()["skill"]["description"] == "le soir"
+    login = client.post("/api/auth/login", json={"email": "a\x00@b.fr", "password": "x"})
+    assert login.status_code == 401

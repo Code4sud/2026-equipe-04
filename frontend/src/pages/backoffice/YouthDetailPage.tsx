@@ -23,7 +23,7 @@ function TalentRow({ talent }: { talent: TrackedSkill }) {
         </span>
         {talent.to_discuss && <span className="status status--waiting flag">{t.toDiscuss}</span>}
       </th>
-      <td className="table__quote">{talent.quote ? `« ${talent.quote} »` : talent.description || '—'}</td>
+      <td className="table__quote">{talent.quote ? `« ${talent.quote} »` : talent.description || <span className="muted">{t.noQuote}</span>}</td>
       <td>
         <span className={STATUS_CLASS[talent.status]}>
           {talent.status === 'validated' && <CheckIcon />}
@@ -35,7 +35,7 @@ function TalentRow({ talent }: { talent: TrackedSkill }) {
         <ol className="history">
           {talent.history.map((event, index) => (
             <li key={index}>
-              <span className="mono">{formatDay(event.at)}</span> {t.events[event.action]}
+              <span className="mono">{formatDateTime(event.at)}</span> {t.events[event.action]}
               {event.previous_name && <span className="muted"> · {t.renamedFrom(event.previous_name)}</span>}
             </li>
           ))}
