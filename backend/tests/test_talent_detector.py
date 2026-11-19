@@ -187,3 +187,26 @@ def test_revealed_talent_gets_a_real_category(app, client, youth):
         )
         assert told.category == "communication"
         assert guessed.category == "apprentissage"
+
+
+def test_messages_written_during_an_analysis_are_read_right_after(app, client, youth):
+    from conftest import send
+
+    conversation_id = client.post("/api/conversations", headers=youth).get_json()["conversation"]["id"]
+    send(client, youth, conversation_id, "j'ai aidé à réparer la voiture du voisin")
+    extraction = app.extensions["extraction"]
+    seen: list[list[str]] = []
+    original = extraction.detector.detect
+
+    def detect(messages, known=None):
+        seen.append([m["content"] for m in messages])
+        if len(seen) == 1:
+            # Le jeune écrit pendant que l'analyse tourne.
+            app.extensions["chat"].append_message(
+                __import__("uuid").UUID(conversation_id), "user", "je regarde des tutos sur YouTube"
+            )
+        return original(messages, known)
+
+    extraction.detector.detect = detect
+    assert client.post("/api/me/skills/refresh", headers=youth).status_code == 200
+    assert seen == [["j'ai aidé à réparer la voiture du voisin"], ["je regarde des tutos sur YouTube"]]

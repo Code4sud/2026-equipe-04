@@ -94,6 +94,12 @@ class ExtractionService:
                     update(Conversation).where(Conversation.id == conversation_id).values(**values)
                 )
                 db.session.commit()
+            if processed is not None:
+                # Le jeune a pu écrire pendant l'analyse : on lit tout de suite la suite, sinon
+                # ces messages attendraient le prochain message ou l'ouverture de l'écran.
+                conversation = db.session.get(Conversation, conversation_id)
+                if conversation is not None and conversation.unprocessed_messages > 0:
+                    self.schedule(conversation)
 
     def _extract(self, conversation_id: uuid.UUID) -> int:
         conversation = db.session.get(Conversation, conversation_id)
