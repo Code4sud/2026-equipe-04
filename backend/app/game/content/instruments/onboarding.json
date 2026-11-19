@@ -130,7 +130,7 @@
     {
       "id": "reveil_chaine", "type": "choice", "chapter": "reveil",
       "prompt": "Un·e pote t’écrit : « Je lance ma chaîne vidéo, tu m’aides ? »",
-      "source": { "source_id": "holland_riasec", "ref": "Types A et E", "original": "Artistic / Enterprising", "relation": "inspired" },
+      "source": { "source_id": "holland_riasec", "ref": "Types A et E ; intérêt numérique : indicateur maison", "original": "Artistic / Enterprising", "relation": "inspired" },
       "options": [
         { "id": "a", "label": "Je m’occupe du montage et des visuels", "emoji": "🎬", "signals": [{ "trait": "riasec_a", "value": 85 }, { "trait": "riasec_e", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
         { "id": "b", "label": "Je m’occupe de la faire connaître partout", "emoji": "📢", "signals": [{ "trait": "riasec_e", "value": 85 }, { "trait": "riasec_a", "value": 35 }, { "trait": "interest_digital", "value": 60, "weight": 0.5, "tier": "custom" }] },
@@ -174,7 +174,7 @@
     {
       "id": "route_velo", "type": "choice", "chapter": "route",
       "prompt": "Le vélo d’un·e pote fait un bruit bizarre en roulant.",
-      "source": { "source_id": "holland_riasec", "ref": "Types R et I", "original": "Realistic / Investigative", "relation": "inspired" },
+      "source": { "source_id": "holland_riasec", "ref": "Types R et I ; intérêt numérique : indicateur maison", "original": "Realistic / Investigative", "relation": "inspired" },
       "options": [
         { "id": "a", "label": "Je mets les mains dedans et je bricole jusqu’à ce que ça roule", "emoji": "🔧", "signals": [{ "trait": "riasec_r", "value": 90 }, { "trait": "riasec_i", "value": 35 }] },
         { "id": "b", "label": "Je mène l’enquête pour trouver d’où vient le bruit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 90 }, { "trait": "riasec_r", "value": 35 }] },
@@ -424,7 +424,7 @@
     {
       "id": "soir_telephone", "type": "choice", "chapter": "soir",
       "prompt": "Ton téléphone rame et sa mémoire est pleine.",
-      "source": { "source_id": "holland_riasec", "ref": "Types I et C", "original": "Investigative / Conventional", "relation": "inspired" },
+      "source": { "source_id": "holland_riasec", "ref": "Types I et C ; intérêt numérique : indicateur maison", "original": "Investigative / Conventional", "relation": "inspired" },
       "options": [
         { "id": "a", "label": "Je fouille les réglages pour comprendre ce qui le ralentit", "emoji": "🔍", "signals": [{ "trait": "riasec_i", "value": 85 }, { "trait": "riasec_c", "value": 35 }, { "trait": "interest_digital", "value": 75, "weight": 0.5, "tier": "custom" }] },
         { "id": "b", "label": "Je fais le grand tri : photos, applis, dossiers, tout est rangé", "emoji": "🗃️", "signals": [{ "trait": "riasec_c", "value": 85 }, { "trait": "riasec_i", "value": 35 }] },

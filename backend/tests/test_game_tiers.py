@@ -170,6 +170,14 @@ def test_quiz_digital_signals_are_marked_as_in_house(catalog):
     assert all("tier" not in s for s in signals if s["trait"] != "interest_digital")
 
 
+def test_quiz_sources_name_the_in_house_digital_indicator(catalog):
+    # La source d'une situation ne doit pas laisser croire que Holland fonde l'intérêt numérique.
+    for item in catalog.instruments["onboarding"]["items"]:
+        traits = {s["trait"] for o in item.get("options", []) for s in o.get("signals", [])}
+        if "interest_digital" in traits:
+            assert "intérêt numérique : indicateur maison" in item["source"]["ref"], item["id"]
+
+
 def test_psychologist_sees_the_in_house_label_on_quiz_digital_signals(client, youth, psychologist):
     run_id = client.post("/api/me/game/instruments/onboarding/runs", headers=youth).get_json()["run"]["id"]
     response = client.put(
