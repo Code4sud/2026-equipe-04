@@ -3,10 +3,20 @@
 ## Parcours
 
 1. À la création du compte, le jeune accepte que ses données soient transmises au Centre des Possibles et à sa psychologue (formulaire d'inscription, hors de ce module).
-2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions en chapitres. Il peut passer une question ou continuer plus tard.
+2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions dans un ordre tiré au hasard, par séries de 10 (voir « Quiz d'arrivée » ci-dessous). Il peut passer une question ou continuer plus tard.
 3. Le quiz révèle son archétype, un badge tiré de son trait de caractère le plus marqué (voir « Archétype »), et débloque les jeux de `/jeune/jeux`. L'archétype est recalculé avec toutes ses réponses : si une partie le fait changer, son résultat l'annonce (`previous_archetype` dans la réponse de fin de partie) et la fiche rappelle qu'il peut évoluer au fil des jeux et des talents gardés.
 4. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur ce que chaque curseur affiche. Si un curseur bipolaire change de pôle ensuite, son ancien verdict ne s'affiche plus et il peut juger le nouveau.
 5. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, ainsi que chaque modification du jeune (détail corrigé avec sa réponse d'origine, détail masqué ou remontré, verdict donné, changé ou retiré avec ce qu'il jugeait, réponse changée ou retirée), pour pouvoir en parler avec lui.
+
+### Quiz d'arrivée
+
+- **Ordre.** Chaque partie tire son ordre : un mélange de Fisher-Yates dont la graine est l'identifiant de la partie (`frontend/src/game/seededShuffle.ts`, option `shuffle` de `useRunPlayer`). Une reprise, dans un autre onglet ou sur un autre appareil, suit donc le même ordre. Une question répondue n'est jamais reposée ; une question passée ne revient que dans la revue de fin. Aucun énoncé ne parle de sa place dans le quiz (`tests/test_game_onboarding.py`).
+- **Chapitres.** Ils restent dans le contenu, à la suite : la partie vue par la psychologue range les réponses dans l'ordre du contenu, chapitre par chapitre. Le jeune ne les voit plus.
+- **Séries.** Les questions viennent par séries de 10 (`SERIES_SIZE`, `frontend/src/game/quiz/quizLogic.ts`). L'écran de question montre un point par question de la série et le total (« 23 réponses sur 50 »). Après 10 questions vues dans la séance (répondues ou passées), s'il en reste de jamais vues, Truffe propose « 10 de plus ! » (« Les 7 dernières ! » en fin de quiz) ou « Je reprends plus tard », qui met la partie en pause et ouvre `/jeune/jeux`. Cet écran montre l'XP gagnée pendant le quiz, les questions restantes et le badge d'archétype encore caché derrière son « ? » : l'archétype reste une surprise jusqu'à la révélation.
+- **Séances.** Chaque ouverture du quiz commence une séance : le compte des séries repart de zéro, et l'écran de reprise annonce les réponses déjà données et une nouvelle série de 10 questions jamais vues. Quand toutes les questions ont été vues, la fin ne change pas : revue des questions passées s'il manque des réponses (`min_answers`), puis « Tu as fait le tour ! » et la révélation.
+- **Pause.** « Continuer plus tard » reste sur chaque question. Tant que le quiz n'est ni terminé ni en pause, `OnboardingGate` renvoie au quiz (`must_onboard`) : la première séance d'un nouveau jeune est donc sa première série, puis le choix. Ouvrir le quiz lève la pause.
+- **Temps de réponse.** `response_ms` ne compte ni l'accueil, ni la reprise, ni la fin de série (`markShown` en quittant ces écrans). Sur la fin de série, un appui reçu juste après l'affichage, fin d'un double appui sur la dernière réponse, est ignoré.
+- **Hub et fiche.** Tant que le quiz n'est pas terminé, ils y invitent ; dès la première réponse, avec le nombre de réponses déjà données (« 10 réponses sur 50 ») et « Continuer ».
 
 ## Garde-fous
 
