@@ -58,11 +58,11 @@ Le frontend de développement tourne sur http://localhost:5173 et transmet `/api
 | Détresse, sujets sensibles et réponses relues | `backend/prompts/garde_fous.json`   |
 | Couleurs, typographie, espacements            | `frontend/src/styles/tokens.css`    |
 | Textes de l'interface                         | `frontend/src/content/fr.ts`        |
-| Animations de Néo selon les moments           | `frontend/src/mascot/clips.ts`      |
+| Animations de Truffe selon les moments           | `frontend/src/mascot/clips.ts`      |
 
 Les fichiers de `backend/prompts/` sont relus à chaque changement, sans redémarrage.
 
-Néo vient de `mascotte/neo.glb`. `./run.sh` reprend automatiquement sa dernière version ; à la main, lancez `npm run mascot` dans `frontend`.
+Truffe vient de `mascotte/neo.glb`. `./run.sh` reprend automatiquement sa dernière version ; à la main, lancez `npm run mascot` dans `frontend`.
 
 ```bash
 cd backend && .venv/bin/python -m pytest

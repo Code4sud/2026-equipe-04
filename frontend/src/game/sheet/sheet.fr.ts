@@ -63,9 +63,9 @@ export const sheetFr = {
   talents: {
     title: 'Talents',
     count: (count: number) => `${count} ${plural(count, 'gardé', 'gardés')}`,
-    intro: 'Repérés avec Néo ou ajoutés par toi.',
-    empty: 'Pas encore de talent gardé. Raconte un truc que t’as fait, même tout bête : Néo t’aide à repérer ce que tu sais faire.',
-    emptyCta: 'Raconter à Néo',
+    intro: 'Repérés avec Truffe ou ajoutés par toi.',
+    empty: 'Pas encore de talent gardé. Raconte un truc que t’as fait, même tout bête : Truffe t’aide à repérer ce que tu sais faire.',
+    emptyCta: 'Raconter à Truffe',
     pending: (count: number) =>
       `${count} ${plural(count, 'talent t’attend', 'talents t’attendent')} sur Ma carte`,
   },

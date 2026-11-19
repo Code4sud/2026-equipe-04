@@ -73,7 +73,7 @@ Augmenter `version` dès qu'une question est renommée, retirée, ou change de t
 | `translated` | Test validé, traduction maison non validée | Items d'un test validé, traduits par l'équipe sans étude de la traduction | 0,75 |
 | `adapted` | Inspiré de travaux publiés, non validé | Questions écrites par l'équipe à partir d'une théorie ou d'un test publiés | 0,5 |
 | `custom` | Indicateur maison | Indicateur créé pour le projet | 0,5 |
-| `talent` | Talent validé par le jeune | Talent repéré par Néo dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même sur sa carte n'a que la catégorie par défaut : il reste sur sa carte et dans le backoffice, mais ne compte ni dans les curseurs, ni dans l'XP, ni dans les badges | 0,25 |
+| `talent` | Talent validé par le jeune | Talent repéré par Truffe dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même sur sa carte n'a que la catégorie par défaut : il reste sur sa carte et dans le backoffice, mais ne compte ni dans les curseurs, ni dans l'XP, ni dans les badges | 0,25 |
 
 Une traduction maison d'un test validé prend le niveau `translated`, et `adaptation` dit qu'elle n'est pas validée. Citer une théorie (Holland, par exemple) justifie « inspiré de », jamais « test validé ».
 

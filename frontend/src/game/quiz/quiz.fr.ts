@@ -2,11 +2,11 @@
 const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
 
 export const quizFr = {
-  loading: 'Néo prépare tes questions…',
+  loading: 'Truffe prépare tes questions…',
   leave: 'Revenir plus tard',
   welcome: {
     kicker: 'Quiz d’arrivée',
-    title: 'Salut, moi c’est Néo !',
+    title: 'Salut, moi c’est Truffe !',
     intro:
       'Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton clan.',
     rulesLabel: 'Comment ça marche',
@@ -63,7 +63,7 @@ export const quizFr = {
     missing: (count: number) =>
       `Il me manque encore ${count} ${plural(count, 'réponse', 'réponses')} pour te révéler ton clan.`,
     reviewMissing: 'Reprendre les questions passées',
-    thinking: 'Néo rassemble tes réponses…',
+    thinking: 'Truffe rassemble tes réponses…',
   },
   reveal: {
     suspense: 'Roulement de tambour…',

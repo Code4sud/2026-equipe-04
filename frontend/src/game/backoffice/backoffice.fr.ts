@@ -40,7 +40,7 @@ export const bo = {
     translated: 'Items d’un test validé, traduits par l’équipe sans étude de la traduction.',
     adapted: 'Questions écrites par l’équipe à partir d’une théorie ou d’un test publiés, sans validation.',
     custom: 'Indicateur créé pour le projet.',
-    talent: 'Talent repéré par Néo dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même ne compte pas dans les curseurs.',
+    talent: 'Talent repéré par Truffe dans la discussion et gardé par le jeune. Un talent que le jeune ajoute lui-même ne compte pas dans les curseurs.',
   } satisfies Record<Tier, string>,
   weight: (value: string) => `poids ${value}`,
   kinds: {
@@ -165,7 +165,7 @@ export const bo = {
     weight: 'Poids',
     date: 'Date',
     runScore: 'Score global de la partie',
-    talentSource: 'Discussion avec Néo',
+    talentSource: 'Discussion avec Truffe',
     talent: (name: string) => `Talent\u00a0: ${name}`,
     talentHistory: 'Voir l’historique des talents plus haut.',
     position: (value: string) => `position ${value}/100`,
