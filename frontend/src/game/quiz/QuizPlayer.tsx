@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ErrorState } from '../../components/Feedback';
 import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
 import { frenchSpacing } from '../components/frenchSpacing';
+import { keepTogether } from '../components/keepTogether';
 import { QuestionCard } from '../components/QuestionCard';
 import type { AnswerValue } from '../types';
 import { isPending, useRunPlayer } from '../useRunPlayer';
@@ -213,7 +214,9 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <p className="quiz-kicker">{t.resume.kicker}</p>
         <ScreenTitle>{frenchSpacing(t.resume.title)}</ScreenTitle>
         <p className="quiz-bubble">
-          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, toReveal, SERIES_SIZE, toUnlock))}
+          {keepTogether(
+            frenchSpacing(t.resume.text(startedWith.answered, total, unseen, toReveal, SERIES_SIZE, toUnlock)),
+          )}
         </p>
         {pauseAlert}
         <div className="quiz-actions">
@@ -299,7 +302,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <NeoSlot mood="cheer" />
         <ScreenTitle>{frenchSpacing(t.series.title)}</ScreenTitle>
         <p className="quiz-bubble">
-          {frenchSpacing(unlocked ? t.series.unlockedText(next, last) : t.series.text)}
+          {keepTogether(frenchSpacing(unlocked ? t.series.unlockedText(next, last) : t.series.text))}
         </p>
         {unlocked && (
           <p className="quiz-unlocked">

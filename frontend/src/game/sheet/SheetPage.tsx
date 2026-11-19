@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
+import { keepTogether } from '../components/keepTogether';
 import { NeoAvatar } from '../neo/NeoAvatar';
 import { SERIES_SIZE } from '../quiz/quizLogic';
 import type { CharacterSheet, GameFact, GameStatus, InstrumentSummary, Verdict } from '../types';
@@ -63,7 +64,7 @@ function QuestCard({ quest, quiz }: { quest: Quest; quiz: InstrumentSummary | un
         {quest === 'quiz-resume' && quiz && (
           <p className="sheet-quest__count">{t.quest.quizProgress(quiz.answered, quiz.total)}</p>
         )}
-        <p>{unlock ? `${text} ${unlock}` : text}</p>
+        <p>{keepTogether(unlock ? `${text} ${unlock}` : text)}</p>
         {/* « Continuer » seul ne dit pas quoi : le lien du quiz renvoie au titre de la quête. */}
         <Link
           to={isQuiz ? '/jeune/quiz' : '/jeune/jeux'}

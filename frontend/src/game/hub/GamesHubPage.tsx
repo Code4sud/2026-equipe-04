@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
 import { frenchSpacing } from '../components/frenchSpacing';
+import { keepTogether } from '../components/keepTogether';
 import { SERIES_SIZE } from '../quiz/quizLogic';
 import type { Badge, GameStatus, InstrumentSummary } from '../types';
 import { gameEmoji } from './gameEmoji';
@@ -203,8 +204,10 @@ function QuizCallout({ quiz }: { quiz: InstrumentSummary }) {
           </>
         )}
         <p className="hub-quiz__hint">
-          {frenchSpacing(
-            `${started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} ${unlockHint(quiz, started)}`,
+          {keepTogether(
+            frenchSpacing(
+              `${started ? t.quiz.next(SERIES_SIZE) : t.quiz.format(quiz.total, SERIES_SIZE)} ${unlockHint(quiz, started)}`,
+            ),
           )}
         </p>
         {/* « Continuer » seul ne dit pas quoi : comme les cartes de jeu, le lien renvoie au titre. */}

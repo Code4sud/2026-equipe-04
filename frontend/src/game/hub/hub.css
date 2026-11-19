@@ -106,8 +106,10 @@
   background: var(--color-surface);
 }
 
+/* Comme la bulle du quiz : pas de mot seul (« mini-jeux. ») sur la dernière ligne. */
 .hub-quiz__hint {
   font-size: var(--text-sm);
+  text-wrap: pretty;
 }
 
 .hub-quiz__cta {
