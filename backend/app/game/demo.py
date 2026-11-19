@@ -55,7 +55,11 @@ def seed_youth_game(user: User, persona: dict) -> None:
     """Joue tous les jeux disponibles pour un jeune fictif, de façon reproductible."""
     rng = random.Random(f"{user.email}:game")
     game.set_consent(user, persona.get("share", True))
+    completed: set[str] = set()
     for instrument in game.catalog().ordered_instruments():
+        # Un jeu dont le prérequis manque au contenu (quiz pas encore livré) reste verrouillé.
+        if any(required not in completed for required in instrument.get("requires", [])):
+            continue
         payload, _ = game.start_run(user, instrument["id"])
         run_uuid = uuid.UUID(payload["run"]["id"])
         body = {}
@@ -72,4 +76,5 @@ def seed_youth_game(user: User, persona: dict) -> None:
                     {"value": value, "response_ms": rng.randint(1800, 9000)},
                 )
         game.complete_run(user, run_uuid, body)
+        completed.add(instrument["id"])
     db.session.commit()
