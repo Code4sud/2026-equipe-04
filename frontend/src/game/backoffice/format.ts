@@ -8,6 +8,8 @@ const numbers = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
 const seconds = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
 const shortDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' });
 const longDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+const clock = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 /** Même ordre que la force de la preuve. */
 export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custom', 'talent'];
@@ -30,6 +32,22 @@ export const formatNumber = (value: number) => numbers.format(value);
 export const formatPercent = (value: number) => `${Math.round(value)}${THIN}%`;
 export const formatShortDate = (value: string) => shortDate.format(new Date(value));
 export const formatLongDate = (value: string) => longDate.format(new Date(value));
+
+/** « 19 nov. », avec l'année seulement si ce n'est pas celle en cours. */
+export function formatDay(value: string, now = new Date()): string {
+  const date = new Date(value);
+  const sameYear = date.getFullYear() === now.getFullYear();
+  return dayMonth
+    .formatToParts(date)
+    .filter((part) => part.type === 'day' || part.type === 'month' || (part.type === 'year' && !sameYear))
+    .map((part) => part.value)
+    .join(' ');
+}
+
+/** « 19 nov. 10:42 » : date courte et heure d'une modification. */
+export function formatMoment(value: string, now = new Date()): string {
+  return `${formatDay(value, now)} ${clock.format(new Date(value))}`;
+}
 
 export function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}${THIN}ms`;
@@ -89,6 +107,11 @@ export function describeSignal(cursor: CursorPoles, value: number): string {
 export function headlineText(cursor: PsyCursor): string | null {
   if (!cursor.headline) return null;
   return `${formatPercent(cursor.headline.percent)} ${lowerFirst(cursor.headline.label)}`;
+}
+
+/** Désaccord actuel : un « Pas moi » donné avant un changement de pôle n'en est plus un. */
+export function disagreesNow(cursor: PsyCursor): boolean {
+  return cursor.verdict === 'disagree' && !cursor.verdict_detail?.stale;
 }
 
 export interface ScaleScore {

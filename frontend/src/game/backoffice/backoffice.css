@@ -171,6 +171,82 @@
   color: var(--color-text-muted);
 }
 
+.bog-reaction__items .bog-flag {
+  margin-left: var(--space-2);
+}
+
+/* Historique des modifications du jeune */
+.bog-history {
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.bog-history > * + * {
+  margin-top: var(--space-2);
+}
+
+.bog-history__head > * + * {
+  margin-top: var(--space-1);
+}
+
+.bog-history h4 {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.bog-events {
+  margin: 0;
+}
+
+.bog-event {
+  display: grid;
+  gap: 0 var(--space-4);
+  padding-block: var(--space-2);
+  border-top: var(--border-width) solid var(--color-border);
+  line-height: var(--leading-snug);
+}
+
+.bog-event:first-child {
+  border-top: 0;
+}
+
+/* Le style d'affichage l'emporte sur [hidden] : on garde les plus anciennes repliées. */
+.bog-event[hidden] {
+  display: none;
+}
+
+.bog-event__time {
+  padding-top: 0.0625rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.bog-event__body > * + * {
+  margin-top: 0.125rem;
+}
+
+.bog-event__action {
+  margin-right: var(--space-1);
+  color: var(--color-accent-text);
+  font-weight: var(--weight-bold);
+}
+
+.bog-event__title a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+
+.bog-event__new {
+  font-weight: var(--weight-semibold);
+}
+
+.bog-history .bog-toggle {
+  margin-top: 0;
+}
+
 /* Synthèse */
 .bog-summary {
   display: grid;
@@ -412,6 +488,17 @@
   padding-inline: 0;
   color: var(--color-text-muted);
   font-weight: var(--weight-normal);
+}
+
+/* Avis donné avant un changement de pôle : gardé pour la discussion, sans l'alerte d'un désaccord. */
+.bog-verdict--stale {
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.bog-verdict__detail {
+  margin-top: var(--space-1);
 }
 
 /* Tableaux */
@@ -944,6 +1031,10 @@
     grid-template-columns: 16rem minmax(0, 1fr);
   }
 
+  .bog-event {
+    grid-template-columns: 8rem minmax(0, 1fr);
+  }
+
   .bog-fact {
     grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr);
   }
@@ -994,6 +1085,10 @@
     display: table-row !important;
   }
 
+  .bog-event[hidden] {
+    display: grid !important;
+  }
+
   .card,
   .bog-reactions,
   .bog-summary > div,
@@ -1015,6 +1110,7 @@
   .bog-table > tbody > tr:not(.bog-detail-row),
   .bog-fact,
   .bog-reaction,
+  .bog-event,
   .bog-summary > div {
     break-inside: avoid;
   }

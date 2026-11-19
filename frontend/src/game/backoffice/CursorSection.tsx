@@ -8,6 +8,7 @@ import {
   TIER_ORDER,
   cursorName,
   describeValue,
+  disagreesNow,
   formatNumber,
   formatPercent,
   formatShortDate,
@@ -18,7 +19,7 @@ import {
   tierWeight,
 } from './format';
 import { useMethod } from './method';
-import { Chevron, Flag, Missing, TierChip, VerdictBadge } from './parts';
+import { Chevron, Flag, Missing, TierChip, VerdictCell } from './parts';
 import type { Detail, Details } from './useDetails';
 
 const t = bo.cursors;
@@ -236,7 +237,7 @@ function CursorRow({
   const detailId = `${cursorAnchor(cursor.id)}-detail`;
   const canOpen = cursor.n > 0;
   const classes = [
-    cursor.verdict === 'disagree' ? 'bog-row--disagree' : '',
+    disagreesNow(cursor) ? 'bog-row--disagree' : '',
     cursor.value === null ? 'bog-row--empty' : '',
   ].join(' ');
 
@@ -272,7 +273,7 @@ function CursorRow({
           <TierBreakdown cursor={cursor} />
         </td>
         <td>
-          <VerdictBadge verdict={cursor.verdict} />
+          <VerdictCell cursor={cursor} />
         </td>
       </tr>
       {canOpen && (

@@ -2,9 +2,13 @@
  * Textes du backoffice psychologue pour le quiz et les jeux.
  * Ton professionnel et neutre, apostrophe typographique, jamais de tiret cadratin.
  */
-import type { Confidence, InstrumentKind, Tier } from '../types';
+import type { Confidence, GameEventKind, InstrumentKind, Tier } from '../types';
 
 const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
+/** Guillemets français avec espaces insécables. */
+const quoted = (text: string) => `«\u00a0${text}\u00a0»`;
+/** Termine une phrase sans doubler le point d'une abréviation (« 19 nov. »). */
+const sentence = (text: string) => (text.endsWith('.') ? text : `${text}.`);
 
 export const bo = {
   nav: {
@@ -49,14 +53,56 @@ export const bo = {
     agree: 'Se reconnaît',
     edited: 'A modifié',
     hidden: 'A masqué de sa fiche',
-    nothing: 'Le jeune n’a donné aucun avis sur ses curseurs et n’a modifié aucun détail.',
+    nothing: 'Le jeune n’a donné aucun avis sur ses curseurs et n’a rien modifié.',
     noVerdict: 'Aucun avis sur les curseurs pour le moment.',
     count: (count: number) => `${count} ${plural(count, 'curseur', 'curseurs')}`,
+    stale: (label: string) => `avis sur ${quoted(label)}, curseur changé depuis`,
   },
   verdict: {
     agree: 'Le jeune s’y reconnaît',
     disagree: 'Le jeune ne s’y reconnaît pas',
     none: 'Pas d’avis',
+    staleAgree: 'Le jeune s’y reconnaissait',
+    staleDisagree: 'Le jeune ne s’y reconnaissait pas',
+    /** « sur « Organisé·e », le 19 nov. » : ce que le jeune voyait quand il a répondu. */
+    on: (label: string | null, date: string | null) =>
+      [label && `sur ${quoted(label)}`, date && `le ${date}`].filter(Boolean).join(', '),
+    /** « Avis donné le 19 nov. sur « Réservé·e » (72 % réservé). Le curseur a changé depuis… » */
+    stale: (judged: string, date: string | null) =>
+      `${sentence(['Avis donné', date && `le ${date}`, judged].filter(Boolean).join(' '))} Le curseur a changé depuis\u00a0: le jeune ne voit plus cet avis et peut en donner un nouveau.`,
+    /** « sur « Réservé·e » (72 % réservé) » */
+    judged: (label: string | null, value: string | null) =>
+      [label && `sur ${quoted(label)}`, value && `(${value})`].filter(Boolean).join(' '),
+  },
+  events: {
+    title: 'Historique des modifications',
+    hint: 'Chaque changement du jeune, du plus récent au plus ancien.',
+    more: (count: number) => `Voir tout l’historique (${count})`,
+    less: 'Voir moins',
+    actions: {
+      fact_edited: 'Détail modifié',
+      fact_hidden: 'Détail masqué de sa fiche',
+      fact_shown: 'Détail remis sur sa fiche',
+      verdict_set: 'Avis donné',
+      verdict_changed: 'Avis changé',
+      verdict_withdrawn: 'Avis retiré',
+      answer_changed: 'Réponse changée',
+      answer_retracted: 'Réponse retirée',
+    } satisfies Record<GameEventKind, string>,
+    /** Boutons de la fiche du jeune, cités tels quels. */
+    agree: quoted('C’est moi'),
+    disagree: quoted('Pas moi'),
+    noVerdict: 'aucun avis',
+    before: 'Avant\u00a0:',
+    after: ', après\u00a0:',
+    /** « « Pas moi » sur « Réservé·e » (72 % réservé) » : l'avis et ce que le jeune voyait. */
+    verdictOn: (verdict: string, label: string | null, value: string | null) =>
+      [verdict, label && `sur ${quoted(label)}`, value && `(${value})`].filter(Boolean).join(' '),
+    givenOn: (date: string) => `donné le ${date}`,
+    previous: (text: string) => sentence(`Avis précédent, donné avant un changement du curseur\u00a0: ${text}`),
+    skipped: 'Le jeune a passé la question ensuite\u00a0: cette réponse ne compte plus.',
+    factRemoved: (label: string, value: string) => sentence(`Détail ${quoted(label)} retiré de sa fiche\u00a0: ${value}`),
+    unknown: 'Modification',
   },
   summary: {
     title: 'Synthèse',

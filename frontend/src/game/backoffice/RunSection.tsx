@@ -37,6 +37,10 @@ const r = bo.run;
 type InstrumentView = InstrumentInfo & { chapters?: { id: string; title: string }[] };
 type Cursors = Map<string, PsyCursor>;
 
+export function runAnchor(runId: string) {
+  return `bog-run-${runId}`;
+}
+
 function chapterTitle(instrument: InstrumentView | null, chapter: string): string {
   const found = instrument?.chapters?.find((item) => item.id === chapter);
   if (found) return found.title;
@@ -369,7 +373,7 @@ function RunDetail({
   };
   instrument?.sources.forEach(cite);
   data.answers.forEach((row) => cite(row.source?.source));
-  const anchor = (sourceId: string) => `bog-run-${run.id}-source-${sourceId}`;
+  const anchor = (sourceId: string) => `${runAnchor(run.id)}-source-${sourceId}`;
 
   return (
     <div className="bog-detail">
@@ -446,7 +450,7 @@ function RunRow({
   const title = instrument?.title ?? run.instrument_id;
   const status = runStatus(run);
   const skipped = run.seen - run.answered;
-  const detailId = `bog-run-${run.id}-detail`;
+  const detailId = `${runAnchor(run.id)}-detail`;
 
   function toggle() {
     if (!open) void onLoad(run.id);
@@ -455,7 +459,7 @@ function RunRow({
 
   return (
     <>
-      <tr id={`bog-run-${run.id}`}>
+      <tr id={runAnchor(run.id)}>
         <th scope="row">
           <span className="bog-name">{title}</span>
           <span className="bog-run-kind">

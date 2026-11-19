@@ -1,13 +1,11 @@
-import { CheckIcon, CrossIcon } from '../../components/Icons';
 import type { Clan, PsyCursor, PsyRun } from '../types';
 import { bo } from './backoffice.fr';
-import { cursorAnchor } from './CursorSection';
 import { cursorName, formatLongDate, headlineText, lowerFirst } from './format';
 import { Flag } from './parts';
 
 /**
- * Détail donné dans le quiz. `original_value` et `updated_at` arrivent avec la nouvelle
- * version de l'API : sans eux, on affiche simplement la valeur actuelle.
+ * Détail donné dans le quiz. `original_value` et `edited_at` peuvent manquer si une ancienne
+ * version de l'API répond : on affiche alors simplement la valeur actuelle.
  */
 export interface FactView {
   key: string;
@@ -17,6 +15,12 @@ export interface FactView {
   hidden?: boolean;
   original_value?: string | null;
   updated_at?: string | null;
+  /** Dernière correction de la valeur par le jeune ; masquer ou remontrer n'en est pas une. */
+  edited_at?: string | null;
+}
+
+export function factAnchor(key: string) {
+  return `bog-fact-${key}`;
 }
 
 function changed(fact: FactView): fact is FactView & { original_value: string } {
@@ -24,7 +28,7 @@ function changed(fact: FactView): fact is FactView & { original_value: string } 
 }
 
 /** « Mécanique → Le skate et la mécanique (modifiée le 19 novembre 2026) ». */
-function FactValue({ fact }: { fact: FactView }) {
+export function FactValue({ fact }: { fact: FactView }) {
   if (!changed(fact)) return <span className="bog-fact__value">{fact.value}</span>;
   return (
     <span className="bog-change">
@@ -35,96 +39,10 @@ function FactValue({ fact }: { fact: FactView }) {
       </span>
       <span className="visually-hidden">, {bo.facts.current} </span>
       <span className="bog-fact__value">{fact.value}</span>
-      {fact.updated_at && (
-        <span className="bog-change__date">({bo.facts.editedOn(formatLongDate(fact.updated_at))})</span>
+      {fact.edited_at && (
+        <span className="bog-change__date">({bo.facts.editedOn(formatLongDate(fact.edited_at))})</span>
       )}
     </span>
-  );
-}
-
-function CursorLinks({ cursors }: { cursors: PsyCursor[] }) {
-  return (
-    <ul className="plain-list bog-reaction__items">
-      {cursors.map((cursor) => (
-        <li key={cursor.id}>
-          <a href={`#${cursorAnchor(cursor.id)}`}>{headlineText(cursor) ?? cursorName(cursor)}</a>
-          {cursor.kind === 'bipolar' && <span className="bog-reaction__axis">{cursorName(cursor)}</span>}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/** Ce que le jeune conteste, approuve, corrige ou masque : de quoi ouvrir la discussion. */
-export function YouthReactions({ cursors, facts }: { cursors: PsyCursor[]; facts: FactView[] }) {
-  const t = bo.youth;
-  const disagree = cursors.filter((cursor) => cursor.verdict === 'disagree');
-  const agree = cursors.filter((cursor) => cursor.verdict === 'agree');
-  const edited = facts.filter((fact) => fact.edited);
-  const hidden = facts.filter((fact) => fact.hidden);
-  const nothing = !disagree.length && !agree.length && !edited.length && !hidden.length;
-
-  return (
-    <section className="bog-reactions" aria-labelledby="bog-reactions-title">
-      <h3 id="bog-reactions-title">{t.title}</h3>
-      {nothing ? (
-        <p className="muted">{t.nothing}</p>
-      ) : (
-        <ul className="plain-list bog-reactions__list">
-          {disagree.length > 0 && (
-            <li className="bog-reaction bog-reaction--disagree">
-              <span className="bog-reaction__label">
-                <CrossIcon />
-                {t.disagree}
-                <span className="bog-reaction__count">{t.count(disagree.length)}</span>
-              </span>
-              <CursorLinks cursors={disagree} />
-            </li>
-          )}
-          {agree.length > 0 && (
-            <li className="bog-reaction bog-reaction--agree">
-              <span className="bog-reaction__label">
-                <CheckIcon />
-                {t.agree}
-                <span className="bog-reaction__count">{t.count(agree.length)}</span>
-              </span>
-              <CursorLinks cursors={agree} />
-            </li>
-          )}
-          {!disagree.length && !agree.length && (
-            <li className="bog-reaction">
-              <span className="bog-reaction__label">{bo.cursors.verdict}</span>
-              <span className="muted">{t.noVerdict}</span>
-            </li>
-          )}
-          {edited.length > 0 && (
-            <li className="bog-reaction bog-reaction--youth">
-              <span className="bog-reaction__label">{t.edited}</span>
-              <ul className="plain-list bog-reaction__items">
-                {edited.map((fact) => (
-                  <li key={fact.key}>
-                    <span className="bog-reaction__fact">{fact.label}{'\u00a0:'}</span> <FactValue fact={fact} />
-                  </li>
-                ))}
-              </ul>
-            </li>
-          )}
-          {hidden.length > 0 && (
-            <li className="bog-reaction bog-reaction--youth">
-              <span className="bog-reaction__label">{t.hidden}</span>
-              <ul className="plain-list bog-reaction__items">
-                {hidden.map((fact) => (
-                  <li key={fact.key}>
-                    <span className="bog-reaction__fact">{fact.label}{'\u00a0:'}</span> {fact.value}
-                  </li>
-                ))}
-              </ul>
-            </li>
-          )}
-        </ul>
-      )}
-      <p className="bog-sub">{t.hint}</p>
-    </section>
   );
 }
 
@@ -201,7 +119,7 @@ export function Summary({
         ) : (
           <dl className="bog-facts">
             {facts.map((fact) => (
-              <div key={fact.key} className="bog-fact">
+              <div key={fact.key} id={factAnchor(fact.key)} className="bog-fact">
                 <dt>{fact.label}</dt>
                 <dd>
                   <FactValue fact={fact} />

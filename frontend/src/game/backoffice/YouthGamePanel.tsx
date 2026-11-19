@@ -2,14 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
-import type { PsyCursor, PsyOverview, PsyRun } from '../types';
+import type { GameEvent, PsyCursor, PsyOverview, PsyRun } from '../types';
 import { bo } from './backoffice.fr';
 import './backoffice.css';
 import { CursorSection } from './CursorSection';
 import { MethodContext, useServerMethod } from './method';
 import { RunSection } from './RunSection';
-import { Summary, YouthReactions, type FactView } from './Summary';
+import { Summary, type FactView } from './Summary';
 import { useDetails } from './useDetails';
+import { YouthReactions } from './YouthReactions';
 
 const t = bo.panel;
 
@@ -55,6 +56,7 @@ function Panel({ youthId }: { youthId: string }) {
   const groups = useMemo(() => overview?.cursor_groups ?? [], [overview]);
   const runs: PsyRun[] = useMemo(() => overview?.runs ?? [], [overview]);
   const facts: FactView[] = overview?.facts ?? [];
+  const events: GameEvent[] = overview?.events ?? [];
   const cursors: PsyCursor[] = useMemo(() => groups.flatMap((group) => group.cursors), [groups]);
   const cursorsById = useMemo(() => new Map(cursors.map((cursor) => [cursor.id, cursor])), [cursors]);
   const runsById = useMemo(() => new Map(runs.map((run) => [run.id, run])), [runs]);
@@ -120,7 +122,7 @@ function Panel({ youthId }: { youthId: string }) {
         <p className="empty">{t.empty}</p>
       ) : (
         <MethodContext value={method}>
-          <YouthReactions cursors={cursors} facts={facts} />
+          <YouthReactions cursors={cursors} facts={facts} events={events} runs={runsById} />
           <Summary
             clan={overview.clan}
             progress={overview.progress}
