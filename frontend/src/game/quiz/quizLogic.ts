@@ -1,25 +1,9 @@
-import type { Chapter, GameItem, PublicInstrument, StoredAnswer, YouthTrait } from '../types';
+import type { Chapter, GameItem, PublicInstrument, YouthTrait } from '../types';
 
 export const QUIZ_ID = 'onboarding';
 /** Même règle que le serveur (service.XP_PER_ANSWER) : sert à afficher l'XP déjà gagnée à la reprise. */
 export const XP_PER_ANSWER = 2;
 export const HIGHLIGHT_COUNT = 3;
-
-type Answers = Record<string, StoredAnswer>;
-
-/** Une question reste à faire si elle n'a jamais été vue ou si elle a été passée. */
-export function isPending(item: GameItem, answers: Answers) {
-  const stored = answers[item.id];
-  return !stored || stored.skipped;
-}
-
-/** Prochaine question à faire après `from`, en ignorant `exclude` ; `items.length` s'il n'y en a plus. */
-export function nextPendingIndex(items: GameItem[], answers: Answers, from: number, exclude?: string) {
-  const found = items.findIndex(
-    (item, position) => position > from && item.id !== exclude && isPending(item, answers),
-  );
-  return found === -1 ? items.length : found;
-}
 
 export interface ChapterInfo {
   chapter: Chapter;

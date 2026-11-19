@@ -64,7 +64,7 @@ export function QuestionnairePlayer({
   completedBefore = 0,
 }: Props) {
   const player = useRunPlayer(instrumentId);
-  const { instrument, run, items, index, current, answers, result } = player;
+  const { instrument, run, items, index, current, answers, result, reviewing } = player;
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
   const [seenChapters, setSeenChapters] = useState<ReadonlySet<string>>(() => new Set());
@@ -80,13 +80,14 @@ export function QuestionnairePlayer({
     ? chapters.findIndex((chapter) => chapter.id === current.chapter)
     : -1;
 
-  // Une étape qui commence s’annonce une fois, si elle a un mot d’intro.
+  // Une étape qui commence s’annonce une fois, si elle a un mot d’intro. Pendant la revue des
+  // questions passées, on va droit aux questions.
   const pendingChapter: Chapter | null = useMemo(() => {
-    if (!started || !current?.chapter || seenChapters.has(current.chapter)) return null;
+    if (!started || reviewing || !current?.chapter || seenChapters.has(current.chapter)) return null;
     if (index > 0 && items[index - 1]?.chapter === current.chapter) return null;
     const chapter = chapters.find((entry) => entry.id === current.chapter);
     return chapter?.intro ? chapter : null;
-  }, [started, current, index, items, chapters, seenChapters]);
+  }, [started, reviewing, current, index, items, chapters, seenChapters]);
 
   const screen = !started
     ? 'intro'
@@ -268,10 +269,6 @@ export function QuestionnairePlayer({
   if (screen === 'end') {
     const needed = instrument.min_answers ?? Math.ceil(total * 0.6);
     const missing = Math.max(needed - answeredCount, 0);
-    const reviewSkipped = () => {
-      const target = items.findIndex((item) => !answers[item.id] || answers[item.id].skipped);
-      player.goTo(Math.max(target, 0));
-    };
     return (
       <div className="play play--end">
         {topBar}
@@ -300,7 +297,8 @@ export function QuestionnairePlayer({
           )}
           <div className="play-actions">
             {missing > 0 ? (
-              <button type="button" className="button button--primary" onClick={reviewSkipped}>
+              // De question passée en question passée, puis retour ici.
+              <button type="button" className="button button--primary" onClick={player.review}>
                 {t.end.review}
               </button>
             ) : (

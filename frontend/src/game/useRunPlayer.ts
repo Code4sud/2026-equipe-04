@@ -45,16 +45,29 @@ function sameValue(a: AnswerValue, b: AnswerValue) {
   return JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 }
 
+/** Une question reste à faire si elle n'a jamais été vue ou si elle a été passée. */
+export function isPending(item: GameItem, answers: Answers) {
+  const stored = answers[item.id];
+  return !stored || stored.skipped;
+}
+
 /** Première question jamais vue après `from`, ou la fin. */
 function nextUnseen(items: GameItem[], answers: Answers, from: number) {
   const found = items.findIndex((item, position) => position > from && !answers[item.id]);
   return found === -1 ? items.length : found;
 }
 
+/** Première question à faire (jamais vue ou passée) après `from`, ou la fin. */
+function nextPending(items: GameItem[], answers: Answers, from: number) {
+  const found = items.findIndex((item, position) => position > from && isPending(item, answers));
+  return found === -1 ? items.length : found;
+}
+
 /**
- * Pilote une partie : reprise, réponse enregistrée à chaque question, retour, pause et fin.
- * L'écran avance sans attendre le réseau. Les envois d'une même question partent l'un après
- * l'autre ; la pause et la fin attendent qu'ils soient tous arrivés et renvoient ceux qui ont échoué.
+ * Pilote une partie : reprise, réponse enregistrée à chaque question, retour, revue des questions
+ * passées, pause et fin. L'écran avance sans attendre le réseau. Les envois d'une même question
+ * partent l'un après l'autre ; la pause et la fin attendent qu'ils soient tous arrivés et renvoient
+ * ceux qui ont échoué.
  */
 export function useRunPlayer(instrumentId: string) {
   const [payload, setPayload] = useState<RunPayload | null>(null);
@@ -67,6 +80,8 @@ export function useRunPlayer(instrumentId: string) {
   const [result, setResult] = useState<RunResult | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [startedWith, setStartedWith] = useState<RunStart>(NOTHING_YET);
+  /** Revue des questions passées : on va de question à faire en question à faire. */
+  const [reviewing, setReviewing] = useState(false);
   const saves = useRef(new Map<string, Save>());
   const lastSeq = useRef(0);
   /** Chrono de la question affichée ; il s'arrête quand l'onglet est caché. */
@@ -221,10 +236,13 @@ export function useRunPlayer(instrumentId: string) {
     [drain, send],
   );
 
-  /** Question suivante, sans rien enregistrer. */
+  /** Question suivante, sans rien enregistrer ; pendant la revue, la prochaine question à faire. */
   const next = useCallback(
-    () => setIndex((position) => Math.min(position + 1, items.length)),
-    [items.length],
+    () =>
+      setIndex((position) =>
+        reviewing ? nextPending(items, answers, position) : Math.min(position + 1, items.length),
+      ),
+    [reviewing, items, answers],
   );
 
   const record = useCallback(
@@ -243,12 +261,13 @@ export function useRunPlayer(instrumentId: string) {
         const response_ms = Math.round(responseMs);
         send(runId, item.id, skipped ? { skipped: true, response_ms } : { value, response_ms });
       }
-      // Après un retour ou une reprise, on ne refait pas défiler les questions déjà vues.
-      setIndex(nextUnseen(items, after, index));
+      // Après un retour ou une reprise, on ne refait pas défiler les questions déjà vues ; pendant
+      // la revue, on va à la prochaine question passée ou jamais vue.
+      setIndex(reviewing ? nextPending(items, after, index) : nextUnseen(items, after, index));
       markShown();
       return true;
     },
-    [runId, answers, items, index, send, markShown],
+    [runId, answers, items, index, reviewing, send, markShown],
   );
 
   /**
@@ -274,6 +293,12 @@ export function useRunPlayer(instrumentId: string) {
   }, [current, answers, justShown, next, record, elapsed]);
 
   const back = useCallback(() => setIndex((position) => Math.max(0, position - 1)), []);
+
+  /** Revoit les questions passées ou jamais vues, dans l'ordre, sans repasser par les réponses. */
+  const review = useCallback(() => {
+    setReviewing(true);
+    setIndex(nextPending(items, answers, -1));
+  }, [items, answers]);
   /** Va directement à une question (ou à la fin avec `items.length`). */
   const goTo = useCallback(
     (position: number) => setIndex(Math.max(0, Math.min(position, items.length))),
@@ -333,11 +358,14 @@ export function useRunPlayer(instrumentId: string) {
     startedWith,
     result,
     finishing,
+    /** Vrai après `review()` : réponses et « Suivant » mènent à la prochaine question à faire. */
+    reviewing,
     answer,
     skip,
     next,
     back,
     goTo,
+    review,
     markShown,
     justShown,
     elapsed,

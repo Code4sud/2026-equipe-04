@@ -4,11 +4,11 @@ import { ErrorState } from '../../components/Feedback';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { QuestionCard } from '../components/QuestionCard';
 import type { AnswerValue } from '../types';
-import { useRunPlayer } from '../useRunPlayer';
+import { isPending, useRunPlayer } from '../useRunPlayer';
 import { ChapterProgress } from './ChapterProgress';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
-import { chapterOf, isPending, nextPendingIndex, QUIZ_ID, XP_PER_ANSWER } from './quizLogic';
+import { chapterOf, QUIZ_ID, XP_PER_ANSWER } from './quizLogic';
 import { QuizReveal } from './QuizReveal';
 import { XpCounter } from './XpCounter';
 
@@ -40,10 +40,9 @@ function Waiting({ text }: { text: string }) {
 export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const player = useRunPlayer(QUIZ_ID);
   const navigate = useNavigate();
-  const { instrument, items, index, current, answers, startedWith } = player;
+  const { instrument, items, index, current, answers, startedWith, reviewing } = player;
   const [welcomed, setWelcomed] = useState(false);
   const [introduced, setIntroduced] = useState<ReadonlySet<string>>(() => new Set());
-  const [reviewing, setReviewing] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [pausing, setPausing] = useState(false);
@@ -128,9 +127,8 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   function startReview() {
     cancelPick();
     player.clearError();
-    setReviewing(true);
     setDirection('forward');
-    player.goTo(nextPendingIndex(items, answers, -1));
+    player.review();
   }
 
   function backToLastQuestion() {
@@ -283,14 +281,10 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const alreadyAnswered = stored !== undefined && !stored.skipped;
   const chapterTitle = info?.chapter.title ?? '';
 
-  function afterLeaving(itemId: string) {
-    if (reviewing) player.goTo(nextPendingIndex(items, answers, index, itemId));
-  }
-
+  // Le hook choisit la question suivante, revue des questions passées comprise.
   function commit(value: AnswerValue, responseMs: number) {
     if (!player.answer(value, responseMs)) return;
     setDirection('forward');
-    afterLeaving(item.id);
   }
 
   function handleAnswer(value: AnswerValue) {
@@ -314,13 +308,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     cancelPick();
     if (!player.skip()) return;
     setDirection('forward');
-    afterLeaving(item.id);
   }
 
   function handleNext() {
     cancelPick();
     setDirection('forward');
-    player.goTo(reviewing ? nextPendingIndex(items, answers, index) : index + 1);
+    player.next();
   }
 
   function handleBack() {
