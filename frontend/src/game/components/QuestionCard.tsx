@@ -1,8 +1,12 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gameFr } from '../content.fr';
-import type { AnswerValue, GameItem, LikertScale } from '../types';
+import type { AnswerValue, GameItem, ItemOption, LikertScale } from '../types';
+import { frenchSpacing } from './frenchSpacing';
+import './QuestionCard.css';
 
 const t = gameFr.question;
+/** Au-delà, une option est trop longue pour tenir dans une grille de pastilles. */
+const SHORT_LABEL = 24;
 
 interface Props {
   item: GameItem;
@@ -11,6 +15,8 @@ interface Props {
   value?: AnswerValue;
   onAnswer: (value: AnswerValue) => void;
   onSkip?: () => void;
+  /** Place le focus sur l'énoncé à chaque nouvelle question (une question par écran). */
+  autoFocus?: boolean;
 }
 
 function scalePoints(scale: LikertScale) {
@@ -20,18 +26,50 @@ function scalePoints(scale: LikertScale) {
   });
 }
 
+/** Beaucoup de choix courts (couleurs, saisons…) : une grille se lit mieux qu'une longue liste. */
+function isCompact(options: ItemOption[]) {
+  return (
+    options.some((option) => option.color) ||
+    (options.length >= 5 && options.every((option) => option.label.length <= SHORT_LABEL))
+  );
+}
+
+function OptionContent({ option }: { option: ItemOption }) {
+  return (
+    <>
+      {option.color ? (
+        <span className="question__swatch" style={{ background: option.color }} aria-hidden="true" />
+      ) : (
+        option.emoji && (
+          <span className="question__emoji" aria-hidden="true">
+            {option.emoji}
+          </span>
+        )
+      )}
+      <span className="question__label">{frenchSpacing(option.label)}</span>
+    </>
+  );
+}
+
 /** Affiche n'importe quelle question (Likert, choix, texte libre). Sans logique de partie. */
-export function QuestionCard({ item, scale, value, onAnswer, onSkip }: Props) {
+export function QuestionCard({ item, scale, value, onAnswer, onSkip, autoFocus = false }: Props) {
   const multiple = (item.max_choices ?? 1) > 1;
   const [selected, setSelected] = useState<string[]>([]);
   const [text, setText] = useState('');
+  const heading = useRef<HTMLHeadingElement>(null);
   const showText = item.type === 'text' || item.allow_text;
   const likert = item.scale ?? scale;
+  const compact = item.options ? isCompact(item.options) : false;
+  const swatches = item.options?.some((option) => option.color) ?? false;
 
   useEffect(() => {
     setSelected(Array.isArray(value) ? value : []);
     setText(value && typeof value === 'object' && 'text' in value ? value.text : '');
   }, [item.id, value]);
+
+  useEffect(() => {
+    if (autoFocus) heading.current?.focus({ preventScroll: true });
+  }, [autoFocus, item.id]);
 
   function toggle(id: string) {
     setSelected((current) => {
@@ -47,12 +85,20 @@ export function QuestionCard({ item, scale, value, onAnswer, onSkip }: Props) {
 
   return (
     <section className="question" aria-labelledby={`q-${item.id}`}>
-      <h1 id={`q-${item.id}`} className="question__prompt">
-        {item.prompt}
+      <h1 id={`q-${item.id}`} ref={heading} tabIndex={-1} className="question__prompt">
+        {frenchSpacing(item.prompt)}
       </h1>
-      {item.hint && <p className="muted">{item.hint}</p>}
+      {item.hint && <p className="muted">{frenchSpacing(item.hint)}</p>}
 
-      <div className="question__options">
+      <div
+        className={[
+          'question__options',
+          compact && 'question__options--grid',
+          swatches && 'question__options--swatches',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         {item.type === 'likert' &&
           likert &&
           scalePoints(likert).map((point) => (
@@ -75,8 +121,7 @@ export function QuestionCard({ item, scale, value, onAnswer, onSkip }: Props) {
             aria-pressed={multiple ? selected.includes(option.id) : value === option.id}
             onClick={() => (multiple ? toggle(option.id) : onAnswer(option.id))}
           >
-            {option.emoji && <span aria-hidden="true">{option.emoji} </span>}
-            {option.label}
+            <OptionContent option={option} />
           </button>
         ))}
       </div>
