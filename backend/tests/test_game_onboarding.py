@@ -64,10 +64,26 @@ def test_fifty_items_in_five_chapters_of_ten(quiz):
     for chapter in chapters:
         assert chapter["title"] and chapter["intro"]
         assert sum(1 for item in items if item.get("chapter") == chapter["id"]) == 10, chapter["id"]
-    # Les chapitres se suivent : une journée puis le week-end, sans retour en arrière.
+    # Le jeune reçoit les questions dans un ordre tiré au hasard ; le contenu garde les chapitres
+    # à la suite, pour que la psychologue voie chaque chapitre d'un seul bloc dans la partie.
     order = [chapter["id"] for chapter in chapters]
     positions = [order.index(item["chapter"]) for item in items]
     assert positions == sorted(positions)
+
+
+# Expressions qui supposent une place dans le quiz ou une question juste avant.
+ORDER_WORDS = ("commençons", "pour commencer", "première question", "dernière question", "pour finir", "et toi")
+
+
+def test_every_prompt_reads_well_in_any_order(quiz):
+    # Chaque partie tire son propre ordre : aucune question ne parle de sa place ni ne répond à
+    # celle d'avant.
+    found = {
+        item["id"]: item["prompt"]
+        for item in quiz["items"]
+        if any(words in item["prompt"].lower() for words in ORDER_WORDS)
+    }
+    assert not found, found
 
 
 def test_facts_have_stable_unique_keys_and_no_scoring(quiz):

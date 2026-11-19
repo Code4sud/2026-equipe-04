@@ -26,7 +26,7 @@
   "items": [
     {
       "id": "couleur", "type": "choice", "chapter": "reveil",
-      "prompt": "Commençons par l’essentiel : c’est quoi, ta couleur préférée ?",
+      "prompt": "C’est quoi, ta couleur préférée ?",
       "fact": "couleur_preferee", "fact_label": "Couleur préférée", "allow_text": true, "placeholder": "Une autre couleur ?",
       "options": [
         { "id": "rouge", "label": "Rouge", "color": "#e5484d" },
@@ -64,7 +64,7 @@
     },
     {
       "id": "moment", "type": "choice", "chapter": "reveil",
-      "prompt": "Et toi, tu es plutôt de quel moment de la journée ?",
+      "prompt": "Tu es plutôt de quel moment de la journée ?",
       "fact": "moment_prefere", "fact_label": "Moment préféré",
       "options": [
         { "id": "matin", "label": "Le petit matin", "emoji": "🌅" },
@@ -560,7 +560,7 @@
     },
     {
       "id": "devise", "type": "choice", "chapter": "weekend",
-      "prompt": "Dernière question, et pas des moindres : ta devise ?",
+      "prompt": "Une phrase qui te ressemble : ta devise ?",
       "fact": "devise", "fact_label": "Devise", "allow_text": true, "placeholder": "Ta propre devise…",
       "options": [
         { "id": "partant", "label": "Toujours partant·e", "emoji": "🚀" },
