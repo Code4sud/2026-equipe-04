@@ -10,7 +10,7 @@
 
 ## Garde-fous
 
-- Aucune question ni déduction sur la santé, le handicap, l'origine, la famille, la religion, la vie amoureuse ou les opinions. `tests/test_game_content.py` contrôle les textes.
+- Aucune question ni déduction sur la santé, le handicap, l'origine, la famille, la religion, la vie amoureuse ou les opinions. `tests/test_game_content.py` contrôle les textes envoyés au jeune (contenu et fichiers `*.fr.ts` hors backoffice) avec la lecture et les termes du garde-fou du chat, plus des mots interdits côté jeune.
 - Le jeune garde la parole sur ce qui le concerne : il corrige ou masque ses détails et donne son verdict sur chaque curseur. Masquer ne change que sa fiche, et l'interface lui dit clairement que la psychologue voit ses réponses et ses changements.
 - Côté jeune, pas de pourcentage bas, pas de libellé péjoratif, pas de QI. Les curseurs bipolaires restent neutres et les autres (`kind: unipolar`, quel que soit leur groupe) ne montrent que les points forts. Les attributs de la fiche ne comptent que les points forts, et la fin d'un jeu chronométré ne renvoie que les réussites (voir Calcul).
 - Rien de ce qui sert à coter ne part vers le jeune : ni signaux, ni curseurs visés, ni clés de correction, ni sources, ni historique de ses modifications.
