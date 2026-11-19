@@ -6,6 +6,7 @@ import type { PsyCursor, PsyOverview, PsyRun } from '../types';
 import { bo } from './backoffice.fr';
 import './backoffice.css';
 import { CursorSection } from './CursorSection';
+import { MethodContext, useServerMethod } from './method';
 import { RunSection } from './RunSection';
 import { Summary, YouthReactions, type FactView } from './Summary';
 import { useDetails } from './useDetails';
@@ -23,6 +24,7 @@ function Panel({ youthId }: { youthId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [printing, setPrinting] = useState<'idle' | 'preparing' | 'ready'>('idle');
   const [incomplete, setIncomplete] = useState(false);
+  const method = useServerMethod();
 
   const load = useCallback(
     async (signal?: AbortSignal) => {
@@ -117,7 +119,7 @@ function Panel({ youthId }: { youthId: string }) {
       ) : !hasData ? (
         <p className="empty">{t.empty}</p>
       ) : (
-        <>
+        <MethodContext value={method}>
           <YouthReactions cursors={cursors} facts={facts} />
           <Summary
             clan={overview.clan}
@@ -128,7 +130,7 @@ function Panel({ youthId }: { youthId: string }) {
           />
           <CursorSection groups={groups} traits={traits} runs={runsById} />
           <RunSection runs={runs} details={runDetails} cursors={cursorsById} />
-        </>
+        </MethodContext>
       )}
     </section>
   );

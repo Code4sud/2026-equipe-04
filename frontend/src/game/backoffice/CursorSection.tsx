@@ -6,7 +6,6 @@ import { bo } from './backoffice.fr';
 import { CursorBar } from './CursorBar';
 import {
   TIER_ORDER,
-  TIER_WEIGHTS,
   cursorName,
   describeValue,
   formatNumber,
@@ -18,6 +17,7 @@ import {
   tierRank,
   tierWeight,
 } from './format';
+import { useMethod } from './method';
 import { Chevron, Flag, Missing, TierChip, VerdictBadge } from './parts';
 import type { Detail, Details } from './useDetails';
 
@@ -32,19 +32,23 @@ export function cursorAnchor(cursorId: string) {
 }
 
 export function TierLegend() {
+  const { weights, thresholds } = useMethod();
   return (
     <div className="bog-legend">
       <p>{t.legend}</p>
       <ul className="plain-list">
         {TIER_ORDER.map((tier) => (
           <li key={tier}>
-            <TierChip tier={tier} /> {formatNumber(TIER_WEIGHTS[tier])}
+            <TierChip tier={tier} /> {formatNumber(weights[tier])}
           </li>
         ))}
       </ul>
       <Link to="/psy/sources" className="bog-link">
         {bo.panel.sources}
       </Link>
+      <p className="bog-legend__note">
+        {t.confidenceLegend(formatNumber(thresholds.medium), formatNumber(thresholds.high))}
+      </p>
     </div>
   );
 }
@@ -98,8 +102,9 @@ function SignalRow({
   total: number;
   run: PsyRun | undefined;
 }) {
+  const { weights } = useMethod();
   const talent = signal.tier === 'talent';
-  const levelWeight = tierWeight(signal.tier);
+  const levelWeight = tierWeight(signal.tier, weights);
   const effective = signal.weight * levelWeight;
   const metrics = run ? performanceMetrics(run.metrics) : [];
 
@@ -153,12 +158,13 @@ function CursorDetail({
   runs: Map<string, PsyRun>;
   onRetry: () => void;
 }) {
+  const { weights } = useMethod();
   if (detail.state === 'loading') return <Loading />;
   if (detail.state === 'error') return <ErrorState message={detail.message} onRetry={onRetry} />;
 
   const current = detail.data.cursor ?? cursor;
   const signals: TraitSignal[] = detail.data.signals;
-  const total = signals.reduce((sum, signal) => sum + signal.weight * tierWeight(signal.tier), 0);
+  const total = signals.reduce((sum, signal) => sum + signal.weight * tierWeight(signal.tier, weights), 0);
   const name = cursorName(current);
   const meta = [
     current.reference ? t.reference(current.reference) : null,

@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
-import { gameApi } from '../api';
-import type { GameSource, InstrumentInfo } from '../types';
+import type { GameSource, InstrumentInfo, PsyCatalog } from '../types';
 import { bo } from './backoffice.fr';
 import './backoffice.css';
-import { TIER_ORDER, TIER_WEIGHTS, formatNumber } from './format';
+import { TIER_ORDER, formatNumber } from './format';
+import { FALLBACK_METHOD, fetchPsyCatalog, methodFrom, type Method as MethodValues } from './method';
 import { Missing, SourceDetails, TierChip } from './parts';
 
 const t = bo.sources;
 
-interface Catalog {
-  instruments: InstrumentInfo[];
-  sources: GameSource[];
-}
+type Catalog = Pick<PsyCatalog, 'instruments' | 'sources'>;
 
 const sourceAnchor = (id: string) => `source-${id}`;
 
-function Method() {
+/** Poids et seuils du serveur une fois le catalogue chargé, les copies de secours avant. */
+function Method({ method }: { method: MethodValues }) {
+  const { weights, thresholds } = method;
   return (
     <section className="bog-section bog-prose" aria-labelledby="bog-method">
       <h2 id="bog-method">{t.method.title}</h2>
@@ -41,13 +40,13 @@ function Method() {
                   <TierChip tier={tier} />
                 </th>
                 <td>{bo.tierMeaning[tier]}</td>
-                <td className="numeric">{formatNumber(TIER_WEIGHTS[tier])}</td>
+                <td className="numeric">{formatNumber(weights[tier])}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {t.method.after.map((text) => (
+      {t.method.after(formatNumber(thresholds.medium), formatNumber(thresholds.high)).map((text) => (
         <p key={text}>{text}</p>
       ))}
     </section>
@@ -175,23 +174,27 @@ function Sources({ sources, instruments }: Catalog) {
 
 /** /psy/sources : instruments, sources et méthode de calcul, pour la psychologue. */
 export default function SourcesPage() {
-  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [catalog, setCatalog] = useState<PsyCatalog | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (signal?: AbortSignal) => {
+  /** Renvoie de quoi ignorer la réponse si la page est quittée entre-temps. */
+  const load = useCallback(() => {
+    let active = true;
     setError(null);
-    try {
-      setCatalog(await gameApi.psyCatalog(signal));
-    } catch (caught) {
-      if (!signal?.aborted) setError(errorMessage(caught));
-    }
+    fetchPsyCatalog().then(
+      (data) => {
+        if (active) setCatalog(data);
+      },
+      (caught: unknown) => {
+        if (active) setError(errorMessage(caught));
+      },
+    );
+    return () => {
+      active = false;
+    };
   }, []);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void load(controller.signal);
-    return () => controller.abort();
-  }, [load]);
+  useEffect(() => load(), [load]);
 
   return (
     <div className="stack bog-page">
@@ -215,7 +218,7 @@ export default function SourcesPage() {
           </li>
         </ul>
       </nav>
-      <Method />
+      <Method method={catalog ? methodFrom(catalog) : FALLBACK_METHOD} />
       <Limits />
       {error ? (
         <ErrorState message={error} onRetry={() => void load()} />

@@ -26,6 +26,7 @@ import {
   tierWeight,
   trialDetail,
 } from './format';
+import { useMethod } from './method';
 import { Chevron, Flag, Missing, SourceDetails, TierChip } from './parts';
 import type { Detail, Details } from './useDetails';
 
@@ -341,6 +342,7 @@ function RunDetail({
   cursors: Cursors;
   onRetry: () => void;
 }) {
+  const { weights } = useMethod();
   if (detail.state === 'loading') return <Loading />;
   if (detail.state === 'error') return <ErrorState message={detail.message} onRetry={onRetry} />;
 
@@ -377,7 +379,7 @@ function RunDetail({
             <dt>{r.tier}</dt>
             <dd>
               <TierChip tier={instrument.tier} label={instrument.tier_label} />{' '}
-              {r.tierWeight(formatNumber(tierWeight(instrument.tier)))}
+              {r.tierWeight(formatNumber(tierWeight(instrument.tier, weights)))}
             </dd>
           </div>
         )}

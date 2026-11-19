@@ -12,7 +12,10 @@ const longDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
 /** Même ordre que la force de la preuve. */
 export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custom', 'talent'];
 
-/** Copie de TIER_WEIGHTS (backend/app/game/scoring.py) : l'API ne les expose pas. */
+/**
+ * Copies de secours de TIER_WEIGHTS et CONFIDENCE_THRESHOLDS (backend/app/game/scoring.py).
+ * Le panneau lit les valeurs du serveur dans GET /backoffice/game/catalog (voir method.ts).
+ */
 export const TIER_WEIGHTS: Record<Tier, number> = {
   validated: 1,
   performance: 1,
@@ -20,6 +23,8 @@ export const TIER_WEIGHTS: Record<Tier, number> = {
   custom: 0.5,
   talent: 0.25,
 };
+
+export const CONFIDENCE_THRESHOLDS = { medium: 2, high: 5 };
 
 export const formatNumber = (value: number) => numbers.format(value);
 export const formatPercent = (value: number) => `${Math.round(value)}${THIN}%`;
@@ -46,8 +51,9 @@ export function tierLabel(tier: string, fallback?: string): string {
   return (bo.tiers as Record<string, string>)[tier] ?? fallback ?? tier;
 }
 
-export function tierWeight(tier: string): number {
-  return (TIER_WEIGHTS as Record<string, number>)[tier] ?? 0.5;
+/** Poids d'un niveau de preuve ; un niveau inconnu compte 0,5, comme côté serveur. */
+export function tierWeight(tier: string, weights: Record<Tier, number> = TIER_WEIGHTS): number {
+  return (weights as Record<string, number>)[tier] ?? 0.5;
 }
 
 /** Rang d'un niveau de preuve, du plus solide au plus faible ; les inconnus à la fin. */

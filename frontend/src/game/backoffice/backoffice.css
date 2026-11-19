@@ -325,6 +325,10 @@
   font-family: var(--font-mono);
 }
 
+.bog-legend__note {
+  flex-basis: 100%;
+}
+
 .bog-tier {
   display: inline-block;
   padding: 0 var(--space-2);

@@ -84,6 +84,8 @@ export const bo = {
   cursors: {
     title: 'Curseurs',
     legend: 'Chaque curseur est la moyenne pondérée des réponses, de 0 à 100. Poids selon le niveau de preuve\u00a0:',
+    confidenceLegend: (medium: string, high: string) =>
+      `Confiance selon le poids total des réponses\u00a0: faible sous ${medium}, moyenne de ${medium} à moins de ${high}, bonne à partir de ${high}.`,
     cursor: 'Curseur',
     result: 'Résultat',
     evidence: 'Niveaux de preuve',
@@ -210,10 +212,11 @@ export const bo = {
       tier: 'Niveau de preuve',
       meaning: 'Sens',
       weight: 'Poids',
-      after: [
+      /** Seuils de confiance du serveur (poids total), déjà mis en forme. */
+      after: (medium: string, high: string) => [
         'Curseur bipolaire\u00a0: 0 correspond au premier pôle et 100 au second, par exemple Réservé ↔ Sociable. «\u00a080\u202f% réservé\u00a0» correspond à une valeur de 20.',
         'Curseur unipolaire\u00a0: de 0 à 100. «\u00a070\u202f% intérêt geek et numérique\u00a0» correspond à une valeur de 70.',
-        'La confiance dépend du poids total des réponses\u00a0: faible en dessous de 2, moyenne de 2 à moins de 5, bonne à partir de 5. Elle reflète la quantité de données, pas la validité du résultat.',
+        `La confiance dépend du poids total des réponses\u00a0: faible en dessous de ${medium}, moyenne de ${medium} à moins de ${high}, bonne à partir de ${high}. Elle reflète la quantité de données, pas la validité du résultat.`,
         'Les réponses du quiz d’arrivée comptent dès qu’elles sont données. Celles des autres questionnaires et des jeux comptent quand la partie est terminée. Le serveur recalcule lui-même le score des jeux chronométrés à partir des essais.',
         'Pour un questionnaire, le score brut d’une échelle est la somme de ses items, items inversés compris. Il est présenté avec son minimum et son maximum possibles.',
       ],
