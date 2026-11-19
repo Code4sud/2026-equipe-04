@@ -12,7 +12,7 @@
   "replayable": false,
   "min_answers": 30,
   "source_ids": ["goldberg_big_five_markers", "ipip_neo", "holland_riasec"],
-  "source_note": "Situations inventées pour Potentiel, inspirées de travaux publiés en psychologie sur la personnalité et les centres d’intérêt.",
+  "source_note": "Situations inventées pour Flaire, inspirées de travaux publiés en psychologie sur la personnalité et les centres d’intérêt.",
   "scoring_note": "Quiz maison, niveau de preuve « Inspiré de travaux publiés, non validé » (poids 0,5). 38 situations du quotidien inspirées des marqueurs IPIP de Goldberg (1992), d’un item IPIP-NEO sur l’art (Goldberg, 1999) et de la typologie RIASEC de Holland (1997), plus 12 questions de fiche (couleur, passion…) sans aucune cotation. Chaque option donne une valeur de 0 à 100 au curseur visé ; certaines alimentent aussi un second curseur avec un poids de 0,5. Les dilemmes RIASEC opposent deux types : l’option choisie monte l’un et baisse l’autre, l’option mixte donne une valeur moyenne aux deux. Les signaux « Intérêt geek et numérique » relèvent d’un indicateur maison sans source publiée : ils portent leur propre niveau, « Indicateur maison », avec un poids de 0,5. Format non validé : une tendance à discuter avec le jeune, jamais une mesure.",
   "intro": "Je te raconte une semaine, du réveil jusqu’au week-end, et tu me dis comment tu la vis. À la fin, je te révèle ton clan.",
   "outro": "Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton clan ?",

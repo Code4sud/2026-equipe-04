@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { api } from '../api/client';
 import type { YouthSummary } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
-import { TalentStar } from '../components/Icons';
 import { fr } from '../content/fr';
 import { SourcesNavLink } from '../game/backoffice/routes';
 
@@ -26,7 +25,7 @@ export function BackofficeLayout() {
     <div className="bo">
       <aside className="bo__side">
         <Link to="/psy/jeunes" className="brand">
-          <TalentStar />
+          <img src="/flaire-mark.png" alt="" className="brand__mark" width="28" height="28" />
           {fr.appName} · {t.product}
         </Link>
         <nav className="bo__youths" aria-label={t.listTitle}>

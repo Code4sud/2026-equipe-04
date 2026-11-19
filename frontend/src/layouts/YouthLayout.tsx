@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useOutletContext } from 'react-router-dom';
 import { api } from '../api/client';
-import { ChatIcon, MapIcon, PersonIcon, TalentStar } from '../components/Icons';
+import { ChatIcon, MapIcon, PersonIcon } from '../components/Icons';
 import { fr } from '../content/fr';
 import { gameFr } from '../game/content.fr';
 import '../game/game.css';
@@ -31,7 +31,7 @@ export function YouthLayout() {
     <div className="shell shell--youth">
       <nav className="tabbar" aria-label={fr.nav.main}>
         <Link to="/jeune/discussion" className="brand tabbar__brand">
-          <TalentStar />
+          <img src="/flaire-mark.png" alt="" className="brand__mark" width="28" height="28" />
           {fr.appName}
         </Link>
         <NavLink to="/jeune/discussion" className="tabbar__link">

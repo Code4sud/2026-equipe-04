@@ -1309,3 +1309,11 @@ mark {
     grid-column: 1 / -1;
   }
 }
+
+/* Logo Flaire à côté du nom de l'app */
+.brand__mark {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+}

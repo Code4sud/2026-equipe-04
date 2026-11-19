@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { errorMessage } from '../components/Feedback';
-import { TalentStar } from '../components/Icons';
 import { fr } from '../content/fr';
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
@@ -36,7 +35,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     <main className="auth">
       <form className="auth__card" onSubmit={submit}>
         <Link to="/bienvenue" className="brand">
-          <TalentStar />
+          <img src="/flaire-mark.png" alt="" className="brand__mark" width="28" height="28" />
           {fr.appName}
         </Link>
         <h1>{registering ? fr.auth.registerTitle : fr.auth.loginTitle}</h1>

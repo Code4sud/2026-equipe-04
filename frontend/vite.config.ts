@@ -14,10 +14,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png', 'flaire-mark.png'],
       manifest: {
-        name: 'Potentiel',
-        short_name: 'Potentiel',
+        name: 'Flaire',
+        short_name: 'Flaire',
         description: 'Raconte ta vie et repère les talents que tu as déjà.',
         lang: 'fr',
         start_url: '/',

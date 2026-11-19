@@ -5,7 +5,7 @@
 const plural = (count: number, one: string, many: string) => (count > 1 ? many : one);
 
 export const fr = {
-  appName: 'Potentiel',
+  appName: 'Flaire',
   common: {
     logout: 'Se déconnecter',
     loading: 'Un instant…',
