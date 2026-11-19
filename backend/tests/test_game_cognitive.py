@@ -5,6 +5,7 @@ import itertools
 import json
 import math
 import random
+import re
 import uuid
 from pathlib import Path
 
@@ -20,6 +21,7 @@ from app.game.scoring import InvalidAnswer
 from app.models import User
 
 FIXTURES = Path(__file__).parent / "fixtures" / "game"
+FRONT = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game" / "cognitive"
 GAMES = {
     "corsi": "visuospatial_memory",
     "digit_span": "working_memory",
@@ -230,6 +232,30 @@ def guardrail_problems(texts: list[tuple[str, str]]) -> list[str]:
 
 def test_youth_texts_of_the_games_respect_guardrails(real):
     problems = guardrail_problems(list(_content_texts(real)))
+    assert not problems, "\n".join(problems)
+
+
+def _string_literals(source: str) -> list[str]:
+    return [
+        match.group(0)[1:-1]
+        for match in re.finditer(r"'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`", source)
+    ]
+
+
+def test_front_texts_of_the_games_respect_guardrails():
+    texts = [
+        (path.name, text)
+        for path in sorted(FRONT.rglob("*.fr.ts"))
+        for text in _string_literals(path.read_text(encoding="utf-8"))
+    ]
+    assert len(texts) > 50, "textes du front introuvables"
+    problems = guardrail_problems(texts)
+    # Convention de l'interface : apostrophe typographique, hors expressions ${…} des gabarits.
+    problems += [
+        f"{where} [apostrophe droite] : {text}"
+        for where, text in texts
+        if "'" in re.sub(r"\$\{[^}]*\}", "", text)
+    ]
     assert not problems, "\n".join(problems)
 
 
