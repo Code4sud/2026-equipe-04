@@ -6,7 +6,6 @@ YOUTHS = [
         "display_name": "Sam",
         "share_transcripts": True,
         "game": {
-            "share": True,
             "skill": 0.9,
             "facts": {"couleur_preferee": "Jaune", "passion": "Mécanique et jeux vidéo"},
             "bias": {
@@ -57,7 +56,6 @@ YOUTHS = [
         "display_name": "Noa",
         "share_transcripts": False,
         "game": {
-            "share": False,
             "skill": 0.8,
             "facts": {"couleur_preferee": "Violet", "passion": "Montage vidéo"},
             "bias": {"extraversion": 60, "openness": 80, "riasec_a": 90, "interest_digital": 75},

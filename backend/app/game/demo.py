@@ -54,7 +54,6 @@ def _answer(instrument: dict, item: dict, persona: dict, rng: random.Random):
 def seed_youth_game(user: User, persona: dict) -> None:
     """Joue tous les jeux disponibles pour un jeune fictif, de façon reproductible."""
     rng = random.Random(f"{user.email}:game")
-    game.set_consent(user, persona.get("share", True))
     for instrument in game.catalog().ordered_instruments():
         payload, _ = game.start_run(user, instrument["id"])
         run_uuid = uuid.UUID(payload["run"]["id"])

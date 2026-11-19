@@ -2,15 +2,16 @@
 
 ## Parcours
 
-1. À la première connexion, le jeune arrive sur `/jeune/quiz`. Il choisit s'il partage ses résultats avec la psychologue, puis répond à 50 questions en chapitres. Il peut passer une question ou continuer plus tard.
-2. Le quiz révèle son clan (type RIASEC dominant) et débloque les jeux de `/jeune/jeux`.
-3. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur chaque curseur.
-4. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, si le jeune a accepté.
+1. À la création du compte, le jeune accepte que ses données soient transmises au Centre des Possibles et à sa psychologue (formulaire d'inscription, hors de ce module).
+2. À la première connexion, il arrive sur `/jeune/quiz` : 50 questions en chapitres. Il peut passer une question ou continuer plus tard.
+3. Le quiz révèle son clan (type RIASEC dominant) et débloque les jeux de `/jeune/jeux`.
+4. `/jeune/fiche` présente sa fiche d'aventurier. Il y corrige ou masque ses détails et dit « C'est moi » ou « Pas moi » sur chaque curseur.
+5. La psychologue voit dans la fiche du jeune les curseurs, chaque partie, chaque réponse et sa source, ainsi que chaque modification du jeune (détail corrigé avec sa réponse d'origine, détail masqué, verdict), pour pouvoir en parler avec lui.
 
 ## Garde-fous
 
 - Aucune question ni déduction sur la santé, le handicap, l'origine, la famille, la religion, la vie amoureuse ou les opinions. `tests/test_game_content.py` contrôle les textes.
-- Le jeune garde la main : partage, détails modifiables ou masquables, verdict sur chaque curseur.
+- Le jeune garde la parole sur ce qui le concerne : il corrige ou masque ses détails et donne son verdict sur chaque curseur. Masquer ne change que sa fiche, et l'interface lui dit clairement que la psychologue voit ses réponses et ses changements.
 - Côté jeune, pas de pourcentage bas, pas de libellé péjoratif, pas de QI. Les curseurs bipolaires restent neutres et les autres ne montrent que les points forts.
 - Le MBTI n'est ni normé ni validé. Le nom n'apparaît pas côté jeune, et aucun résultat n'est présenté comme un test MBTI.
 - Univers original : aucun nom, personnage ou visuel d'une licence existante.
@@ -78,7 +79,7 @@ Chaque réponse produit des signaux de 0 à 100. Un curseur est leur moyenne pon
 
 ## API
 
-Jeune (`/api/me/game`) : `GET /`, `PATCH /consent`, `POST /instruments/<id>/runs`, `PUT /runs/<id>/answers/<item>`, `POST /runs/<id>/pause`, `POST /runs/<id>/complete`, `GET /sheet`, `PATCH /facts/<clé>`, `PUT /traits/<id>/feedback`.
+Jeune (`/api/me/game`) : `GET /`, `POST /instruments/<id>/runs`, `PUT /runs/<id>/answers/<item>`, `POST /runs/<id>/pause`, `POST /runs/<id>/complete`, `GET /sheet`, `PATCH /facts/<clé>`, `PUT /traits/<id>/feedback`.
 
 Psychologue (`/api/backoffice`) : `GET /game/catalog`, `GET /youths/<id>/game`, `GET /youths/<id>/game/runs/<run>`, `GET /youths/<id>/game/traits/<trait>`.
 

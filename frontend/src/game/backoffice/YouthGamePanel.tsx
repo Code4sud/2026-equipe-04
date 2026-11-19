@@ -25,7 +25,7 @@ export default function YouthGamePanel({ youthId }: { youthId: string }) {
   return (
     <section className="stack-sm">
       <h2>Quiz et jeux</h2>
-      {!overview.shared && <p className="notice">Résultats non partagés.</p>}
+      <p className="muted">{overview.runs.length} parties</p>
     </section>
   );
 }

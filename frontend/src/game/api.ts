@@ -23,11 +23,6 @@ export interface AnswerBody {
 
 export const gameApi = {
   status: (signal?: AbortSignal) => request<GameStatus>('/me/game', { signal }),
-  setConsent: (share_game_results: boolean) =>
-    request<{ share_game_results: boolean }>('/me/game/consent', {
-      method: 'PATCH',
-      body: { share_game_results },
-    }),
   startRun: (instrumentId: string) =>
     request<RunPayload>(`/me/game/instruments/${instrumentId}/runs`, { method: 'POST' }),
   saveAnswer: (runId: string, itemId: string, body: AnswerBody) =>

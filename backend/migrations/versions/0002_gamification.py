@@ -17,10 +17,6 @@ depends_on = None
 
 
 def upgrade():
-    with op.batch_alter_table('youth_profiles', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('share_game_results', sa.Boolean(), nullable=True))
-        batch_op.add_column(sa.Column('share_game_updated_at', sa.DateTime(timezone=True), nullable=True))
-
     op.create_table('game_runs',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('youth_id', sa.Uuid(), nullable=False),
@@ -63,6 +59,7 @@ def upgrade():
     sa.Column('key', sa.String(length=60), nullable=False),
     sa.Column('label', sa.String(length=80), nullable=False),
     sa.Column('value', sa.String(length=160), nullable=False),
+    sa.Column('original_value', sa.String(length=160), nullable=True),
     sa.Column('source_item_id', sa.String(length=60), nullable=True),
     sa.Column('edited', sa.Boolean(), nullable=False),
     sa.Column('hidden', sa.Boolean(), nullable=False),
@@ -92,6 +89,3 @@ def downgrade():
         batch_op.drop_index('ix_game_runs_youth_instrument')
 
     op.drop_table('game_runs')
-    with op.batch_alter_table('youth_profiles', schema=None) as batch_op:
-        batch_op.drop_column('share_game_updated_at')
-        batch_op.drop_column('share_game_results')

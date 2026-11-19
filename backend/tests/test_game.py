@@ -56,13 +56,6 @@ def finish_onboarding(client, headers):
     return run_id, response.get_json()
 
 
-def share(client, headers, value=True):
-    response = client.patch(
-        "/api/me/game/consent", json={"share_game_results": value}, headers=headers
-    )
-    assert response.status_code == 200
-
-
 def youth_id(client, headers):
     return client.get("/api/auth/me", headers=headers).get_json()["user"]["id"]
 
@@ -78,7 +71,6 @@ def cursor(overview, trait):
 def test_new_youth_must_do_onboarding_and_can_pause(client, youth):
     status = client.get("/api/me/game", headers=youth).get_json()
     assert status["must_onboard"] is True
-    assert status["share_game_results"] is None
 
     run_id = start(client, youth)["run"]["id"]
     assert client.post(f"/api/me/game/runs/{run_id}/pause", headers=youth).status_code == 200
@@ -142,22 +134,18 @@ def test_games_unlock_after_onboarding(client, youth):
     start(client, youth, "fixture_questionnaire")
 
 
-def test_psychologist_only_sees_results_when_shared(client, youth, psychologist):
+def test_psychologist_sees_cursors_as_percentages(client, youth, psychologist):
     run_id, _ = finish_onboarding(client, youth)
     target = youth_id(client, youth)
     base = f"/api/backoffice/youths/{target}/game"
 
-    overview = client.get(base, headers=psychologist).get_json()
-    assert overview == {
-        "youth": overview["youth"], "shared": False, "asked": False, "share_updated_at": None
-    }
-    assert client.get(f"{base}/runs/{run_id}", headers=psychologist).status_code == 403
-    assert client.get(f"{base}/traits/extraversion", headers=psychologist).status_code == 403
     assert client.get(base, headers=youth).status_code == 403
+    assert client.get(f"{base}/runs/{run_id}", headers=youth).status_code == 403
+    other = register(client, "Noa")
+    other_run = start(client, other)["run"]["id"]
+    assert client.get(f"{base}/runs/{other_run}", headers=psychologist).status_code == 404
 
-    share(client, youth)
     overview = client.get(base, headers=psychologist).get_json()
-    assert overview["shared"] is True
     assert cursor(overview, "extraversion")["headline"] == {"percent": 90, "label": "Réservé"}
     assert cursor(overview, "riasec_r")["headline"] == {
         "percent": 95, "label": "Intérêt manuel et technique"
@@ -166,7 +154,6 @@ def test_psychologist_only_sees_results_when_shared(client, youth, psychologist)
 
 def test_questionnaire_outweighs_quiz_and_keeps_raw_scores(client, youth, psychologist):
     finish_onboarding(client, youth)
-    share(client, youth)
     run_id = start(client, youth, "fixture_questionnaire")["run"]["id"]
     for item_id, value in [("e1", 5), ("e2", 1), ("c1", 4)]:
         answer(client, youth, run_id, item_id, value, response_ms=1500)
@@ -199,7 +186,6 @@ def test_questionnaire_outweighs_quiz_and_keeps_raw_scores(client, youth, psycho
 
 def test_performance_score_is_recomputed_by_the_server(client, youth, psychologist):
     finish_onboarding(client, youth)
-    share(client, youth)
     run_id = start(client, youth, "fixture_span")["run"]["id"]
     assert complete(client, youth, run_id, trials=[]).status_code == 400
     trials = [
@@ -219,7 +205,6 @@ def test_performance_score_is_recomputed_by_the_server(client, youth, psychologi
 
 
 def test_validated_talents_feed_cursors_and_xp(app, client, youth, psychologist):
-    share(client, youth)
     target = youth_id(client, youth)
     with app.app_context():
         import uuid
@@ -252,9 +237,8 @@ def test_validated_talents_feed_cursors_and_xp(app, client, youth, psychologist)
     assert trail["signals"][0]["answer"] == "je répare"
 
 
-def test_sheet_shows_facts_positive_view_and_lets_youth_decide(client, youth, psychologist):
+def test_sheet_shows_facts_and_psychologist_sees_every_change(client, youth, psychologist):
     run_id, _ = finish_onboarding(client, youth)
-    share(client, youth)
     sheet = client.get("/api/me/game/sheet", headers=youth).get_json()
     assert {fact["label"]: fact["value"] for fact in sheet["facts"]} == {
         "Couleur préférée": "Jaune", "Passion": "Jeux vidéo"
@@ -277,11 +261,15 @@ def test_sheet_shows_facts_positive_view_and_lets_youth_decide(client, youth, ps
 
     base = f"/api/backoffice/youths/{youth_id(client, youth)}/game"
     overview = client.get(base, headers=psychologist).get_json()
-    assert [fact["key"] for fact in overview["facts"]] == ["passion"]
+    facts = {fact["key"]: fact for fact in overview["facts"]}
+    assert facts["passion"]["original_value"] == "Jeux vidéo"
+    assert facts["passion"]["value"] == "Le skate" and facts["passion"]["edited"] is True
+    assert facts["couleur_preferee"]["hidden"] is True
+    assert facts["couleur_preferee"]["value"] == "Jaune"
     assert cursor(overview, "extraversion")["verdict"] == "disagree"
     detail = client.get(f"{base}/runs/{run_id}", headers=psychologist).get_json()
     color = next(row for row in detail["answers"] if row["item_id"] == "couleur")
-    assert color["hidden_by_youth"] is True and color["answer_label"] is None
+    assert color["hidden_by_youth"] is True and color["answer_label"] == "Jaune"
 
 
 def test_replaying_does_not_erase_a_youth_edit(client, youth):
@@ -291,6 +279,7 @@ def test_replaying_does_not_erase_a_youth_edit(client, youth):
     answer(client, youth, run_id, "couleur", "bleu")
     facts = client.get("/api/me/game/sheet", headers=youth).get_json()["facts"]
     assert facts[0]["value"] == "Vert"
+    assert facts[0]["original_value"] == "Bleu"
 
 
 def test_levels_grow_progressively():

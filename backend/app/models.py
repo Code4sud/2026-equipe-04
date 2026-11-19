@@ -107,9 +107,6 @@ class YouthProfile(db.Model):
     # Le jeune choisit explicitement de montrer ses conversations à la psychologue.
     share_transcripts: Mapped[bool] = mapped_column(Boolean, default=False)
     share_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    # Réponses aux jeux et curseurs : None tant que la question n'a pas été posée au jeune.
-    share_game_results: Mapped[bool | None] = mapped_column(Boolean)
-    share_game_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     user: Mapped[User] = relationship(back_populates="youth_profile")
 
@@ -265,7 +262,11 @@ class GameAnswer(db.Model):
 
 
 class GameFact(db.Model):
-    """Détail simple donné par le jeune (couleur préférée, passion...), modifiable par lui."""
+    """Détail simple donné par le jeune (couleur préférée, passion...).
+
+    Le jeune peut le corriger ou le masquer de sa fiche ; la psychologue voit toujours
+    la réponse d'origine et la modification, pour pouvoir en parler avec lui.
+    """
 
     __tablename__ = "game_facts"
 
@@ -275,6 +276,8 @@ class GameFact(db.Model):
     key: Mapped[str] = mapped_column(String(60), primary_key=True)
     label: Mapped[str] = mapped_column(String(80))
     value: Mapped[str] = mapped_column(String(160))
+    # Réponse donnée dans le jeu, avant toute correction par le jeune.
+    original_value: Mapped[str | None] = mapped_column(String(160))
     source_item_id: Mapped[str | None] = mapped_column(String(60))
     edited: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)

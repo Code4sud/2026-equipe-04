@@ -1,11 +1,14 @@
-"""Quiz, mini-jeux et fiche perso côté jeune ; curseurs et réponses côté psychologue."""
+"""Quiz, mini-jeux et fiche perso côté jeune ; curseurs et réponses côté psychologue.
+
+Le jeune accepte à l'inscription la transmission de ses données à sa psychologue :
+les résultats de jeux lui sont donc toujours visibles, modifications du jeune comprises.
+"""
 from __future__ import annotations
 
 import uuid
 
 from flask import g, jsonify, request
 
-from ..errors import ApiError
 from ..game import service as game
 from ..models import Role
 from ..security import require_roles
@@ -22,15 +25,6 @@ def _optional_body() -> dict:
 @require_roles(Role.YOUTH)
 def my_game():
     return jsonify(game.game_status(g.user))
-
-
-@api.patch("/me/game/consent")
-@require_roles(Role.YOUTH)
-def my_game_consent():
-    share = json_body().get("share_game_results")
-    if not isinstance(share, bool):
-        raise ApiError(400, "invalid_field", "share_game_results doit être vrai ou faux.")
-    return jsonify(game.set_consent(g.user, share))
 
 
 @api.post("/me/game/instruments/<instrument_id>/runs")
@@ -85,19 +79,19 @@ def game_catalog():
 @api.get("/backoffice/youths/<uuid:youth_id>/game")
 @require_roles(*STAFF_ROLES)
 def youth_game(youth_id: uuid.UUID):
-    user, profile = _youth_or_404(youth_id)
-    return jsonify(game.psy_overview(user, profile))
+    user, _profile = _youth_or_404(youth_id)
+    return jsonify(game.psy_overview(user))
 
 
 @api.get("/backoffice/youths/<uuid:youth_id>/game/runs/<uuid:run_id>")
 @require_roles(*STAFF_ROLES)
 def youth_game_run(youth_id: uuid.UUID, run_id: uuid.UUID):
-    user, profile = _youth_or_404(youth_id)
-    return jsonify(game.psy_run_detail(user, profile, run_id))
+    user, _profile = _youth_or_404(youth_id)
+    return jsonify(game.psy_run_detail(user, run_id))
 
 
 @api.get("/backoffice/youths/<uuid:youth_id>/game/traits/<trait_id>")
 @require_roles(*STAFF_ROLES)
 def youth_game_trait(youth_id: uuid.UUID, trait_id: str):
-    user, profile = _youth_or_404(youth_id)
-    return jsonify(game.psy_trait_detail(user, profile, trait_id))
+    user, _profile = _youth_or_404(youth_id)
+    return jsonify(game.psy_trait_detail(user, trait_id))

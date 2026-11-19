@@ -121,7 +121,6 @@ export interface InstrumentSummary {
 
 export interface GameStatus {
   must_onboard: boolean;
-  share_game_results: boolean | null;
   progress: Progress;
   instruments: InstrumentSummary[];
 }
@@ -158,12 +157,16 @@ export interface RunResult {
   metrics: Record<string, unknown> | null;
 }
 
+/** Masquer ou corriger ne change que la fiche du jeune : la psychologue voit tout. */
 export interface GameFact {
   key: string;
   label: string;
   value: string;
+  /** Réponse donnée dans le jeu, avant correction par le jeune. */
+  original_value: string | null;
   edited: boolean;
   hidden: boolean;
+  updated_at: string | null;
 }
 
 export interface SheetAttribute {
@@ -190,7 +193,6 @@ export interface CharacterSheet {
   attributes: SheetAttribute[];
   trait_groups: { id: string; label: string; traits: YouthTrait[] }[];
   talents: { validated: SheetTalent[]; pending_count: number };
-  share_game_results: boolean | null;
 }
 
 export interface GameSource {
@@ -238,14 +240,12 @@ export interface PsyRun extends GameRun {
 
 export interface PsyOverview {
   youth: { id: string; display_name: string };
-  shared: boolean;
-  asked: boolean;
-  share_updated_at: string | null;
-  progress?: { xp: number; level: number; level_title: string };
-  clan?: Clan | null;
-  cursor_groups?: { id: string; label: string; cursors: PsyCursor[] }[];
-  facts?: GameFact[];
-  runs?: PsyRun[];
+  progress: { xp: number; level: number; level_title: string };
+  clan: Clan | null;
+  cursor_groups: { id: string; label: string; cursors: PsyCursor[] }[];
+  /** Tous les détails, y compris ceux que le jeune a masqués de sa fiche. */
+  facts: GameFact[];
+  runs: PsyRun[];
 }
 
 export interface SignalRow {
@@ -296,6 +296,7 @@ export interface PsyTraitSignal extends SignalRow {
   at: string | null;
   tier_label: string;
   instrument_title: string | null;
+  hidden_by_youth: boolean;
 }
 
 export interface PsyTraitDetail {

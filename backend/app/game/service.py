@@ -1,4 +1,8 @@
-"""Règles du jeu : parties, réponses, progression, fiche du jeune et vue psychologue."""
+"""Règles du jeu : parties, réponses, progression, fiche du jeune et vue psychologue.
+
+Le jeune accepte à l'inscription que ses données soient transmises au Centre des Possibles
+et à sa psychologue : tout ce qui est joué ici lui est visible, modifications comprises.
+"""
 from __future__ import annotations
 
 import math
@@ -20,7 +24,6 @@ from ..models import (
     SkillStatus,
     TraitFeedback,
     User,
-    YouthProfile,
     iso,
     utcnow,
 )
@@ -70,15 +73,6 @@ def load_youth(youth_id: uuid.UUID) -> YouthData:
         .order_by(Skill.reviewed_at.desc())
     ).all()
     return YouthData(list(runs), list(facts), {f.trait_id: f.verdict for f in feedback}, list(talents))
-
-
-def profile_of(user: User) -> YouthProfile:
-    profile = db.session.get(YouthProfile, user.id)
-    if profile is None:
-        profile = YouthProfile(user_id=user.id)
-        db.session.add(profile)
-        db.session.flush()
-    return profile
 
 
 # --- Signaux et curseurs ---
@@ -336,10 +330,21 @@ def _save_fact(user: User, item: dict, fact: tuple[str, str, str]) -> None:
     row = db.session.get(GameFact, (user.id, key))
     if row is None:
         db.session.add(
-            GameFact(youth_id=user.id, key=key, label=label, value=value, source_item_id=item["id"])
+            GameFact(
+                youth_id=user.id,
+                key=key,
+                label=label,
+                value=value,
+                original_value=value,
+                source_item_id=item["id"],
+            )
         )
-    elif not row.edited:
-        row.label, row.value, row.source_item_id, row.updated_at = label, value, item["id"], utcnow()
+        return
+    # Une nouvelle réponse au jeu met à jour l'origine, sans écraser la correction du jeune.
+    row.label, row.original_value, row.source_item_id = label, value, item["id"]
+    if not row.edited:
+        row.value = value
+    row.updated_at = utcnow()
 
 
 def save_answer(user: User, run_id: uuid.UUID, item_id: str, body: dict) -> dict:
@@ -481,8 +486,6 @@ def _result(user: User, run: GameRun, instrument: dict, before: dict) -> dict:
 def game_status(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
-    profile = profile_of(user)
-    db.session.commit()
     completed = Counter(r.instrument_id for r in data.runs if r.status == GameRunStatus.COMPLETED)
     latest_completion = {
         r.instrument_id: r.completed_at for r in data.runs if r.status == GameRunStatus.COMPLETED
@@ -522,20 +525,8 @@ def game_status(user: User) -> dict:
     )
     return {
         "must_onboard": must_onboard,
-        "share_game_results": profile.share_game_results,
         "progress": progress(data),
         "instruments": instruments,
-    }
-
-
-def set_consent(user: User, share: bool) -> dict:
-    profile = profile_of(user)
-    profile.share_game_results = share
-    profile.share_game_updated_at = utcnow()
-    db.session.commit()
-    return {
-        "share_game_results": profile.share_game_results,
-        "share_game_updated_at": iso(profile.share_game_updated_at),
     }
 
 
@@ -590,16 +581,16 @@ def fact_dict(fact: GameFact) -> dict:
         "key": fact.key,
         "label": fact.label,
         "value": fact.value,
+        "original_value": fact.original_value,
         "edited": fact.edited,
         "hidden": fact.hidden,
+        "updated_at": iso(fact.updated_at),
     }
 
 
 def character_sheet(user: User) -> dict:
     cat = catalog()
     data = load_youth(user.id)
-    profile = profile_of(user)
-    db.session.commit()
     cursors = aggregate(cat, collect_signals(data))
     groups = []
     for group in cat.trait_groups:
@@ -630,7 +621,6 @@ def character_sheet(user: User) -> dict:
             ],
             "pending_count": pending,
         },
-        "share_game_results": profile.share_game_results,
     }
 
 
@@ -670,11 +660,6 @@ def set_trait_feedback(user: User, trait_id: str, verdict) -> dict:
 
 
 # --- Backoffice psychologue ---
-
-
-def _require_shared(profile: YouthProfile) -> None:
-    if profile.share_game_results is not True:
-        raise ApiError(403, "game_not_shared", "Ce jeune ne partage pas ses résultats de jeux.")
 
 
 def source_dict(source_id: str) -> dict | None:
@@ -722,16 +707,8 @@ def psy_cursor(trait_id: str, cursor: dict, feedback: dict[str, str]) -> dict:
     return {**view, "label": label, "headline": headline}
 
 
-def psy_overview(user: User, profile: YouthProfile) -> dict:
+def psy_overview(user: User) -> dict:
     cat = catalog()
-    base = {
-        "youth": {"id": str(user.id), "display_name": user.display_name},
-        "shared": profile.share_game_results is True,
-        "asked": profile.share_game_results is not None,
-        "share_updated_at": iso(profile.share_game_updated_at),
-    }
-    if not base["shared"]:
-        return base
     data = load_youth(user.id)
     cursors = aggregate(cat, collect_signals(data))
     runs = []
@@ -746,7 +723,7 @@ def psy_overview(user: User, profile: YouthProfile) -> dict:
         )
     current = progress(data)
     return {
-        **base,
+        "youth": {"id": str(user.id), "display_name": user.display_name},
         "progress": {k: current[k] for k in ("xp", "level", "level_title")},
         "clan": clan_for(cursors),
         "cursor_groups": [
@@ -757,7 +734,7 @@ def psy_overview(user: User, profile: YouthProfile) -> dict:
             }
             for group in cat.trait_groups
         ],
-        "facts": [fact_dict(f) for f in data.facts if not f.hidden],
+        "facts": [fact_dict(f) for f in data.facts],
         "runs": runs,
     }
 
@@ -777,8 +754,7 @@ def _item_source(instrument: dict | None, item: dict | None) -> dict | None:
     return {**reference, "source": source_dict(reference["source_id"])}
 
 
-def psy_run_detail(user: User, profile: YouthProfile, run_id: uuid.UUID) -> dict:
-    _require_shared(profile)
+def psy_run_detail(user: User, run_id: uuid.UUID) -> dict:
     run = db.session.get(GameRun, run_id)
     if run is None or run.youth_id != user.id:
         raise ApiError(404, "not_found", "Partie introuvable.")
@@ -797,7 +773,6 @@ def psy_run_detail(user: User, profile: YouthProfile, run_id: uuid.UUID) -> dict
     for position, item_id in enumerate(ordered, start=1):
         item = cat.item(instrument, item_id) if instrument else None
         answer = answers.get(item_id)
-        hidden = item_id in hidden_items
         rows.append(
             {
                 "item_id": item_id,
@@ -806,13 +781,14 @@ def psy_run_detail(user: User, profile: YouthProfile, run_id: uuid.UUID) -> dict
                 "type": (item or {}).get("type", "trial"),
                 "prompt": answer.prompt if answer else item["prompt"],
                 "status": "unanswered" if answer is None else "skipped" if answer.skipped else "answered",
-                "answer_label": None if answer is None or hidden else answer.label,
-                "value": None if answer is None or hidden else answer.value,
-                "hidden_by_youth": hidden,
+                "answer_label": answer.label if answer else None,
+                "value": answer.value if answer else None,
+                # Le jeune a masqué ce détail de sa fiche : la psychologue le voit quand même.
+                "hidden_by_youth": item_id in hidden_items,
                 "response_ms": answer.response_ms if answer else None,
                 "answered_at": iso(answer.answered_at) if answer else None,
                 "signals": []
-                if answer is None or hidden
+                if answer is None
                 else [{**s, "trait_label": _trait_label(s["trait"])} for s in answer.signals],
                 "source": _item_source(instrument, item),
             }
@@ -825,8 +801,7 @@ def psy_run_detail(user: User, profile: YouthProfile, run_id: uuid.UUID) -> dict
     }
 
 
-def psy_trait_detail(user: User, profile: YouthProfile, trait_id: str) -> dict:
-    _require_shared(profile)
+def psy_trait_detail(user: User, trait_id: str) -> dict:
     cat = catalog()
     if trait_id not in cat.traits:
         raise ApiError(404, "not_found", "Curseur introuvable.")
@@ -838,14 +813,13 @@ def psy_trait_detail(user: User, profile: YouthProfile, trait_id: str) -> dict:
     for row in signals:
         if row["trait"] != trait_id:
             continue
-        if row["item_id"] in hidden_items:
-            continue
         instrument = cat.instruments.get(row["instrument_id"]) if row["instrument_id"] else None
         rows.append(
             {
                 **row,
                 "tier_label": TIER_LABELS.get(row["tier"], row["tier"]),
                 "instrument_title": instrument["title"] if instrument else None,
+                "hidden_by_youth": row["item_id"] is not None and row["item_id"] in hidden_items,
             }
         )
     return {"cursor": psy_cursor(trait_id, cursors[trait_id], data.feedback), "signals": rows}
