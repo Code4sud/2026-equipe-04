@@ -40,7 +40,7 @@ const RECENT_REVEAL_MS = 20_000;
 const IMPRESSIVE_STORY_WORDS = 12;
 
 // Sur grand écran, Néo quitte la pastille de l'en-tête et se tient en grand à côté du fil.
-const WIDE_QUERY = '(min-width: 64rem)';
+const WIDE_QUERY = '(min-width: 68rem)';
 
 function subscribeWide(onChange: () => void) {
   const media = window.matchMedia(WIDE_QUERY);
@@ -339,14 +339,14 @@ export function ChatPage() {
   if (!conversation) return <Loading />;
 
   return (
-    <section className={wide ? 'chat chat--stage' : 'chat'} aria-label={fr.chat.title}>
+    <section className="chat" aria-label={fr.chat.title}>
       {wide && (
         <div className="chat__stage">
           <Mascot ref={mascotRef} mood={mascotMood} framing="full" className="mascot--stage" />
         </div>
       )}
       <div className="chat-head__wrap">
-        <header className="chat-head">
+        <header className={wide ? 'chat-head chat-head--solo' : 'chat-head'}>
           {!wide && <Mascot ref={mascotRef} mood={mascotMood} framing="portrait" className="mascot--chat" />}
           <div>
             <h1>{fr.chat.title}</h1>

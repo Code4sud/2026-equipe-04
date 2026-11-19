@@ -1268,34 +1268,21 @@ mark {
   justify-self: start;
 }
 
-/* Grand écran : Néo se tient en grand, en bas, à côté de la discussion. */
-@media (min-width: 64rem) {
-  .chat--stage {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    grid-template-columns: var(--mascot-stage-width) minmax(0, 1fr);
-  }
-
-  .chat--stage > :not(.chat__stage) {
-    grid-column: 2;
-  }
-
-  .chat--stage .chat-head {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding-bottom: var(--space-2);
-  }
-
-  .chat--stage .chat-head__notice {
-    grid-column: 1 / -1;
+/* Grand écran : Néo se tient en grand, en bas à gauche, sans déplacer la discussion. */
+@media (min-width: 68rem) {
+  .chat {
+    position: relative;
   }
 
   .chat__stage {
-    position: relative;
-    grid-row: 1 / -1;
-    grid-column: 1;
-    align-self: end;
-    height: min(var(--mascot-stage-height), 85%);
-    margin-left: var(--space-4);
+    position: absolute;
+    bottom: 0;
+    left: var(--space-4);
+    z-index: 0;
+    width: min(var(--mascot-stage-width), calc((100% - var(--width-content)) / 2 - var(--space-6)));
+    max-height: min(var(--mascot-stage-height), 80%);
+    aspect-ratio: 5 / 8;
+    pointer-events: none;
   }
 
   .chat__stage::before {
@@ -1312,5 +1299,13 @@ mark {
   .mascot--stage {
     position: absolute;
     inset: 0;
+  }
+
+  .chat-head--solo {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .chat-head--solo .chat-head__notice {
+    grid-column: 1 / -1;
   }
 }
