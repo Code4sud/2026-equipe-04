@@ -4,16 +4,17 @@
  * Les détails masqués par le jeune ne figurent jamais sur l'image.
  */
 import { fr } from '../../content/fr';
-import type { CharacterSheet } from '../types';
+import type { CharacterSheet, GameFact } from '../types';
 import { isColorFact, swatchFor } from './colors';
 import { orderFacts } from './facts';
 import { CREST_INNER, CREST_SHIELD, glyphFor, sealPath, type GlyphPath } from './glyphs';
 import { quote, sheetFr, typo } from './sheet.fr';
 
-// Format portrait des téléphones (stories, statuts).
+// Portrait, de 1080 x 1350 à environ 1080 x 1930 selon ce que la fiche contient.
 const WIDTH = 1080;
-const HEIGHT = 1920;
+const MIN_HEIGHT = 1350;
 const MARGIN = 96;
+const SECTION_GAP = 60;
 const INNER = WIDTH - MARGIN * 2;
 const MAX_TALENTS = 5;
 const MAX_FACTS = 6;
@@ -206,25 +207,25 @@ async function loadFonts() {
   await Promise.all(fonts.map((font) => document.fonts.load(font).catch(() => undefined)));
 }
 
-function drawPaper(ctx: CanvasRenderingContext2D, p: Palette) {
+function drawPaper(ctx: CanvasRenderingContext2D, p: Palette, height: number) {
   ctx.fillStyle = p.bg;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillRect(0, 0, WIDTH, height);
   ctx.fillStyle = p.paper;
   ctx.strokeStyle = p.border;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(36, 36, WIDTH - 72, HEIGHT - 72, 28);
+  ctx.roundRect(36, 36, WIDTH - 72, height - 72, 28);
   ctx.fill();
   ctx.stroke();
   ctx.strokeStyle = p.softLine;
   ctx.beginPath();
-  ctx.roundRect(50, 50, WIDTH - 100, HEIGHT - 100, 18);
+  ctx.roundRect(50, 50, WIDTH - 100, height - 100, 18);
   ctx.stroke();
   for (const [x, y, sx, sy] of [
     [62, 62, 1, 1],
     [WIDTH - 62, 62, -1, 1],
-    [62, HEIGHT - 62, 1, -1],
-    [WIDTH - 62, HEIGHT - 62, -1, -1],
+    [62, height - 62, 1, -1],
+    [WIDTH - 62, height - 62, -1, -1],
   ]) {
     ctx.save();
     ctx.translate(x, y);
@@ -327,7 +328,7 @@ function drawTalents(ctx: CanvasRenderingContext2D, p: Palette, sheet: Character
       ctx.fillText(text, MARGIN, y + 30);
       y += 36;
     }
-    return y + 20;
+    return;
   }
   for (const talent of talents.slice(0, MAX_TALENTS)) {
     ctx.fillStyle = p.talentSoft;
@@ -351,16 +352,10 @@ function drawTalents(ctx: CanvasRenderingContext2D, p: Palette, sheet: Character
     ctx.font = FONTS.body(26);
     ctx.fillStyle = p.talentText;
     ctx.fillText(`+ ${more} ${more > 1 ? 'autres talents' : 'autre talent'}`, MARGIN, y + 22);
-    y += 44;
   }
-  return y;
 }
 
-function drawFacts(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterSheet, top: number) {
-  const facts = orderFacts(sheet.facts)
-    .filter((fact) => !fact.hidden)
-    .slice(0, MAX_FACTS);
-  if (facts.length === 0) return top - 40;
+function drawFacts(ctx: CanvasRenderingContext2D, p: Palette, facts: GameFact[], top: number) {
   sectionTitle(ctx, p, sheetFr.identity.title, top, p.line);
   const gap = 48;
   const width = (INNER - gap) / 2;
@@ -394,7 +389,6 @@ function drawFacts(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterSh
     ctx.stroke();
     ctx.setLineDash([]);
   });
-  return top + 30 + Math.ceil(facts.length / 2) * 80;
 }
 
 function drawAttributes(ctx: CanvasRenderingContext2D, p: Palette, sheet: CharacterSheet, top: number) {
@@ -417,26 +411,41 @@ function drawAttributes(ctx: CanvasRenderingContext2D, p: Palette, sheet: Charac
   });
 }
 
+/** Place les sections les unes sous les autres ; l'image s'allonge seulement si la fiche est riche. */
+function layout(sheet: CharacterSheet) {
+  const facts = orderFacts(sheet.facts)
+    .filter((fact) => !fact.hidden)
+    .slice(0, MAX_FACTS);
+  const talents = sheet.talents.validated.length;
+  const talentsHeight =
+    44 + (talents ? Math.min(talents, MAX_TALENTS) * 96 + (talents > MAX_TALENTS ? 44 : 0) : 128);
+  const talentsTop = 660;
+  const factsTop = talentsTop + talentsHeight + SECTION_GAP;
+  const attributesTop = facts.length ? factsTop + 30 + Math.ceil(facts.length / 2) * 80 + SECTION_GAP : factsTop;
+  return { facts, talentsTop, factsTop, attributesTop, height: Math.max(MIN_HEIGHT, attributesTop + 332) };
+}
+
 export async function renderSheetPng(sheet: CharacterSheet): Promise<Blob> {
   await loadFonts();
+  const plan = layout(sheet);
   const canvas = document.createElement('canvas');
   canvas.width = WIDTH;
-  canvas.height = HEIGHT;
+  canvas.height = plan.height;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('canvas');
   const p = readPalette();
 
-  drawPaper(ctx, p);
+  drawPaper(ctx, p, plan.height);
   drawHeader(ctx, p, sheet);
   drawLevel(ctx, p, sheet, 440);
-  const afterTalents = drawTalents(ctx, p, sheet, 660);
-  drawFacts(ctx, p, sheet, afterTalents + 50);
-  drawAttributes(ctx, p, sheet, HEIGHT - 320);
+  drawTalents(ctx, p, sheet, plan.talentsTop);
+  if (plan.facts.length) drawFacts(ctx, p, plan.facts, plan.factsTop);
+  drawAttributes(ctx, p, sheet, plan.attributesTop);
 
   ctx.font = FONTS.heading(26, 700);
   ctx.fillStyle = p.textMuted;
   ctx.textAlign = 'center';
-  ctx.fillText(`${fr.appName} · ${sheetFr.hero.kicker}`, WIDTH / 2, HEIGHT - 76);
+  ctx.fillText(`${fr.appName} · ${sheetFr.hero.kicker}`, WIDTH / 2, plan.height - 76);
 
   return new Promise((resolve, reject) =>
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('png'))), 'image/png'),
