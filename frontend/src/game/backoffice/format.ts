@@ -10,12 +10,13 @@ const shortDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' });
 const longDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
 
 /** Même ordre que la force de la preuve. */
-export const TIER_ORDER: Tier[] = ['validated', 'performance', 'adapted', 'custom', 'talent'];
+export const TIER_ORDER: Tier[] = ['validated', 'performance', 'translated', 'adapted', 'custom', 'talent'];
 
 /** Copie de TIER_WEIGHTS (backend/app/game/scoring.py) : l'API ne les expose pas. */
 export const TIER_WEIGHTS: Record<Tier, number> = {
   validated: 1,
   performance: 1,
+  translated: 0.75,
   adapted: 0.5,
   custom: 0.5,
   talent: 0.25,
@@ -42,8 +43,9 @@ export function lowerFirst(text: string): string {
   return text.charAt(0).toLocaleLowerCase('fr-FR') + text.slice(1);
 }
 
-export function tierLabel(tier: string, fallback?: string): string {
-  return (bo.tiers as Record<string, string>)[tier] ?? fallback ?? tier;
+/** Libellé d'un niveau de preuve : celui que l'API envoie, sinon la copie du front (légende, méthode). */
+export function tierLabel(tier: string, label?: string): string {
+  return label ?? (bo.tiers as Record<string, string>)[tier] ?? tier;
 }
 
 export function tierWeight(tier: string): number {

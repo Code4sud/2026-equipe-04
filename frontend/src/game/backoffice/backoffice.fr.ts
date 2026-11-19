@@ -21,17 +21,20 @@ export const bo = {
     printIncomplete: 'Une partie du détail n’a pas pu être chargée\u00a0: l’impression est incomplète.',
     empty: 'Le jeune n’a pas encore commencé le quiz d’arrivée.',
   },
+  /** Mêmes libellés que TIER_LABELS (backend/app/game/service.py), qui les envoie aussi avec chaque réponse. */
   tiers: {
     validated: 'Test validé',
     performance: 'Tâche cognitive publiée',
-    adapted: 'Inspiré d’un test validé',
+    translated: 'Test validé, traduction maison non validée',
+    adapted: 'Inspiré de travaux publiés, non validé',
     custom: 'Indicateur maison',
-    talent: 'Talent validé',
+    talent: 'Talent validé par le jeune',
   } satisfies Record<Tier, string>,
   tierMeaning: {
     validated: 'Items d’un test publié et validé, sans changement de sens.',
     performance: 'Tâche cognitive publiée, score propre à ce jeu.',
-    adapted: 'Question du quotidien inspirée d’un test validé.',
+    translated: 'Items d’un test validé, traduits par l’équipe sans étude de la traduction.',
+    adapted: 'Questions écrites par l’équipe à partir d’une théorie ou d’un test publiés, sans validation.',
     custom: 'Indicateur créé pour le projet.',
     talent: 'Talent repéré dans la discussion et validé par le jeune.',
   } satisfies Record<Tier, string>,
@@ -211,6 +214,7 @@ export const bo = {
       meaning: 'Sens',
       weight: 'Poids',
       after: [
+        'Un signal peut avoir un niveau de preuve plus faible que celui de son questionnaire, jamais plus fort. Dans le quiz d’arrivée, par exemple, l’intérêt geek et numérique est un indicateur maison\u00a0: son niveau est indiqué à côté du signal.',
         'Curseur bipolaire\u00a0: 0 correspond au premier pôle et 100 au second, par exemple Réservé ↔ Sociable. «\u00a080\u202f% réservé\u00a0» correspond à une valeur de 20.',
         'Curseur unipolaire\u00a0: de 0 à 100. «\u00a070\u202f% intérêt geek et numérique\u00a0» correspond à une valeur de 70.',
         'La confiance dépend du poids total des réponses\u00a0: faible en dessous de 2, moyenne de 2 à moins de 5, bonne à partir de 5. Elle reflète la quantité de données, pas la validité du résultat.',
@@ -221,7 +225,7 @@ export const bo = {
     limits: {
       title: 'Limites',
       items: [
-        'Les questions du quiz sont inspirées de tests validés sans en être\u00a0: elles servent à ouvrir la discussion.',
+        'Les questions du quiz et du Grand Tri sont écrites par l’équipe à partir de théories ou de tests publiés, sans validation\u00a0: elles servent à ouvrir la discussion.',
         'Aucun score n’est étalonné\u00a0: pas de norme de comparaison, pas de percentile, pas de QI.',
         'Aucun résultat n’est un diagnostic. Un jeu cognitif donne un score propre à ce jeu.',
         'Une traduction faite pour le projet n’est pas une version française validée.',

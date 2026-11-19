@@ -346,6 +346,12 @@
   color: var(--color-positive);
 }
 
+/* Test validé mais traduction maison : même couleur, sans le fond plein. */
+.bog-tier--translated {
+  border-color: var(--color-positive-mark);
+  color: var(--color-positive);
+}
+
 .bog-tier--custom {
   border-style: dashed;
   border-color: var(--color-text-muted);

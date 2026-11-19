@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import re
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +12,7 @@ from app.game.scoring import TIER_WEIGHTS, aggregate, score_answer
 from app.game.service import TIER_LABELS
 
 QUIZ = {"id": "quiz", "kind": "quiz", "tier": "adapted", "scale": {"min": 1, "max": 5}}
+GAME_FRONT = Path(__file__).resolve().parents[2] / "frontend" / "src" / "game"
 
 
 @pytest.fixture(scope="module")
@@ -23,6 +26,26 @@ def test_every_tier_has_a_label_and_a_weight():
     assert TIER_LABELS["adapted"] == "Inspiré de travaux publiés, non validé"
     # Une traduction maison compte moins que le test validé, plus qu'une simple inspiration.
     assert TIER_WEIGHTS["validated"] > TIER_WEIGHTS["translated"] == 0.75 > TIER_WEIGHTS["adapted"]
+
+
+def ts_block(path: Path, start: str, end: str) -> str:
+    """Texte d'un fichier TypeScript entre `start` et le premier `end` qui suit."""
+    source = path.read_text(encoding="utf-8")
+    return source.split(start, 1)[1].split(end, 1)[0]
+
+
+def test_backoffice_shows_the_tiers_of_the_api():
+    # Le front garde une copie des libellés (légende, méthode) et des poids (détail d'un curseur).
+    union = ts_block(GAME_FRONT / "types.ts", "export type Tier =", ";")
+    assert set(re.findall(r"'(\w+)'", union)) == set(TIER_LABELS)
+    labels = ts_block(GAME_FRONT / "backoffice" / "backoffice.fr.ts", "  tiers: {", "}")
+    assert dict(re.findall(r"(\w+): '([^']*)'", labels)) == TIER_LABELS
+    format_ts = GAME_FRONT / "backoffice" / "format.ts"
+    weights = ts_block(format_ts, "export const TIER_WEIGHTS: Record<Tier, number> = {", "}")
+    assert {key: float(value) for key, value in re.findall(r"(\w+): ([\d.]+)", weights)} == TIER_WEIGHTS
+    order = re.findall(r"'(\w+)'", ts_block(format_ts, "export const TIER_ORDER: Tier[] = [", "]"))
+    assert sorted(order) == sorted(TIER_WEIGHTS)
+    assert [TIER_WEIGHTS[tier] for tier in order] == sorted(TIER_WEIGHTS.values(), reverse=True)
 
 
 def test_a_choice_signal_can_carry_its_own_tier():
