@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
+import { NeoAvatar } from '../neo/NeoAvatar';
 import type { CharacterSheet, GameFact, GameStatus, Verdict } from '../types';
 import { Attributes } from './Attributes';
 import { Badges } from './Badges';
@@ -34,7 +35,7 @@ function QuestCard({ quest }: { quest: Quest }) {
   const isQuiz = quest !== 'games';
   return (
     <section className="sheet-quest" aria-labelledby="sheet-quest-title">
-      <div className="neo-slot" data-mood="happy" aria-hidden="true" />
+      <NeoAvatar mood="happy" still className="neo-slot" />
       <div className="sheet-quest__text">
         <p className="sheet-kicker">{t.quest.kicker}</p>
         <h3 id="sheet-quest-title" className="sheet-quest__title">

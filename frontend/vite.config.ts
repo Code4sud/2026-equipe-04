@@ -38,7 +38,7 @@ export default defineConfig({
       },
       workbox: {
         // Seule l'interface est mise en cache : jamais les conversations ni les réponses de l'API.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
         // Néo et three.js ne sont téléchargés que par ceux qui l'affichent, puis gardés en cache.
         globIgnores: ['**/stage-*.js'],
         runtimeCaching: [
