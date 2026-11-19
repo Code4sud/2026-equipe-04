@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorState } from '../../components/Feedback';
+import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { QuestionCard } from '../components/QuestionCard';
 import type { AnswerValue } from '../types';
 import { isPending, useRunPlayer } from '../useRunPlayer';
-import { ChapterProgress } from './ChapterProgress';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
-import { chapterOf, QUIZ_ID, XP_PER_ANSWER } from './quizLogic';
+import { QUIZ_ID, SERIES_SIZE, seriesSpot, sittingOrder, XP_PER_ANSWER } from './quizLogic';
 import { QuizReveal } from './QuizReveal';
+import { SeriesDots } from './SeriesDots';
 import { XpCounter } from './XpCounter';
 
 const t = quizFr;
 /** Le temps de voir son choix s'allumer avant de passer à la question suivante. */
 const PICK_DELAY_MS = 180;
+/** « Continuer plus tard » mène à la discussion ; la fin d'une série, aux jeux, où le quiz attend. */
+const LATER_PATH = '/jeune/discussion';
+const HUB_PATH = '/jeune/jeux';
 
 /** Titre d'écran qui prend le focus à l'affichage, pour les lecteurs d'écran. */
 function ScreenTitle({ children }: { children: ReactNode }) {
@@ -36,13 +40,18 @@ function Waiting({ text }: { text: string }) {
   );
 }
 
-/** Le quiz d'arrivée : accueil, chapitres, une question par écran, puis révélation de l'archétype. */
+/**
+ * Le quiz d'arrivée : accueil, une question par écran dans un ordre tiré au hasard pour la partie,
+ * par séries de 10 avec à chaque fois le choix de continuer ou de revenir plus tard, puis
+ * révélation de l'archétype.
+ */
 export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
-  const player = useRunPlayer(QUIZ_ID);
+  const player = useRunPlayer(QUIZ_ID, { shuffle: true });
   const navigate = useNavigate();
   const { instrument, items, index, current, answers, startedWith, reviewing } = player;
   const [welcomed, setWelcomed] = useState(false);
-  const [introduced, setIntroduced] = useState<ReadonlySet<string>>(() => new Set());
+  /** Séries de cette séance après lesquelles le jeune a choisi de continuer. */
+  const [continued, setContinued] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [pausing, setPausing] = useState(false);
@@ -51,8 +60,14 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   useEffect(() => () => window.clearTimeout(pickTimer.current), []);
 
+  // Les séries comptent les questions vues depuis l'ouverture du quiz : elles repartent de zéro à
+  // chaque reprise. Une fois toutes les questions vues, place à la fin (et à la revue des passées).
+  const sitting = sittingOrder(items, answers, startedWith.seenIds);
+  const unseen = items.filter((item) => !answers[item.id]).length;
+  const seriesEnded = !reviewing && unseen > 0 && Math.floor(sitting.length / SERIES_SIZE) > continued;
+
   // Chaque écran commence en haut, même si le précédent avait défilé (petits téléphones).
-  const screenKey = `${welcomed}:${introduced.size}:${index}:${Boolean(player.result)}`;
+  const screenKey = `${welcomed}:${seriesEnded}:${continued}:${index}:${Boolean(player.result)}`;
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [screenKey]);
@@ -61,12 +76,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     if (player.errorCode === 'already_completed') onAlreadyDone();
   }, [player.errorCode, onAlreadyDone]);
 
-  async function leave() {
+  async function leave(to: string) {
     setPausing(true);
     setPauseError(null);
     try {
       await player.pause();
-      navigate('/jeune/discussion', { replace: true });
+      navigate(to, { replace: true });
     } catch {
       setPauseError(t.question.pauseError);
       setPausing(false);
@@ -78,7 +93,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     return (
       <div className="quiz-screen quiz-screen--center">
         <ErrorState message={player.error} onRetry={() => void player.reload()} />
-        <Link className="text-link" to="/jeune/discussion">
+        <Link className="text-link" to={LATER_PATH}>
           {t.leave}
         </Link>
       </div>
@@ -108,7 +123,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const pendingCount = items.filter((item) => isPending(item, answers)).length;
   const xp = startedWith.answered * XP_PER_ANSWER + player.xpGained;
   const laterButton = (label: string) => (
-    <button type="button" className="link-button" disabled={pausing} onClick={() => void leave()}>
+    <button type="button" className="link-button" disabled={pausing} onClick={() => void leave(LATER_PATH)}>
       {pausing ? t.question.pausing : label}
     </button>
   );
@@ -117,6 +132,12 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
       {pauseError}
     </p>
   );
+
+  function start() {
+    setWelcomed(true);
+    // Le temps passé sur l'accueil ne compte pas dans celui de la première question.
+    player.markShown();
+  }
 
   function cancelPick() {
     window.clearTimeout(pickTimer.current);
@@ -132,8 +153,6 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   }
 
   function backToLastQuestion() {
-    const chapter = items[total - 1]?.chapter;
-    if (chapter) setIntroduced((done) => new Set(done).add(chapter));
     setDirection('back');
     player.goTo(total - 1);
   }
@@ -161,15 +180,29 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         <p className="quiz-transparency">{frenchSpacing(t.welcome.transparency)}</p>
         {pauseAlert}
         <div className="quiz-actions">
-          <button
-            type="button"
-            className="button button--primary"
-            onClick={() => {
-              setWelcomed(true);
-              player.markShown();
-            }}
-          >
+          <button type="button" className="button button--primary" onClick={start}>
             {t.welcome.start}
+          </button>
+          {laterButton(t.welcome.later)}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Reprise : une nouvelle série commence ---
+  if (resumed && !welcomed && unseen > 0) {
+    return (
+      <div className="quiz-screen quiz-screen--center quiz-welcome">
+        <NeoSlot mood="wave" />
+        <p className="quiz-kicker">{t.resume.kicker}</p>
+        <ScreenTitle>{frenchSpacing(t.resume.title)}</ScreenTitle>
+        <p className="quiz-bubble">
+          {frenchSpacing(t.resume.text(startedWith.answered, total, unseen, SERIES_SIZE))}
+        </p>
+        {pauseAlert}
+        <div className="quiz-actions">
+          <button type="button" className="button button--primary" onClick={start}>
+            {t.resume.start}
           </button>
           {laterButton(t.welcome.later)}
         </div>
@@ -231,55 +264,65 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     );
   }
 
-  if (!current) return <Waiting text={t.loading} />;
-  const info = chapterOf(instrument, current);
-
-  // --- Intermède de chapitre (ou reprise) ---
-  if (info && !reviewing && !introduced.has(info.chapter.id)) {
-    const resuming = resumed && introduced.size === 0;
-    const chapterId = info.chapter.id;
+  // --- Fin d'une série : 10 de plus, ou une pause ---
+  if (seriesEnded) {
+    // Un double appui commencé sur la dernière question de la série ne choisit rien ici.
+    const unlessJustShown = (action: () => void) => () => {
+      if (!player.justShown()) action();
+    };
     return (
-      <div className="quiz-screen quiz-screen--center quiz-chapter">
-        <NeoSlot mood={resuming ? 'wave' : 'happy'} />
-        {resuming && <p className="quiz-kicker">{t.chapter.resumeKicker}</p>}
-        <p className="quiz-chapter__count">{t.chapter.count(info.position, info.total)}</p>
-        <ScreenTitle>{info.chapter.title}</ScreenTitle>
-        {info.chapter.intro && <p className="quiz-bubble">{frenchSpacing(info.chapter.intro)}</p>}
-        {resuming && <p className="quiz-note">{t.chapter.resumeText(startedWith.answered)}</p>}
-        <ol className="quiz-chapter__steps plain-list" aria-hidden="true">
-          {(instrument.chapters ?? []).map((chapter, position) => (
-            <li
-              key={chapter.id}
-              className={
-                position + 1 < info.position ? 'is-done' : position + 1 === info.position ? 'is-current' : ''
-              }
-            />
-          ))}
-        </ol>
+      <div className="quiz-screen quiz-screen--center quiz-break">
+        <NeoSlot mood="cheer" />
+        <ScreenTitle>{frenchSpacing(t.series.title)}</ScreenTitle>
+        <p className="quiz-bubble">{frenchSpacing(t.series.text)}</p>
+        <div className="quiz-mystery">
+          {/* L'archétype reste une surprise jusqu'à la révélation : le badge garde son « ? ». */}
+          <ArchetypeBadge archetype={null} />
+          <div className="quiz-mystery__text">
+            <p className="quiz-mystery__left">{t.series.left(unseen)}</p>
+            <p className="quiz-mystery__xp">{t.xp.label(xp)}</p>
+          </div>
+        </div>
         {pauseAlert}
         <div className="quiz-actions">
           <button
             type="button"
             className="button button--primary"
-            onClick={() => {
-              setIntroduced((done) => new Set(done).add(chapterId));
-              // Le temps passé sur l'intermède ne compte pas dans celui de la question.
+            disabled={pausing}
+            onClick={unlessJustShown(() => {
+              setContinued(Math.floor(sitting.length / SERIES_SIZE));
+              setDirection('forward');
+              // Le temps passé sur cet écran ne compte pas dans celui de la question suivante.
               player.markShown();
-            }}
+            })}
           >
-            {resuming ? t.chapter.resume : t.chapter.start}
+            {t.series.more(Math.min(SERIES_SIZE, unseen), unseen <= SERIES_SIZE)}
           </button>
-          {laterButton(t.question.later)}
+          <button
+            type="button"
+            className="link-button"
+            disabled={pausing}
+            onClick={unlessJustShown(() => void leave(HUB_PATH))}
+          >
+            {pausing ? t.question.pausing : t.series.later}
+          </button>
         </div>
       </div>
     );
   }
 
+  if (!current) return <Waiting text={t.loading} />;
+
   // --- Une question ---
   const item = current;
   const stored = answers[item.id];
   const alreadyAnswered = stored !== undefined && !stored.skipped;
-  const chapterTitle = info?.chapter.title ?? '';
+  const spot = seriesSpot(sitting, continued, item.id, stored !== undefined);
+  const step = reviewing
+    ? t.question.reviewing
+    : spot.position !== null
+      ? t.question.series(spot.position + 1, SERIES_SIZE)
+      : null;
 
   // Le hook choisit la question suivante, revue des questions passées comprise.
   function commit(value: AnswerValue, responseMs: number) {
@@ -318,8 +361,6 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   function handleBack() {
     cancelPick();
-    const chapter = items[index - 1]?.chapter;
-    if (chapter) setIntroduced((done) => new Set(done).add(chapter));
     setDirection('back');
     player.back();
   }
@@ -330,14 +371,11 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
         {laterButton(t.question.later)}
         <XpCounter value={xp} />
       </div>
-      <ChapterProgress
-        instrument={instrument}
-        index={index}
-        label={t.question.progressLabel(index + 1, total, chapterTitle)}
-      />
+      {/* Pendant la revue des questions passées, il n'y a plus de série. */}
+      {!reviewing && <SeriesDots {...spot} />}
       <p className="quiz-meta">
-        <span>{chapterTitle}</span>
-        <span className="quiz-meta__count">{t.question.progress(index + 1, total)}</span>
+        <span id="quiz-step">{step}</span>
+        <span className="quiz-meta__count">{t.question.answered(player.answeredCount, total)}</span>
       </p>
       {pauseAlert}
       {player.saveFailed && (
@@ -361,6 +399,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
           value={picked ?? stored?.value}
           onAnswer={handleAnswer}
           autoFocus
+          describedBy={step ? 'quiz-step' : undefined}
         />
       </div>
       <div className="quiz-nav">

@@ -21,18 +21,24 @@ export const quizFr = {
     start: 'C’est parti !',
     later: 'Plus tard',
   },
-  chapter: {
-    count: (position: number, total: number) => `Chapitre ${position} sur ${total}`,
-    start: 'On y va',
-    resumeKicker: 'Te revoilà !',
-    resumeText: (answered: number) =>
-      `Tu as déjà ${answered} ${plural(answered, 'réponse', 'réponses')}. On reprend là où tu t’étais arrêté·e.`,
-    resume: 'On continue',
+  resume: {
+    kicker: 'Quiz d’arrivée',
+    title: 'Te revoilà !',
+    /** `unseen` : questions encore jamais vues ; `size` : questions d'une série. */
+    text: (answered: number, total: number, unseen: number, size: number) =>
+      (answered > 0 ? `Tu as déjà ${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}. ` : '') +
+      (unseen > size
+        ? `Je te pose une nouvelle série de ${size} questions.`
+        : unseen > 1
+          ? `Plus que ${unseen} questions avant de découvrir ton archétype !`
+          : 'Plus qu’une question avant de découvrir ton archétype !'),
+    start: 'C’est reparti !',
   },
   question: {
-    progress: (position: number, total: number) => `Question ${position} sur ${total}`,
-    progressLabel: (position: number, total: number, chapter: string) =>
-      `Question ${position} sur ${total}, chapitre ${chapter}`,
+    series: (position: number, size: number) => `Question ${position} sur ${size}`,
+    answered: (answered: number, total: number) =>
+      `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total}`,
+    reviewing: 'Questions passées',
     back: 'Retour',
     skip: 'Passer',
     next: 'Suivant',
@@ -43,6 +49,16 @@ export const quizFr = {
     saveError: 'Ta réponse n’est pas encore enregistrée, je réessaie plus tard.',
     pauseError: 'Impossible de mettre en pause pour l’instant. Vérifie ta connexion et réessaie.',
   },
+  series: {
+    title: 'Série terminée !',
+    text: 'Bien joué ! Tu enchaînes ou tu fais une pause ? C’est toi qui vois.',
+    left: (unseen: number) =>
+      `Encore ${unseen} ${plural(unseen, 'question', 'questions')} avant de découvrir ton archétype`,
+    /** `next` : questions de la série suivante ; `last` : ce sont les dernières du quiz. */
+    more: (next: number, last: boolean) =>
+      !last ? `${next} de plus !` : next > 1 ? `Les ${next} dernières !` : 'La dernière !',
+    later: 'Je reprends plus tard',
+  },
   xp: {
     label: (xp: number) => `${xp} XP gagnés pendant le quiz`,
     announce: (gain: number, total: number) => `+${gain} XP, ${total} XP au total`,
@@ -51,7 +67,7 @@ export const quizFr = {
   },
   end: {
     title: 'Tu as fait le tour !',
-    text: 'Bravo, tu as fait le tour de ta semaine ! Prêt·e à découvrir ton archétype ?',
+    text: 'Bravo, tu as fait le tour des questions ! Prêt·e à découvrir ton archétype ?',
     count: (answered: number, total: number) =>
       `${answered} ${plural(answered, 'réponse', 'réponses')} sur ${total} questions.`,
     reveal: 'Révéler mon archétype',
