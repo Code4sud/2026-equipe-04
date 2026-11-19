@@ -20,15 +20,12 @@ function generator(seed: number) {
 }
 
 /**
- * Mélange de Fisher-Yates tiré d'une graine : la même graine et la même liste donnent toujours le
- * même ordre, sur n'importe quel appareil. La liste reçue n'est pas modifiée.
+ * Mélange tiré d'une graine : chaque élément reçoit son propre rang, tiré de la graine et de son
+ * identifiant. La même graine donne toujours le même ordre, sur n'importe quel appareil, et ajouter
+ * ou retirer un élément ne change pas l'ordre des autres. La liste reçue n'est pas modifiée.
  */
-export function seededShuffle<T>(list: readonly T[], seed: string): T[] {
-  const random = generator(seedOf(seed));
-  const shuffled = [...list];
-  for (let last = shuffled.length - 1; last > 0; last -= 1) {
-    const picked = Math.floor(random() * (last + 1));
-    [shuffled[last], shuffled[picked]] = [shuffled[picked], shuffled[last]];
-  }
-  return shuffled;
+export function seededShuffle<T extends { id: string }>(list: readonly T[], seed: string): T[] {
+  const rank = new Map(list.map((item) => [item.id, generator(seedOf(`${seed}:${item.id}`))()]));
+  const rankOf = (item: T) => rank.get(item.id) ?? 0;
+  return [...list].sort((a, b) => rankOf(a) - rankOf(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
