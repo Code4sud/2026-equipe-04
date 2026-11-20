@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { ErrorState, errorMessage, Loading } from '../../components/Feedback';
 import { gameApi } from '../api';
+import { NinjaContext, useNinjaState } from '../ninja';
 import type { PublicInstrument, RunPayload, RunResult } from '../types';
 import './cognitive.css';
 import { cogFr } from './cognitive.fr';
@@ -75,6 +76,9 @@ export function CognitivePlayer({ instrumentId }: { instrumentId: string }) {
   const [trials, setTrials] = useState<unknown[] | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  /** Mode ninja (démo) : le jeu se joue tout seul jusqu'au bilan. */
+  const ninja = useNinjaState();
+  const stopNinja = ninja.stop;
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -98,6 +102,8 @@ export function CognitivePlayer({ instrumentId }: { instrumentId: string }) {
   const send = useCallback(
     async (list: unknown[]) => {
       if (!payload || !settings) return;
+      // La partie est jouée : le mode ninja s'arrête sur le bilan.
+      stopNinja();
       setTrials(list);
       setSendError(null);
       try {
@@ -108,7 +114,7 @@ export function CognitivePlayer({ instrumentId }: { instrumentId: string }) {
         setSendError(errorMessage(caught));
       }
     },
-    [payload, settings, user, instrumentId],
+    [payload, settings, user, instrumentId, stopNinja],
   );
 
   let screen;
@@ -146,8 +152,10 @@ export function CognitivePlayer({ instrumentId }: { instrumentId: string }) {
     );
   }
   return (
-    <div className="cog-screen" data-game={settings?.kind}>
-      {screen}
-    </div>
+    <NinjaContext.Provider value={ninja}>
+      <div className="cog-screen" data-game={settings?.kind}>
+        {screen}
+      </div>
+    </NinjaContext.Provider>
   );
 }

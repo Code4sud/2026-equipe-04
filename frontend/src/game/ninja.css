@@ -1,0 +1,29 @@
+/* Mode ninja (démo) : petit, discret, à côté du titre du jeu */
+.ninja-button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 2rem;
+  margin-left: auto;
+  padding: 0 var(--space-3);
+  border: var(--border-width) dashed var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ninja-button:hover {
+  color: var(--color-text);
+}
+
+.ninja-button--on {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

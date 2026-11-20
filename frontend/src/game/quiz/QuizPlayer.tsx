@@ -5,7 +5,8 @@ import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { keepTogether } from '../components/keepTogether';
 import { QuestionCard } from '../components/QuestionCard';
-import type { AnswerValue, GameItem, LikertScale } from '../types';
+import { NINJA_RESPONSE_MS, ninjaValue } from '../ninja';
+import type { AnswerValue } from '../types';
 import { isPending, useRunPlayer } from '../useRunPlayer';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
@@ -23,23 +24,6 @@ const HUB_PATH = '/jeune/jeux';
 /** Mode ninja (démo) : une étape toutes les 140 ms, plus l'allumage du choix, soit ~15 s pour 50 questions. */
 const NINJA_STEP_MS = 140;
 const NINJA_PICK_MS = 110;
-/** Temps de réponse envoyé en mode ninja : le serveur ignore les appuis de moins de 300 ms. */
-const NINJA_RESPONSE_MS = 400;
-const NINJA_TEXTS = ['Toujours partant', 'Un pas après l’autre', 'Faire rire les autres', 'Le dessin', 'La musique'];
-
-/** Une réponse au hasard, valable pour la question. */
-function ninjaValue(item: GameItem, scale?: LikertScale): AnswerValue {
-  const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
-  if (item.type === 'likert') {
-    const range = item.scale ?? scale;
-    return range ? range.min + Math.floor(Math.random() * (range.max - range.min + 1)) : 3;
-  }
-  if (item.options?.length) {
-    const id = pick(item.options).id;
-    return (item.max_choices ?? 1) > 1 ? [id] : id;
-  }
-  return { text: pick(NINJA_TEXTS) };
-}
 
 /** Titre d'écran qui prend le focus à l'affichage, pour les lecteurs d'écran. */
 function ScreenTitle({ children }: { children: ReactNode }) {

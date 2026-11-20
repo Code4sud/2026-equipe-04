@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { NeoAvatar, type NeoMood } from '../neo/NeoAvatar';
 import type { PublicInstrument } from '../types';
 import { cogFr } from './cognitive.fr';
+import { NinjaContextButton } from '../ninja';
 import { useKeys } from './hooks';
 
 const t = cogFr.common;
@@ -96,6 +97,7 @@ export function GameTop({
         <h1>{title}</h1>
         {progress && <p className="cog-top__progress">{progress}</p>}
       </div>
+      <NinjaContextButton />
     </header>
   );
 }

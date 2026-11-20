@@ -3,6 +3,7 @@ import type { PublicInstrument } from '../../types';
 import { cogFr } from '../cognitive.fr';
 import { useDelay, useGameState, useKeys, usePause } from '../hooks';
 import type { LogicPuzzle, LogicSettings } from '../settings';
+import { pickOne, useNinja, useNinjaStep } from '../../ninja';
 import { GameFrame, GameIntro, GoScreen, type NeoMood } from '../ui';
 import { LogicFigure, describeCell } from './LogicFigure';
 
@@ -161,6 +162,34 @@ export function LogicGame({
     },
     playing && !paused,
   );
+
+  // Mode ninja (démo) : lit l'énigme, choisit une réponse, la valide. Les réponses des énigmes
+  // comptées ne sont jamais dans l'app : hors entraînement, il choisit au hasard.
+  const ninja = useNinja();
+  let ninjaAction: (() => void) | null = null;
+  let ninjaDelay = 1400;
+  if (ninja && !paused) {
+    if (state.step === 'intro') {
+      ninjaAction = () => begin(settings.practice.length ? 'practice' : 'run');
+    } else if (state.step === 'go') {
+      ninjaAction = () => begin('run');
+    } else if (playing && puzzle) {
+      if (state.feedback) {
+        // Pendant l'entraînement, « Suivant » attend un appui ; ensuite le jeu avance seul.
+        if (state.step === 'practice') ninjaAction = next;
+        ninjaDelay = 1300;
+      } else if (!state.selected) {
+        const choice = puzzle.answer ?? pickOne(puzzle.options).id;
+        ninjaAction = () => select(choice);
+        ninjaDelay = 1600;
+      } else {
+        const chosen = state.selected;
+        ninjaAction = () => record(chosen);
+        ninjaDelay = 700;
+      }
+    }
+  }
+  useNinjaStep(ninja, ninjaAction, ninjaDelay);
 
   useEffect(() => {
     if (state.step === 'done' && !finished.current) {

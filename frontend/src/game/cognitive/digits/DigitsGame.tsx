@@ -4,6 +4,7 @@ import { pressProps, useKeys } from '../hooks';
 import type { SpanSettings } from '../settings';
 import { spanMessage } from '../span/spanMessage';
 import { useSpanGame, type SpanTrial } from '../span/useSpanGame';
+import { useSpanNinja } from '../span/useSpanNinja';
 import { GameFrame, GameIntro, GameTop, GoScreen, NeoSays } from '../ui';
 
 const t = cogFr.digits;
@@ -59,6 +60,7 @@ export function DigitsGame({
   onFinish: (trials: SpanTrial[]) => void;
 }) {
   const game = useSpanGame(settings, onFinish, false);
+  useSpanNinja(game, settings, game.press, false);
   const { state, phase } = game;
   const answering = state.step === 'answer';
   const complete = answering && state.response.length === state.sequence.length;

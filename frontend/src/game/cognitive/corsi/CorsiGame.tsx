@@ -5,6 +5,7 @@ import { pressProps, useDelay } from '../hooks';
 import type { SpanSettings } from '../settings';
 import { spanMessage } from '../span/spanMessage';
 import { useSpanGame, type SpanTrial } from '../span/useSpanGame';
+import { useSpanNinja } from '../span/useSpanNinja';
 import { GameFrame, GameIntro, GoScreen } from '../ui';
 
 const t = cogFr.corsi;
@@ -45,6 +46,7 @@ export function CorsiGame({
   const { state } = game;
   const [flash, setFlash] = useState<{ id: number; at: number } | null>(null);
   useDelay(() => setFlash(null), flash ? 220 : null, flash?.at ?? 0);
+  useSpanNinja(game, settings, (id) => tap(id), true);
 
   if (state.step === 'intro') {
     return (

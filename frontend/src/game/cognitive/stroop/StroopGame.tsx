@@ -4,6 +4,7 @@ import { cogFr } from '../cognitive.fr';
 import { pressProps, useDelay, useGameState, useKeys, usePause } from '../hooks';
 import { stroopSequence, type StroopPair } from '../random';
 import type { StroopSettings } from '../settings';
+import { pickOne, useNinja, useNinjaStep } from '../../ninja';
 import { GameFrame, GameIntro, GameTop, GoScreen, NeoSays } from '../ui';
 
 const t = cogFr.stroop;
@@ -153,6 +154,27 @@ export function StroopGame({
     },
     playing && !paused,
   );
+
+  // Mode ninja (démo) : touche la bonne couleur la plupart du temps, en un temps de réaction humain.
+  const ninja = useNinja();
+  let ninjaAction: (() => void) | null = null;
+  let ninjaDelay = 1400;
+  if (ninja && !paused) {
+    if (state.step === 'intro') {
+      ninjaAction = () => (settings.practiceTrials > 0 ? startList('practice', 0) : startList('run', 1));
+    } else if (state.step === 'go') {
+      ninjaAction = () => startList('run', 1);
+    } else if (state.step === 'break') {
+      ninjaAction = () => startList('run', state.round + 1);
+      ninjaDelay = 1200;
+    } else if (playing && state.beat === 'stimulus' && pair) {
+      const others = ids.filter((id) => id !== pair.ink);
+      const choice = Math.random() < 0.9 || !others.length ? pair.ink : pickOne(others);
+      ninjaAction = () => respond(choice);
+      ninjaDelay = 450 + Math.round(Math.random() * 350);
+    }
+  }
+  useNinjaStep(ninja, ninjaAction, ninjaDelay);
 
   useEffect(() => {
     if (state.step === 'done' && !finished.current) {

@@ -5,6 +5,7 @@ import { QuestionCard } from '../components/QuestionCard';
 import { gameFr } from '../content.fr';
 import { gameEmoji } from '../hub/gameEmoji';
 import { NeoSlot } from '../hub/NeoSlot';
+import { NINJA_RESPONSE_MS, NinjaButton, ninjaValue, useNinjaState, useNinjaStep, type Ninja } from '../ninja';
 import type { Chapter } from '../types';
 import { useRunPlayer } from '../useRunPlayer';
 import { RunResults } from './RunResults';
@@ -29,11 +30,13 @@ function TopBar({
   onLeave,
   leaving,
   xp,
+  ninja,
 }: {
   label: string;
   onLeave: () => void;
   leaving: boolean;
   xp?: number;
+  ninja: Ninja;
 }) {
   return (
     <div className="play-top">
@@ -52,6 +55,7 @@ function TopBar({
           <span className="visually-hidden">{t.question.xpLabel(xp)}</span>
         </span>
       )}
+      <NinjaButton ninja={ninja} />
     </div>
   );
 }
@@ -127,6 +131,45 @@ export function QuestionnairePlayer({
     }
   }
 
+  // Mode ninja (démo) : répond au hasard, une question à la fois, jusqu'au résultat.
+  const ninja = useNinjaState();
+  let ninjaAction: (() => void) | null = null;
+  if (ninja.active && instrument && !result && !player.finishing) {
+    const needed = instrument.min_answers ?? Math.ceil(items.length * 0.6);
+    if (screen === 'intro') {
+      ninjaAction = () => {
+        setStarted(true);
+        player.markShown();
+      };
+    } else if (screen === 'chapter' && pendingChapter) {
+      const id = pendingChapter.id;
+      ninjaAction = () => {
+        setSeenChapters((seen) => new Set(seen).add(id));
+        player.markShown();
+      };
+    } else if (screen === 'end') {
+      ninjaAction =
+        player.answeredCount < needed
+          ? player.review
+          : () => {
+              // Une seule tentative : en cas d'erreur, l'écran de fin reste là, sans boucle.
+              ninja.stop();
+              void player.finish();
+            };
+    } else if (current) {
+      const item = current;
+      const done = answers[item.id] !== undefined && !answers[item.id].skipped;
+      ninjaAction =
+        done && !reviewing
+          ? () => {
+              player.next();
+              player.markShown();
+            }
+          : () => void player.answer(ninjaValue(item, instrument.scale), Math.max(player.elapsed(), NINJA_RESPONSE_MS));
+    }
+  }
+  useNinjaStep(ninja.active, ninjaAction, screen === 'question' ? 700 : 1100);
+
   if (player.error && !instrument) {
     return <ErrorState message={player.error} onRetry={() => void player.reload()} />;
   }
@@ -146,7 +189,7 @@ export function QuestionnairePlayer({
   const total = items.length;
   const answeredCount = player.answeredCount;
   const topBar = (
-    <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} />
+    <TopBar label={t.pause} onLeave={() => void leave()} leaving={leaving} xp={player.xpGained} ninja={ninja} />
   );
   const leaveNotice = leaveError && (
     <p className="form-error" role="alert">
@@ -168,7 +211,7 @@ export function QuestionnairePlayer({
     const resuming = Object.keys(answers).length > 0;
     return (
       <div className="play play--intro">
-        <TopBar label={t.backToHub} onLeave={() => void leave()} leaving={leaving} />
+        <TopBar label={t.backToHub} onLeave={() => void leave()} leaving={leaving} ninja={ninja} />
         {leaveNotice}
         <div className="play-stage">
           <div className="play-hero">
