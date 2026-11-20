@@ -38,6 +38,7 @@ JSON_OPTIONS = {"temperature": 0.1, "num_ctx": 6144, "num_predict": 800}
 # Temps maximal pendant lequel le lecteur attend la fin d'une réponse au jeune.
 READER_MAX_WAIT = 120
 READER_POLL = 0.15
+MAX_PREEMPTIONS = 2
 
 
 class Preempted(LLMError):
@@ -156,12 +157,16 @@ class OllamaClient:
         if not self.yields_to_chat:
             with self._chat_turn():
                 return self._parse("".join(self._stream(payload)))
-        while True:
+        # Le lecteur cède la place au plus deux fois par requête, puis la termine : un jeune qui
+        # écrit sans s'arrêter ne doit jamais empêcher ses talents d'être trouvés.
+        for _ in range(MAX_PREEMPTIONS):
             self.priority.wait_for_chat()
             try:
                 return self._parse("".join(self._stream(payload, preemptible=True)))
             except Preempted:
                 logger.info("Analyse interrompue pour laisser répondre le compagnon")
+        self.priority.wait_for_chat()
+        return self._parse("".join(self._stream(payload)))
 
     def status(self) -> dict:
         try:

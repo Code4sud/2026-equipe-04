@@ -8,6 +8,7 @@ si elle respecte les garde-fous. Truffe l'épingle directement ; le jeune peut l
 from __future__ import annotations
 
 import logging
+import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
@@ -28,6 +29,8 @@ logger = logging.getLogger(__name__)
 MAX_SKILLS_PER_RUN = 4
 MAX_MESSAGES_PER_RUN = 12
 MIN_MESSAGE_CHARS = 12
+MAX_RETRIES = 3
+RETRY_DELAY = 5
 MAX_CONTEXT_CHARS = 220
 
 
@@ -40,6 +43,7 @@ class ExtractionService:
         self.guardrails = guardrails
         self.detector = detector
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="extraction")
+        self._failures: dict[uuid.UUID, int] = {}
 
     def maybe_schedule(self, conversation: Conversation) -> bool:
         threshold = self.app.config["EXTRACTION_EVERY_MESSAGES"]
@@ -95,12 +99,29 @@ class ExtractionService:
                     update(Conversation).where(Conversation.id == conversation_id).values(**values)
                 )
                 db.session.commit()
-            if processed is not None:
-                # Le jeune a pu écrire pendant l'analyse : on lit tout de suite la suite, sinon
-                # ces messages attendraient le prochain message ou l'ouverture de l'écran.
-                conversation = db.session.get(Conversation, conversation_id)
-                if conversation is not None and conversation.unprocessed_messages > 0:
-                    self.schedule(conversation)
+            if processed is None:
+                # Ollama a échoué : on réessaie un peu plus tard plutôt que d'attendre le
+                # prochain message du jeune, pour qu'aucun récit ne reste sans analyse.
+                attempt = self._failures.get(conversation_id, 0) + 1
+                self._failures[conversation_id] = attempt
+                if attempt <= MAX_RETRIES and not self.app.config["EXTRACTION_SYNC"]:
+                    timer = threading.Timer(RETRY_DELAY * attempt, self._retry, [conversation_id])
+                    timer.daemon = True
+                    timer.start()
+                return
+            self._failures.pop(conversation_id, None)
+            # Le jeune a pu écrire pendant l'analyse : on lit tout de suite la suite, sinon
+            # ces messages attendraient le prochain message ou l'ouverture de l'écran.
+            conversation = db.session.get(Conversation, conversation_id)
+            if conversation is not None and conversation.unprocessed_messages > 0:
+                self.schedule(conversation)
+
+    def _retry(self, conversation_id: uuid.UUID) -> None:
+        with self.app.app_context():
+            conversation = db.session.get(Conversation, conversation_id)
+            if conversation is not None:
+                self.schedule(conversation)
+            db.session.remove()
 
     def _extract(self, conversation_id: uuid.UUID) -> int:
         conversation = db.session.get(Conversation, conversation_id)

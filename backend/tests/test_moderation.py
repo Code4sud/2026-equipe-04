@@ -80,3 +80,21 @@ def test_chat_takes_priority_over_the_reader(tmp_path):
     release.set()
     worker.join(5)
     assert not priority.chat_active()
+
+
+def test_reader_gives_way_twice_then_finishes_its_request(tmp_path, monkeypatch):
+    from app.services import llm as llm_module
+
+    priority = ChatPriority(str(tmp_path / "priorite.lock"))
+    reader = llm_module.OllamaClient("http://ollama", "modele", priority=priority).reader()
+    calls = []
+
+    def stream(payload, preemptible=False):
+        calls.append(preemptible)
+        if preemptible:
+            raise llm_module.Preempted("un jeune attend")
+        yield '{"ok": true}'
+
+    monkeypatch.setattr(reader, "_stream", stream)
+    assert reader.generate_json("consigne", "message", {"type": "object"}) == {"ok": True}
+    assert calls == [True, True, False]
