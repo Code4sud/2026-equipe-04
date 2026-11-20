@@ -5,7 +5,7 @@ import { ArchetypeBadge } from '../archetype/ArchetypeBadge';
 import { frenchSpacing } from '../components/frenchSpacing';
 import { keepTogether } from '../components/keepTogether';
 import { QuestionCard } from '../components/QuestionCard';
-import type { AnswerValue } from '../types';
+import type { AnswerValue, GameItem, LikertScale } from '../types';
 import { isPending, useRunPlayer } from '../useRunPlayer';
 import { NeoSlot } from './NeoSlot';
 import { quizFr } from './quiz.fr';
@@ -20,6 +20,26 @@ const PICK_DELAY_MS = 180;
 /** « Continuer plus tard » mène à la discussion ; la fin d'une série, aux jeux, où le quiz attend. */
 const LATER_PATH = '/jeune/discussion';
 const HUB_PATH = '/jeune/jeux';
+/** Mode ninja (démo) : une étape toutes les 140 ms, plus l'allumage du choix, soit ~15 s pour 50 questions. */
+const NINJA_STEP_MS = 140;
+const NINJA_PICK_MS = 110;
+/** Temps de réponse envoyé en mode ninja : le serveur ignore les appuis de moins de 300 ms. */
+const NINJA_RESPONSE_MS = 400;
+const NINJA_TEXTS = ['Toujours partant', 'Un pas après l’autre', 'Faire rire les autres', 'Le dessin', 'La musique'];
+
+/** Une réponse au hasard, valable pour la question. */
+function ninjaValue(item: GameItem, scale?: LikertScale): AnswerValue {
+  const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+  if (item.type === 'likert') {
+    const range = item.scale ?? scale;
+    return range ? range.min + Math.floor(Math.random() * (range.max - range.min + 1)) : 3;
+  }
+  if (item.options?.length) {
+    const id = pick(item.options).id;
+    return (item.max_choices ?? 1) > 1 ? [id] : id;
+  }
+  return { text: pick(NINJA_TEXTS) };
+}
 
 /** Titre d'écran qui prend le focus à l'affichage, pour les lecteurs d'écran. */
 function ScreenTitle({ children }: { children: ReactNode }) {
@@ -53,13 +73,31 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   const [welcomed, setWelcomed] = useState(false);
   /** Séries de cette séance après lesquelles le jeune a choisi de continuer. */
   const [continued, setContinued] = useState(0);
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<AnswerValue | null>(null);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const pickTimer = useRef<number | undefined>(undefined);
+  /** Mode ninja (démo de présentation) : répond seul à tout le quiz, en avance rapide. */
+  const [ninja, setNinja] = useState(false);
+  const [, setNinjaTick] = useState(0);
+  /** Ce que le mode ninja fait sur l'écran affiché ; chaque écran le redéfinit à son rendu. */
+  const ninjaAction = useRef<(() => void) | null>(null);
+  ninjaAction.current = null;
 
   useEffect(() => () => window.clearTimeout(pickTimer.current), []);
+
+  // Une étape du mode ninja après chaque rendu : tout nouveau rendu relance le minuteur.
+  useEffect(() => {
+    if (!ninja) return;
+    const timer = window.setTimeout(() => {
+      const act = ninjaAction.current;
+      if (!act) return;
+      act();
+      setNinjaTick((tick) => tick + 1);
+    }, NINJA_STEP_MS);
+    return () => window.clearTimeout(timer);
+  });
 
   // Les séries comptent les questions vues depuis l'ouverture du quiz : elles repartent de zéro à
   // chaque reprise. Une fois toutes les questions vues, place à la fin (et à la revue des passées).
@@ -88,6 +126,27 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
       setPausing(false);
     }
   }
+
+  function toggleNinja() {
+    if (ninja) {
+      window.clearTimeout(pickTimer.current);
+      pickTimer.current = undefined;
+      setPicked(null);
+    }
+    setNinja(!ninja);
+  }
+
+  const ninjaButton = (
+    <button
+      type="button"
+      className={`quiz-ninja${ninja ? ' quiz-ninja--on' : ''}`}
+      aria-pressed={ninja}
+      title={t.ninja.title}
+      onClick={toggleNinja}
+    >
+      <span aria-hidden="true">🥷</span> {ninja ? t.ninja.stop : t.ninja.start}
+    </button>
+  );
 
   if (player.errorCode === 'already_completed') return <Waiting text={t.loading} />;
   if (player.error && !instrument) {
@@ -165,6 +224,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
 
   // --- Accueil ---
   if (!resumed && !welcomed) {
+    ninjaAction.current = start;
     return (
       <div className="quiz-screen quiz-screen--center quiz-welcome">
         <NeoSlot mood="wave" />
@@ -200,6 +260,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
             {t.welcome.start}
           </button>
           {laterButton(t.welcome.later)}
+          {ninjaButton}
         </div>
       </div>
     );
@@ -208,6 +269,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   // --- Reprise : une nouvelle série commence ---
   if (resumed && !welcomed && unseen > 0) {
     const toUnlock = unlocksAfter === null ? 0 : Math.max(0, unlocksAfter - startedWith.seen);
+    ninjaAction.current = start;
     return (
       <div className="quiz-screen quiz-screen--center quiz-welcome">
         <NeoSlot mood="wave" />
@@ -224,6 +286,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
             {t.resume.start}
           </button>
           {laterButton(t.welcome.later)}
+          {ninjaButton}
         </div>
       </div>
     );
@@ -232,6 +295,13 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
   // --- Fin du parcours ---
   if (player.atEnd) {
     const notEnough = missing > 0 || player.errorCode === 'not_enough_answers';
+    ninjaAction.current = notEnough
+      ? startReview
+      : () => {
+          // Une seule tentative : en cas d'erreur, l'écran de fin reste là, sans boucle.
+          setNinja(false);
+          void player.finish();
+        };
     return (
       <div className="quiz-screen quiz-screen--center">
         <NeoSlot mood={notEnough ? 'thinking' : 'cheer'} />
@@ -276,6 +346,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
               <button type="button" className="link-button" onClick={backToLastQuestion}>
                 {t.end.back}
               </button>
+              {ninjaButton}
             </div>
           </>
         )}
@@ -297,6 +368,13 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     const seenBefore = startedWith.seen + continued * SERIES_SIZE;
     const seenNow = startedWith.seen + sitting.length;
     const unlocked = unlocksAfter !== null && seenBefore < unlocksAfter && unlocksAfter <= seenNow;
+    const moreQuestions = () => {
+      setContinued(Math.floor(sitting.length / SERIES_SIZE));
+      setDirection('forward');
+      // Le temps passé sur cet écran ne compte pas dans celui de la question suivante.
+      player.markShown();
+    };
+    ninjaAction.current = moreQuestions;
     return (
       <div className="quiz-screen quiz-screen--center quiz-break">
         <NeoSlot mood="cheer" />
@@ -324,12 +402,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
             type="button"
             className="button button--primary"
             disabled={pausing}
-            onClick={unlessJustShown(() => {
-              setContinued(Math.floor(sitting.length / SERIES_SIZE));
-              setDirection('forward');
-              // Le temps passé sur cet écran ne compte pas dans celui de la question suivante.
-              player.markShown();
-            })}
+            onClick={unlessJustShown(moreQuestions)}
           >
             {t.series.more(next, last)}
           </button>
@@ -342,6 +415,7 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
           >
             {pausing ? t.question.pausing : unlocked ? t.series.toGames : t.series.later}
           </button>
+          {ninjaButton}
         </div>
       </div>
     );
@@ -401,10 +475,29 @@ export function QuizPlayer({ onAlreadyDone }: { onAlreadyDone: () => void }) {
     player.back();
   }
 
+  // Mode ninja : une réponse au hasard, allumée un instant comme un vrai choix, puis la suivante.
+  ninjaAction.current = () => {
+    if (pickTimer.current !== undefined) return;
+    if (alreadyAnswered && !reviewing) {
+      setDirection('forward');
+      player.next();
+      player.markShown();
+      return;
+    }
+    const value = ninjaValue(item, instrument.scale);
+    setPicked(value);
+    pickTimer.current = window.setTimeout(() => {
+      pickTimer.current = undefined;
+      setPicked(null);
+      commit(value, Math.max(player.elapsed(), NINJA_RESPONSE_MS));
+    }, NINJA_PICK_MS);
+  };
+
   return (
     <div className="quiz-screen quiz-screen--question">
       <div className="quiz-bar">
         {laterButton(t.question.later)}
+        {ninjaButton}
         <XpCounter value={xp} />
       </div>
       {/* Pas de série pendant la revue des questions passées, ni pour une question d'une séance

@@ -3,6 +3,12 @@ const plural = (count: number, one: string, many: string) => (count > 1 ? many :
 
 export const quizFr = {
   loading: 'Truffe prépare tes questions…',
+  /** Démo de présentation : le quiz se répond tout seul, en avance rapide. */
+  ninja: {
+    start: 'Ninja',
+    stop: 'Stop',
+    title: 'Mode ninja : répond à tout le quiz en avance rapide (démo)',
+  },
   leave: 'Revenir plus tard',
   welcome: {
     kicker: 'Quiz d’arrivée',
