@@ -5,6 +5,13 @@
   "ecoles": ["Aivancity", "Epitech"],
   "stack": ["React", "Typescript", "Python", "Flask", "PostgreSQL", "Docker", "Ollama"],
   "demo": "https://janitor-smugly-pointer.ngrok-free.dev/",
-  "video": "",
-  "captures": []
+  "video": "captures/demo.mp4",
+  "captures": [
+    "captures/1_bonjour.png",
+    "captures/2_discussion.png",
+    "captures/3_fiche-aiunran.png",
+    "captures/4_carte.png",
+    "captures/5_jeux_fin.png",
+    "captures/6_jeux.png"
+  ]
 }
